@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/app/router.dart';
 import 'package:spendsense/app/theme.dart';
 import 'package:spendsense/features/bills/data/bill_reminder_providers.dart';
+import 'package:spendsense/features/home_widgets/presentation/home_widget_launch_listener.dart';
 import 'package:spendsense/features/sms_capture/presentation/capture_notification_listener.dart';
 
 class SpendSenseApp extends ConsumerWidget {
@@ -19,9 +20,11 @@ class SpendSenseApp extends ConsumerWidget {
       themeMode: ThemeMode.system,
       routerConfig: router,
       builder: (context, child) {
-        return BillReminderSyncListener(
-          child: CaptureNotificationListener(
-            child: child ?? const SizedBox.shrink(),
+        return HomeWidgetLaunchListener(
+          child: BillReminderSyncListener(
+            child: CaptureNotificationListener(
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         );
       },

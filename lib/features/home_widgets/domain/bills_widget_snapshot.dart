@@ -1,0 +1,19 @@
+class BillWidgetItem {
+  const BillWidgetItem({
+    required this.cardNickname,
+    required this.dueDate,
+    required this.netOutstandingPaise,
+    required this.colorValue,
+  });
+
+  final String cardNickname;
+  final DateTime? dueDate;
+  final int netOutstandingPaise;
+  final int colorValue;
+}
+
+class BillsWidgetSnapshot {
+  const BillsWidgetSnapshot({required this.bills});
+
+  final List<BillWidgetItem> bills;
+}

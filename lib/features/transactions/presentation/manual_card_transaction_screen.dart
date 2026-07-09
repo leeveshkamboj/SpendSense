@@ -7,7 +7,9 @@ import 'package:spendsense/features/transactions/data/card_transaction_repositor
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
 class ManualCardTransactionScreen extends ConsumerStatefulWidget {
-  const ManualCardTransactionScreen({super.key});
+  const ManualCardTransactionScreen({this.initialKind, super.key});
+
+  final String? initialKind;
 
   @override
   ConsumerState<ManualCardTransactionScreen> createState() =>
@@ -22,6 +24,15 @@ class _ManualCardTransactionScreenState
   String _adjustmentDirection = 'charge';
   int? _selectedCardId;
   DateTime _transactionAt = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    final kind = widget.initialKind;
+    if (kind == 'expense' || kind == 'refund' || kind == 'cashback') {
+      _kind = kind!;
+    }
+  }
 
   @override
   void dispose() {
