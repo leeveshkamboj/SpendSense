@@ -316,5 +316,14 @@ void main() {
       expect(snapshot.cardSpendSegments, hasLength(1));
       expect(snapshot.cardSpendSegments.single.colorValue, 0xFF00695C);
     });
+
+    test('budget progress prompts to set budget when monthly limit unset', () async {
+      final snapshot = await repository.budgetProgress(asOf: DateTime(2026, 7, 10));
+
+      expect(snapshot.needsBudgetPrompt, isTrue);
+      expect(snapshot.limitPaise, isNull);
+      expect(snapshot.remainingPaise, isNull);
+      expect(snapshot.dailyBudgetPaise, isNull);
+    });
   });
 }
