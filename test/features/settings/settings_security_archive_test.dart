@@ -122,5 +122,33 @@ void main() {
       expect(gateway.authenticateCalls, 1);
       expect(await repository.verifyPin('5678'), isTrue);
     });
+
+    test('unlocks with biometrics when enabled and available', () async {
+      await repository.enableWithPin('1234');
+      await repository.setBiometricEnabled(true);
+
+      final unlocked = await repository.unlockWithBiometrics();
+
+      expect(unlocked, isTrue);
+      expect(gateway.biometricAuthenticateCalls, 1);
+    });
+
+    test('skips biometric unlock when disabled in settings', () async {
+      await repository.enableWithPin('1234');
+
+      expect(await repository.canUnlockWithBiometrics(), isFalse);
+      expect(await repository.unlockWithBiometrics(), isFalse);
+      expect(gateway.biometricAuthenticateCalls, 0);
+    });
+
+    test('skips biometric unlock when device biometrics unavailable', () async {
+      await repository.enableWithPin('1234');
+      await repository.setBiometricEnabled(true);
+      gateway.biometricsAvailable = false;
+
+      expect(await repository.canUnlockWithBiometrics(), isFalse);
+      expect(await repository.unlockWithBiometrics(), isFalse);
+      expect(gateway.biometricAuthenticateCalls, 0);
+    });
   });
 }

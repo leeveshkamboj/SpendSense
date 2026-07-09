@@ -58,7 +58,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   }
 }
 
-class _LockScreen extends ConsumerWidget {
+class _LockScreen extends ConsumerStatefulWidget {
   const _LockScreen({
     required this.pinController,
     required this.onUnlock,
@@ -68,7 +68,44 @@ class _LockScreen extends ConsumerWidget {
   final VoidCallback onUnlock;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_LockScreen> createState() => _LockScreenState();
+}
+
+class _LockScreenState extends ConsumerState<_LockScreen> {
+  bool _biometricAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initializeUnlock());
+  }
+
+  Future<void> _initializeUnlock() async {
+    final repository = ref.read(appLockRepositoryProvider);
+    final available = await repository.canUnlockWithBiometrics();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() => _biometricAvailable = available);
+    if (available) {
+      await _tryBiometricUnlock();
+    }
+  }
+
+  Future<void> _tryBiometricUnlock() async {
+    final unlocked =
+        await ref.read(appLockRepositoryProvider).unlockWithBiometrics();
+    if (!mounted || !unlocked) {
+      return;
+    }
+
+    widget.pinController.clear();
+    widget.onUnlock();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -84,22 +121,28 @@ class _LockScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               TextField(
-                controller: pinController,
+                controller: widget.pinController,
                 decoration: const InputDecoration(
                   labelText: 'PIN',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
                 obscureText: true,
-                onSubmitted: (_) => _verify(ref, context),
+                onSubmitted: (_) => _verify(context),
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () => _verify(ref, context),
+                onPressed: () => _verify(context),
                 child: const Text('Unlock'),
               ),
+              if (_biometricAvailable)
+                TextButton.icon(
+                  onPressed: _tryBiometricUnlock,
+                  icon: const Icon(Icons.fingerprint),
+                  label: const Text('Unlock with biometric'),
+                ),
               TextButton(
-                onPressed: () => _resetPin(context, ref),
+                onPressed: () => _resetPin(context),
                 child: const Text('Forgot PIN? Use device credential'),
               ),
               const Spacer(),
@@ -110,16 +153,16 @@ class _LockScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _verify(WidgetRef ref, BuildContext context) async {
+  Future<void> _verify(BuildContext context) async {
     final valid = await ref
         .read(appLockRepositoryProvider)
-        .verifyPin(pinController.text);
+        .verifyPin(widget.pinController.text);
     if (!context.mounted) {
       return;
     }
     if (valid) {
-      pinController.clear();
-      onUnlock();
+      widget.pinController.clear();
+      widget.onUnlock();
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
@@ -127,7 +170,7 @@ class _LockScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _resetPin(BuildContext context, WidgetRef ref) async {
+  Future<void> _resetPin(BuildContext context) async {
     final reset = await ref
         .read(appLockRepositoryProvider)
         .resetPinWithDeviceCredential('0000');
@@ -146,7 +189,7 @@ class _LockScreen extends ConsumerWidget {
     if (reset) {
       await ref.read(appLockRepositoryProvider).disable();
       ref.invalidate(appLockEnabledProvider);
-      onUnlock();
+      widget.onUnlock();
     }
   }
 }
