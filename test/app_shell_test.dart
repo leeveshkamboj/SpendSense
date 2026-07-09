@@ -6,6 +6,8 @@ import 'package:spendsense/app/app.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
+import 'package:spendsense/features/bills/notification_permission_gateway.dart';
+import 'package:spendsense/features/bills/presentation/notification_permission_banner.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_providers.dart';
 
@@ -29,6 +31,9 @@ void main() {
             onboardingCompleteProvider.overrideWith((ref) async => true),
             smsPermissionStateProvider.overrideWith(
               (ref) async => SmsPermissionState.granted,
+            ),
+            notificationPermissionStateProvider.overrideWith(
+              (ref) async => NotificationPermissionState.granted,
             ),
           ],
           child: const SpendSenseApp(),

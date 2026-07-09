@@ -4,7 +4,9 @@ import 'package:spendsense/core/database/app_settings_table.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transactions_table.dart';
 import 'package:spendsense/features/accounts/data/bank_accounts_table.dart';
 import 'package:spendsense/features/billing_cycles/data/billing_cycles_table.dart';
+import 'package:spendsense/features/budgets/data/budget_tables.dart';
 import 'package:spendsense/features/credit_cards/data/credit_cards_table.dart';
+import 'package:spendsense/features/recoverables/data/recoverables_tables.dart';
 import 'package:spendsense/features/transactions/data/card_transactions_table.dart';
 
 part 'database.g.dart';
@@ -17,6 +19,11 @@ part 'database.g.dart';
     CardTransactions,
     BankAccountTransactions,
     AppSettings,
+    BudgetSettings,
+    CategoryBudgets,
+    BudgetAlertCrossings,
+    RecoveryLinks,
+    RecoverablePersons,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -24,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'spendsense'));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +50,21 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(bankAccountTransactions);
             await m.createTable(appSettings);
+          }
+          if (from < 5) {
+            await m.addColumn(cardTransactions, cardTransactions.category);
+            await m.addColumn(cardTransactions, cardTransactions.isRecoverable);
+            await m.createTable(budgetSettings);
+            await m.createTable(categoryBudgets);
+            await m.createTable(budgetAlertCrossings);
+          }
+          if (from < 6) {
+            await m.addColumn(
+              cardTransactions,
+              cardTransactions.recoverablePerson,
+            );
+            await m.createTable(recoveryLinks);
+            await m.createTable(recoverablePersons);
           }
         },
       );

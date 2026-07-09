@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/bills/presentation/notification_permission_banner.dart';
 import 'package:spendsense/features/sms_capture/presentation/sms_permission_banner.dart';
 
 class AppShell extends StatelessWidget {
@@ -24,6 +25,7 @@ class AppShell extends StatelessWidget {
       body: Column(
         children: [
           const SmsPermissionBanner(),
+          const NotificationPermissionBanner(),
           Expanded(child: navigationShell),
         ],
       ),

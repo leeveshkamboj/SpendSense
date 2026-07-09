@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/recoverables/presentation/recoverable_summary_card.dart';
 
 final creditCardProvider = FutureProvider.family<CreditCard?, int>((ref, id) {
   return ref.watch(creditCardRepositoryProvider).getById(id);
@@ -102,12 +103,22 @@ class _CycleTile extends StatelessWidget {
         '${_formatDate(cycle.startDate)} – ${_formatDate(cycle.endDate)}';
 
     return Card(
-      child: ListTile(
-        title: Text(periodLabel),
-        subtitle: Text(
-          'Bill Amount: ${formatPaise(summary.billAmountPaise)}',
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(periodLabel),
+              subtitle: Text(
+                'Bill Amount: ${formatPaise(summary.billAmountPaise)}',
+              ),
+              trailing: Text(billingCycleStatusLabel(summary.status)),
+            ),
+            RecoverableSummaryCard(billingCycleId: cycle.id),
+          ],
         ),
-        trailing: Text(billingCycleStatusLabel(summary.status)),
       ),
     );
   }

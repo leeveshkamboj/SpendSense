@@ -15,6 +15,10 @@ class CardTransactions extends Table {
   TextColumn get source => text()();
   TextColumn get rawSms => text().nullable()();
   TextColumn get referenceNumber => text().nullable()();
+  TextColumn get category => text().nullable()();
+  BoolColumn get isRecoverable =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get recoverablePerson => text().nullable()();
   BoolColumn get isReviewed =>
       boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();

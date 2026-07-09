@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_screen.dart';
+import 'package:spendsense/features/budgets/presentation/budget_settings_screen.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 
 class SetupWizardScreen extends ConsumerWidget {
@@ -28,6 +29,17 @@ class SetupWizardScreen extends ConsumerWidget {
               );
             },
             child: const Text('Set up credit card'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const BudgetSettingsScreen(),
+                ),
+              );
+            },
+            child: const Text('Set monthly budget (optional)'),
           ),
           const SizedBox(height: 8),
           OutlinedButton(

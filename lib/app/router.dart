@@ -6,6 +6,7 @@ import 'package:spendsense/features/bills/bills_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_screen.dart';
 import 'package:spendsense/features/dashboard/dashboard_screen.dart';
+import 'package:spendsense/features/recoverables/presentation/recoverables_screen.dart';
 import 'package:spendsense/features/settings/settings_screen.dart';
 import 'package:spendsense/features/shell/app_shell.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
@@ -50,6 +51,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/accounts',
                 builder: (context, state) => const AccountsScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'recoverables',
+                    builder: (context, state) => const RecoverablesScreen(),
+                  ),
                   GoRoute(
                     path: 'cards/new',
                     builder: (context, state) => const CreditCardSetupScreen(),

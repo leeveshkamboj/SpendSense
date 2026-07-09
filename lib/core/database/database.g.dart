@@ -1979,6 +1979,44 @@ class $CardTransactionsTable extends CardTransactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isRecoverableMeta = const VerificationMeta(
+    'isRecoverable',
+  );
+  @override
+  late final GeneratedColumn<bool> isRecoverable = GeneratedColumn<bool>(
+    'is_recoverable',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_recoverable" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _recoverablePersonMeta = const VerificationMeta(
+    'recoverablePerson',
+  );
+  @override
+  late final GeneratedColumn<String> recoverablePerson =
+      GeneratedColumn<String>(
+        'recoverable_person',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isReviewedMeta = const VerificationMeta(
     'isReviewed',
   );
@@ -2017,6 +2055,9 @@ class $CardTransactionsTable extends CardTransactions
     source,
     rawSms,
     referenceNumber,
+    category,
+    isRecoverable,
+    recoverablePerson,
     isReviewed,
     createdAt,
   ];
@@ -2116,6 +2157,30 @@ class $CardTransactionsTable extends CardTransactions
         ),
       );
     }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('is_recoverable')) {
+      context.handle(
+        _isRecoverableMeta,
+        isRecoverable.isAcceptableOrUnknown(
+          data['is_recoverable']!,
+          _isRecoverableMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recoverable_person')) {
+      context.handle(
+        _recoverablePersonMeta,
+        recoverablePerson.isAcceptableOrUnknown(
+          data['recoverable_person']!,
+          _recoverablePersonMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_reviewed')) {
       context.handle(
         _isReviewedMeta,
@@ -2179,6 +2244,18 @@ class $CardTransactionsTable extends CardTransactions
         DriftSqlType.string,
         data['${effectivePrefix}reference_number'],
       ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      isRecoverable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_recoverable'],
+      )!,
+      recoverablePerson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recoverable_person'],
+      ),
       isReviewed: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_reviewed'],
@@ -2207,6 +2284,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
   final String source;
   final String? rawSms;
   final String? referenceNumber;
+  final String? category;
+  final bool isRecoverable;
+  final String? recoverablePerson;
   final bool isReviewed;
   final DateTime createdAt;
   const CardTransaction({
@@ -2220,6 +2300,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     required this.source,
     this.rawSms,
     this.referenceNumber,
+    this.category,
+    required this.isRecoverable,
+    this.recoverablePerson,
     required this.isReviewed,
     required this.createdAt,
   });
@@ -2241,6 +2324,13 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     }
     if (!nullToAbsent || referenceNumber != null) {
       map['reference_number'] = Variable<String>(referenceNumber);
+    }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['is_recoverable'] = Variable<bool>(isRecoverable);
+    if (!nullToAbsent || recoverablePerson != null) {
+      map['recoverable_person'] = Variable<String>(recoverablePerson);
     }
     map['is_reviewed'] = Variable<bool>(isReviewed);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2265,6 +2355,13 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       referenceNumber: referenceNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(referenceNumber),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      isRecoverable: Value(isRecoverable),
+      recoverablePerson: recoverablePerson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recoverablePerson),
       isReviewed: Value(isReviewed),
       createdAt: Value(createdAt),
     );
@@ -2286,6 +2383,11 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       source: serializer.fromJson<String>(json['source']),
       rawSms: serializer.fromJson<String?>(json['rawSms']),
       referenceNumber: serializer.fromJson<String?>(json['referenceNumber']),
+      category: serializer.fromJson<String?>(json['category']),
+      isRecoverable: serializer.fromJson<bool>(json['isRecoverable']),
+      recoverablePerson: serializer.fromJson<String?>(
+        json['recoverablePerson'],
+      ),
       isReviewed: serializer.fromJson<bool>(json['isReviewed']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -2304,6 +2406,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       'source': serializer.toJson<String>(source),
       'rawSms': serializer.toJson<String?>(rawSms),
       'referenceNumber': serializer.toJson<String?>(referenceNumber),
+      'category': serializer.toJson<String?>(category),
+      'isRecoverable': serializer.toJson<bool>(isRecoverable),
+      'recoverablePerson': serializer.toJson<String?>(recoverablePerson),
       'isReviewed': serializer.toJson<bool>(isReviewed),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -2320,6 +2425,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     String? source,
     Value<String?> rawSms = const Value.absent(),
     Value<String?> referenceNumber = const Value.absent(),
+    Value<String?> category = const Value.absent(),
+    bool? isRecoverable,
+    Value<String?> recoverablePerson = const Value.absent(),
     bool? isReviewed,
     DateTime? createdAt,
   }) => CardTransaction(
@@ -2337,6 +2445,11 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     referenceNumber: referenceNumber.present
         ? referenceNumber.value
         : this.referenceNumber,
+    category: category.present ? category.value : this.category,
+    isRecoverable: isRecoverable ?? this.isRecoverable,
+    recoverablePerson: recoverablePerson.present
+        ? recoverablePerson.value
+        : this.recoverablePerson,
     isReviewed: isReviewed ?? this.isReviewed,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -2362,6 +2475,13 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       referenceNumber: data.referenceNumber.present
           ? data.referenceNumber.value
           : this.referenceNumber,
+      category: data.category.present ? data.category.value : this.category,
+      isRecoverable: data.isRecoverable.present
+          ? data.isRecoverable.value
+          : this.isRecoverable,
+      recoverablePerson: data.recoverablePerson.present
+          ? data.recoverablePerson.value
+          : this.recoverablePerson,
       isReviewed: data.isReviewed.present
           ? data.isReviewed.value
           : this.isReviewed,
@@ -2382,6 +2502,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           ..write('source: $source, ')
           ..write('rawSms: $rawSms, ')
           ..write('referenceNumber: $referenceNumber, ')
+          ..write('category: $category, ')
+          ..write('isRecoverable: $isRecoverable, ')
+          ..write('recoverablePerson: $recoverablePerson, ')
           ..write('isReviewed: $isReviewed, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2400,6 +2523,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     source,
     rawSms,
     referenceNumber,
+    category,
+    isRecoverable,
+    recoverablePerson,
     isReviewed,
     createdAt,
   );
@@ -2417,6 +2543,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           other.source == this.source &&
           other.rawSms == this.rawSms &&
           other.referenceNumber == this.referenceNumber &&
+          other.category == this.category &&
+          other.isRecoverable == this.isRecoverable &&
+          other.recoverablePerson == this.recoverablePerson &&
           other.isReviewed == this.isReviewed &&
           other.createdAt == this.createdAt);
 }
@@ -2432,6 +2561,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
   final Value<String> source;
   final Value<String?> rawSms;
   final Value<String?> referenceNumber;
+  final Value<String?> category;
+  final Value<bool> isRecoverable;
+  final Value<String?> recoverablePerson;
   final Value<bool> isReviewed;
   final Value<DateTime> createdAt;
   const CardTransactionsCompanion({
@@ -2445,6 +2577,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     this.source = const Value.absent(),
     this.rawSms = const Value.absent(),
     this.referenceNumber = const Value.absent(),
+    this.category = const Value.absent(),
+    this.isRecoverable = const Value.absent(),
+    this.recoverablePerson = const Value.absent(),
     this.isReviewed = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -2459,6 +2594,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     required String source,
     this.rawSms = const Value.absent(),
     this.referenceNumber = const Value.absent(),
+    this.category = const Value.absent(),
+    this.isRecoverable = const Value.absent(),
+    this.recoverablePerson = const Value.absent(),
     this.isReviewed = const Value.absent(),
     required DateTime createdAt,
   }) : creditCardId = Value(creditCardId),
@@ -2479,6 +2617,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     Expression<String>? source,
     Expression<String>? rawSms,
     Expression<String>? referenceNumber,
+    Expression<String>? category,
+    Expression<bool>? isRecoverable,
+    Expression<String>? recoverablePerson,
     Expression<bool>? isReviewed,
     Expression<DateTime>? createdAt,
   }) {
@@ -2493,6 +2634,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
       if (source != null) 'source': source,
       if (rawSms != null) 'raw_sms': rawSms,
       if (referenceNumber != null) 'reference_number': referenceNumber,
+      if (category != null) 'category': category,
+      if (isRecoverable != null) 'is_recoverable': isRecoverable,
+      if (recoverablePerson != null) 'recoverable_person': recoverablePerson,
       if (isReviewed != null) 'is_reviewed': isReviewed,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -2509,6 +2653,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     Value<String>? source,
     Value<String?>? rawSms,
     Value<String?>? referenceNumber,
+    Value<String?>? category,
+    Value<bool>? isRecoverable,
+    Value<String?>? recoverablePerson,
     Value<bool>? isReviewed,
     Value<DateTime>? createdAt,
   }) {
@@ -2523,6 +2670,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
       source: source ?? this.source,
       rawSms: rawSms ?? this.rawSms,
       referenceNumber: referenceNumber ?? this.referenceNumber,
+      category: category ?? this.category,
+      isRecoverable: isRecoverable ?? this.isRecoverable,
+      recoverablePerson: recoverablePerson ?? this.recoverablePerson,
       isReviewed: isReviewed ?? this.isReviewed,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -2561,6 +2711,15 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     if (referenceNumber.present) {
       map['reference_number'] = Variable<String>(referenceNumber.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (isRecoverable.present) {
+      map['is_recoverable'] = Variable<bool>(isRecoverable.value);
+    }
+    if (recoverablePerson.present) {
+      map['recoverable_person'] = Variable<String>(recoverablePerson.value);
+    }
     if (isReviewed.present) {
       map['is_reviewed'] = Variable<bool>(isReviewed.value);
     }
@@ -2583,6 +2742,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
           ..write('source: $source, ')
           ..write('rawSms: $rawSms, ')
           ..write('referenceNumber: $referenceNumber, ')
+          ..write('category: $category, ')
+          ..write('isRecoverable: $isRecoverable, ')
+          ..write('recoverablePerson: $recoverablePerson, ')
           ..write('isReviewed: $isReviewed, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -3687,6 +3849,1437 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   }
 }
 
+class $BudgetSettingsTable extends BudgetSettings
+    with TableInfo<$BudgetSettingsTable, BudgetSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BudgetSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _monthlyLimitPaiseMeta = const VerificationMeta(
+    'monthlyLimitPaise',
+  );
+  @override
+  late final GeneratedColumn<int> monthlyLimitPaise = GeneratedColumn<int>(
+    'monthly_limit_paise',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentPeriodStartMeta =
+      const VerificationMeta('currentPeriodStart');
+  @override
+  late final GeneratedColumn<DateTime> currentPeriodStart =
+      GeneratedColumn<DateTime>(
+        'current_period_start',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    monthlyLimitPaise,
+    currentPeriodStart,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budget_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BudgetSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('monthly_limit_paise')) {
+      context.handle(
+        _monthlyLimitPaiseMeta,
+        monthlyLimitPaise.isAcceptableOrUnknown(
+          data['monthly_limit_paise']!,
+          _monthlyLimitPaiseMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_period_start')) {
+      context.handle(
+        _currentPeriodStartMeta,
+        currentPeriodStart.isAcceptableOrUnknown(
+          data['current_period_start']!,
+          _currentPeriodStartMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BudgetSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      monthlyLimitPaise: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}monthly_limit_paise'],
+      ),
+      currentPeriodStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}current_period_start'],
+      ),
+    );
+  }
+
+  @override
+  $BudgetSettingsTable createAlias(String alias) {
+    return $BudgetSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
+  final int id;
+  final int? monthlyLimitPaise;
+  final DateTime? currentPeriodStart;
+  const BudgetSetting({
+    required this.id,
+    this.monthlyLimitPaise,
+    this.currentPeriodStart,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || monthlyLimitPaise != null) {
+      map['monthly_limit_paise'] = Variable<int>(monthlyLimitPaise);
+    }
+    if (!nullToAbsent || currentPeriodStart != null) {
+      map['current_period_start'] = Variable<DateTime>(currentPeriodStart);
+    }
+    return map;
+  }
+
+  BudgetSettingsCompanion toCompanion(bool nullToAbsent) {
+    return BudgetSettingsCompanion(
+      id: Value(id),
+      monthlyLimitPaise: monthlyLimitPaise == null && nullToAbsent
+          ? const Value.absent()
+          : Value(monthlyLimitPaise),
+      currentPeriodStart: currentPeriodStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentPeriodStart),
+    );
+  }
+
+  factory BudgetSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetSetting(
+      id: serializer.fromJson<int>(json['id']),
+      monthlyLimitPaise: serializer.fromJson<int?>(json['monthlyLimitPaise']),
+      currentPeriodStart: serializer.fromJson<DateTime?>(
+        json['currentPeriodStart'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'monthlyLimitPaise': serializer.toJson<int?>(monthlyLimitPaise),
+      'currentPeriodStart': serializer.toJson<DateTime?>(currentPeriodStart),
+    };
+  }
+
+  BudgetSetting copyWith({
+    int? id,
+    Value<int?> monthlyLimitPaise = const Value.absent(),
+    Value<DateTime?> currentPeriodStart = const Value.absent(),
+  }) => BudgetSetting(
+    id: id ?? this.id,
+    monthlyLimitPaise: monthlyLimitPaise.present
+        ? monthlyLimitPaise.value
+        : this.monthlyLimitPaise,
+    currentPeriodStart: currentPeriodStart.present
+        ? currentPeriodStart.value
+        : this.currentPeriodStart,
+  );
+  BudgetSetting copyWithCompanion(BudgetSettingsCompanion data) {
+    return BudgetSetting(
+      id: data.id.present ? data.id.value : this.id,
+      monthlyLimitPaise: data.monthlyLimitPaise.present
+          ? data.monthlyLimitPaise.value
+          : this.monthlyLimitPaise,
+      currentPeriodStart: data.currentPeriodStart.present
+          ? data.currentPeriodStart.value
+          : this.currentPeriodStart,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetSetting(')
+          ..write('id: $id, ')
+          ..write('monthlyLimitPaise: $monthlyLimitPaise, ')
+          ..write('currentPeriodStart: $currentPeriodStart')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, monthlyLimitPaise, currentPeriodStart);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetSetting &&
+          other.id == this.id &&
+          other.monthlyLimitPaise == this.monthlyLimitPaise &&
+          other.currentPeriodStart == this.currentPeriodStart);
+}
+
+class BudgetSettingsCompanion extends UpdateCompanion<BudgetSetting> {
+  final Value<int> id;
+  final Value<int?> monthlyLimitPaise;
+  final Value<DateTime?> currentPeriodStart;
+  const BudgetSettingsCompanion({
+    this.id = const Value.absent(),
+    this.monthlyLimitPaise = const Value.absent(),
+    this.currentPeriodStart = const Value.absent(),
+  });
+  BudgetSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.monthlyLimitPaise = const Value.absent(),
+    this.currentPeriodStart = const Value.absent(),
+  });
+  static Insertable<BudgetSetting> custom({
+    Expression<int>? id,
+    Expression<int>? monthlyLimitPaise,
+    Expression<DateTime>? currentPeriodStart,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (monthlyLimitPaise != null) 'monthly_limit_paise': monthlyLimitPaise,
+      if (currentPeriodStart != null)
+        'current_period_start': currentPeriodStart,
+    });
+  }
+
+  BudgetSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? monthlyLimitPaise,
+    Value<DateTime?>? currentPeriodStart,
+  }) {
+    return BudgetSettingsCompanion(
+      id: id ?? this.id,
+      monthlyLimitPaise: monthlyLimitPaise ?? this.monthlyLimitPaise,
+      currentPeriodStart: currentPeriodStart ?? this.currentPeriodStart,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (monthlyLimitPaise.present) {
+      map['monthly_limit_paise'] = Variable<int>(monthlyLimitPaise.value);
+    }
+    if (currentPeriodStart.present) {
+      map['current_period_start'] = Variable<DateTime>(
+        currentPeriodStart.value,
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('monthlyLimitPaise: $monthlyLimitPaise, ')
+          ..write('currentPeriodStart: $currentPeriodStart')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CategoryBudgetsTable extends CategoryBudgets
+    with TableInfo<$CategoryBudgetsTable, CategoryBudget> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CategoryBudgetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _limitPaiseMeta = const VerificationMeta(
+    'limitPaise',
+  );
+  @override
+  late final GeneratedColumn<int> limitPaise = GeneratedColumn<int>(
+    'limit_paise',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, category, limitPaise];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'category_budgets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CategoryBudget> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('limit_paise')) {
+      context.handle(
+        _limitPaiseMeta,
+        limitPaise.isAcceptableOrUnknown(data['limit_paise']!, _limitPaiseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_limitPaiseMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CategoryBudget map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CategoryBudget(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      limitPaise: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}limit_paise'],
+      )!,
+    );
+  }
+
+  @override
+  $CategoryBudgetsTable createAlias(String alias) {
+    return $CategoryBudgetsTable(attachedDatabase, alias);
+  }
+}
+
+class CategoryBudget extends DataClass implements Insertable<CategoryBudget> {
+  final int id;
+  final String category;
+  final int limitPaise;
+  const CategoryBudget({
+    required this.id,
+    required this.category,
+    required this.limitPaise,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['category'] = Variable<String>(category);
+    map['limit_paise'] = Variable<int>(limitPaise);
+    return map;
+  }
+
+  CategoryBudgetsCompanion toCompanion(bool nullToAbsent) {
+    return CategoryBudgetsCompanion(
+      id: Value(id),
+      category: Value(category),
+      limitPaise: Value(limitPaise),
+    );
+  }
+
+  factory CategoryBudget.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CategoryBudget(
+      id: serializer.fromJson<int>(json['id']),
+      category: serializer.fromJson<String>(json['category']),
+      limitPaise: serializer.fromJson<int>(json['limitPaise']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'category': serializer.toJson<String>(category),
+      'limitPaise': serializer.toJson<int>(limitPaise),
+    };
+  }
+
+  CategoryBudget copyWith({int? id, String? category, int? limitPaise}) =>
+      CategoryBudget(
+        id: id ?? this.id,
+        category: category ?? this.category,
+        limitPaise: limitPaise ?? this.limitPaise,
+      );
+  CategoryBudget copyWithCompanion(CategoryBudgetsCompanion data) {
+    return CategoryBudget(
+      id: data.id.present ? data.id.value : this.id,
+      category: data.category.present ? data.category.value : this.category,
+      limitPaise: data.limitPaise.present
+          ? data.limitPaise.value
+          : this.limitPaise,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryBudget(')
+          ..write('id: $id, ')
+          ..write('category: $category, ')
+          ..write('limitPaise: $limitPaise')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, category, limitPaise);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CategoryBudget &&
+          other.id == this.id &&
+          other.category == this.category &&
+          other.limitPaise == this.limitPaise);
+}
+
+class CategoryBudgetsCompanion extends UpdateCompanion<CategoryBudget> {
+  final Value<int> id;
+  final Value<String> category;
+  final Value<int> limitPaise;
+  const CategoryBudgetsCompanion({
+    this.id = const Value.absent(),
+    this.category = const Value.absent(),
+    this.limitPaise = const Value.absent(),
+  });
+  CategoryBudgetsCompanion.insert({
+    this.id = const Value.absent(),
+    required String category,
+    required int limitPaise,
+  }) : category = Value(category),
+       limitPaise = Value(limitPaise);
+  static Insertable<CategoryBudget> custom({
+    Expression<int>? id,
+    Expression<String>? category,
+    Expression<int>? limitPaise,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (category != null) 'category': category,
+      if (limitPaise != null) 'limit_paise': limitPaise,
+    });
+  }
+
+  CategoryBudgetsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? category,
+    Value<int>? limitPaise,
+  }) {
+    return CategoryBudgetsCompanion(
+      id: id ?? this.id,
+      category: category ?? this.category,
+      limitPaise: limitPaise ?? this.limitPaise,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (limitPaise.present) {
+      map['limit_paise'] = Variable<int>(limitPaise.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryBudgetsCompanion(')
+          ..write('id: $id, ')
+          ..write('category: $category, ')
+          ..write('limitPaise: $limitPaise')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BudgetAlertCrossingsTable extends BudgetAlertCrossings
+    with TableInfo<$BudgetAlertCrossingsTable, BudgetAlertCrossing> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BudgetAlertCrossingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _budgetKeyMeta = const VerificationMeta(
+    'budgetKey',
+  );
+  @override
+  late final GeneratedColumn<String> budgetKey = GeneratedColumn<String>(
+    'budget_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _thresholdMeta = const VerificationMeta(
+    'threshold',
+  );
+  @override
+  late final GeneratedColumn<String> threshold = GeneratedColumn<String>(
+    'threshold',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _periodStartMeta = const VerificationMeta(
+    'periodStart',
+  );
+  @override
+  late final GeneratedColumn<DateTime> periodStart = GeneratedColumn<DateTime>(
+    'period_start',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, budgetKey, threshold, periodStart];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budget_alert_crossings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BudgetAlertCrossing> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('budget_key')) {
+      context.handle(
+        _budgetKeyMeta,
+        budgetKey.isAcceptableOrUnknown(data['budget_key']!, _budgetKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_budgetKeyMeta);
+    }
+    if (data.containsKey('threshold')) {
+      context.handle(
+        _thresholdMeta,
+        threshold.isAcceptableOrUnknown(data['threshold']!, _thresholdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_thresholdMeta);
+    }
+    if (data.containsKey('period_start')) {
+      context.handle(
+        _periodStartMeta,
+        periodStart.isAcceptableOrUnknown(
+          data['period_start']!,
+          _periodStartMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_periodStartMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BudgetAlertCrossing map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetAlertCrossing(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      budgetKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}budget_key'],
+      )!,
+      threshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}threshold'],
+      )!,
+      periodStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}period_start'],
+      )!,
+    );
+  }
+
+  @override
+  $BudgetAlertCrossingsTable createAlias(String alias) {
+    return $BudgetAlertCrossingsTable(attachedDatabase, alias);
+  }
+}
+
+class BudgetAlertCrossing extends DataClass
+    implements Insertable<BudgetAlertCrossing> {
+  final int id;
+  final String budgetKey;
+  final String threshold;
+  final DateTime periodStart;
+  const BudgetAlertCrossing({
+    required this.id,
+    required this.budgetKey,
+    required this.threshold,
+    required this.periodStart,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['budget_key'] = Variable<String>(budgetKey);
+    map['threshold'] = Variable<String>(threshold);
+    map['period_start'] = Variable<DateTime>(periodStart);
+    return map;
+  }
+
+  BudgetAlertCrossingsCompanion toCompanion(bool nullToAbsent) {
+    return BudgetAlertCrossingsCompanion(
+      id: Value(id),
+      budgetKey: Value(budgetKey),
+      threshold: Value(threshold),
+      periodStart: Value(periodStart),
+    );
+  }
+
+  factory BudgetAlertCrossing.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetAlertCrossing(
+      id: serializer.fromJson<int>(json['id']),
+      budgetKey: serializer.fromJson<String>(json['budgetKey']),
+      threshold: serializer.fromJson<String>(json['threshold']),
+      periodStart: serializer.fromJson<DateTime>(json['periodStart']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'budgetKey': serializer.toJson<String>(budgetKey),
+      'threshold': serializer.toJson<String>(threshold),
+      'periodStart': serializer.toJson<DateTime>(periodStart),
+    };
+  }
+
+  BudgetAlertCrossing copyWith({
+    int? id,
+    String? budgetKey,
+    String? threshold,
+    DateTime? periodStart,
+  }) => BudgetAlertCrossing(
+    id: id ?? this.id,
+    budgetKey: budgetKey ?? this.budgetKey,
+    threshold: threshold ?? this.threshold,
+    periodStart: periodStart ?? this.periodStart,
+  );
+  BudgetAlertCrossing copyWithCompanion(BudgetAlertCrossingsCompanion data) {
+    return BudgetAlertCrossing(
+      id: data.id.present ? data.id.value : this.id,
+      budgetKey: data.budgetKey.present ? data.budgetKey.value : this.budgetKey,
+      threshold: data.threshold.present ? data.threshold.value : this.threshold,
+      periodStart: data.periodStart.present
+          ? data.periodStart.value
+          : this.periodStart,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetAlertCrossing(')
+          ..write('id: $id, ')
+          ..write('budgetKey: $budgetKey, ')
+          ..write('threshold: $threshold, ')
+          ..write('periodStart: $periodStart')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, budgetKey, threshold, periodStart);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetAlertCrossing &&
+          other.id == this.id &&
+          other.budgetKey == this.budgetKey &&
+          other.threshold == this.threshold &&
+          other.periodStart == this.periodStart);
+}
+
+class BudgetAlertCrossingsCompanion
+    extends UpdateCompanion<BudgetAlertCrossing> {
+  final Value<int> id;
+  final Value<String> budgetKey;
+  final Value<String> threshold;
+  final Value<DateTime> periodStart;
+  const BudgetAlertCrossingsCompanion({
+    this.id = const Value.absent(),
+    this.budgetKey = const Value.absent(),
+    this.threshold = const Value.absent(),
+    this.periodStart = const Value.absent(),
+  });
+  BudgetAlertCrossingsCompanion.insert({
+    this.id = const Value.absent(),
+    required String budgetKey,
+    required String threshold,
+    required DateTime periodStart,
+  }) : budgetKey = Value(budgetKey),
+       threshold = Value(threshold),
+       periodStart = Value(periodStart);
+  static Insertable<BudgetAlertCrossing> custom({
+    Expression<int>? id,
+    Expression<String>? budgetKey,
+    Expression<String>? threshold,
+    Expression<DateTime>? periodStart,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (budgetKey != null) 'budget_key': budgetKey,
+      if (threshold != null) 'threshold': threshold,
+      if (periodStart != null) 'period_start': periodStart,
+    });
+  }
+
+  BudgetAlertCrossingsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? budgetKey,
+    Value<String>? threshold,
+    Value<DateTime>? periodStart,
+  }) {
+    return BudgetAlertCrossingsCompanion(
+      id: id ?? this.id,
+      budgetKey: budgetKey ?? this.budgetKey,
+      threshold: threshold ?? this.threshold,
+      periodStart: periodStart ?? this.periodStart,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (budgetKey.present) {
+      map['budget_key'] = Variable<String>(budgetKey.value);
+    }
+    if (threshold.present) {
+      map['threshold'] = Variable<String>(threshold.value);
+    }
+    if (periodStart.present) {
+      map['period_start'] = Variable<DateTime>(periodStart.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetAlertCrossingsCompanion(')
+          ..write('id: $id, ')
+          ..write('budgetKey: $budgetKey, ')
+          ..write('threshold: $threshold, ')
+          ..write('periodStart: $periodStart')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecoveryLinksTable extends RecoveryLinks
+    with TableInfo<$RecoveryLinksTable, RecoveryLink> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecoveryLinksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _creditTransactionIdMeta =
+      const VerificationMeta('creditTransactionId');
+  @override
+  late final GeneratedColumn<int> creditTransactionId = GeneratedColumn<int>(
+    'credit_transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recoverableTransactionIdMeta =
+      const VerificationMeta('recoverableTransactionId');
+  @override
+  late final GeneratedColumn<int> recoverableTransactionId =
+      GeneratedColumn<int>(
+        'recoverable_transaction_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _amountPaiseMeta = const VerificationMeta(
+    'amountPaise',
+  );
+  @override
+  late final GeneratedColumn<int> amountPaise = GeneratedColumn<int>(
+    'amount_paise',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    creditTransactionId,
+    recoverableTransactionId,
+    amountPaise,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recovery_links';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecoveryLink> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('credit_transaction_id')) {
+      context.handle(
+        _creditTransactionIdMeta,
+        creditTransactionId.isAcceptableOrUnknown(
+          data['credit_transaction_id']!,
+          _creditTransactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_creditTransactionIdMeta);
+    }
+    if (data.containsKey('recoverable_transaction_id')) {
+      context.handle(
+        _recoverableTransactionIdMeta,
+        recoverableTransactionId.isAcceptableOrUnknown(
+          data['recoverable_transaction_id']!,
+          _recoverableTransactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recoverableTransactionIdMeta);
+    }
+    if (data.containsKey('amount_paise')) {
+      context.handle(
+        _amountPaiseMeta,
+        amountPaise.isAcceptableOrUnknown(
+          data['amount_paise']!,
+          _amountPaiseMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountPaiseMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecoveryLink map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecoveryLink(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      creditTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}credit_transaction_id'],
+      )!,
+      recoverableTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recoverable_transaction_id'],
+      )!,
+      amountPaise: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_paise'],
+      )!,
+    );
+  }
+
+  @override
+  $RecoveryLinksTable createAlias(String alias) {
+    return $RecoveryLinksTable(attachedDatabase, alias);
+  }
+}
+
+class RecoveryLink extends DataClass implements Insertable<RecoveryLink> {
+  final int id;
+  final int creditTransactionId;
+  final int recoverableTransactionId;
+  final int amountPaise;
+  const RecoveryLink({
+    required this.id,
+    required this.creditTransactionId,
+    required this.recoverableTransactionId,
+    required this.amountPaise,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['credit_transaction_id'] = Variable<int>(creditTransactionId);
+    map['recoverable_transaction_id'] = Variable<int>(recoverableTransactionId);
+    map['amount_paise'] = Variable<int>(amountPaise);
+    return map;
+  }
+
+  RecoveryLinksCompanion toCompanion(bool nullToAbsent) {
+    return RecoveryLinksCompanion(
+      id: Value(id),
+      creditTransactionId: Value(creditTransactionId),
+      recoverableTransactionId: Value(recoverableTransactionId),
+      amountPaise: Value(amountPaise),
+    );
+  }
+
+  factory RecoveryLink.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecoveryLink(
+      id: serializer.fromJson<int>(json['id']),
+      creditTransactionId: serializer.fromJson<int>(
+        json['creditTransactionId'],
+      ),
+      recoverableTransactionId: serializer.fromJson<int>(
+        json['recoverableTransactionId'],
+      ),
+      amountPaise: serializer.fromJson<int>(json['amountPaise']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'creditTransactionId': serializer.toJson<int>(creditTransactionId),
+      'recoverableTransactionId': serializer.toJson<int>(
+        recoverableTransactionId,
+      ),
+      'amountPaise': serializer.toJson<int>(amountPaise),
+    };
+  }
+
+  RecoveryLink copyWith({
+    int? id,
+    int? creditTransactionId,
+    int? recoverableTransactionId,
+    int? amountPaise,
+  }) => RecoveryLink(
+    id: id ?? this.id,
+    creditTransactionId: creditTransactionId ?? this.creditTransactionId,
+    recoverableTransactionId:
+        recoverableTransactionId ?? this.recoverableTransactionId,
+    amountPaise: amountPaise ?? this.amountPaise,
+  );
+  RecoveryLink copyWithCompanion(RecoveryLinksCompanion data) {
+    return RecoveryLink(
+      id: data.id.present ? data.id.value : this.id,
+      creditTransactionId: data.creditTransactionId.present
+          ? data.creditTransactionId.value
+          : this.creditTransactionId,
+      recoverableTransactionId: data.recoverableTransactionId.present
+          ? data.recoverableTransactionId.value
+          : this.recoverableTransactionId,
+      amountPaise: data.amountPaise.present
+          ? data.amountPaise.value
+          : this.amountPaise,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoveryLink(')
+          ..write('id: $id, ')
+          ..write('creditTransactionId: $creditTransactionId, ')
+          ..write('recoverableTransactionId: $recoverableTransactionId, ')
+          ..write('amountPaise: $amountPaise')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    creditTransactionId,
+    recoverableTransactionId,
+    amountPaise,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecoveryLink &&
+          other.id == this.id &&
+          other.creditTransactionId == this.creditTransactionId &&
+          other.recoverableTransactionId == this.recoverableTransactionId &&
+          other.amountPaise == this.amountPaise);
+}
+
+class RecoveryLinksCompanion extends UpdateCompanion<RecoveryLink> {
+  final Value<int> id;
+  final Value<int> creditTransactionId;
+  final Value<int> recoverableTransactionId;
+  final Value<int> amountPaise;
+  const RecoveryLinksCompanion({
+    this.id = const Value.absent(),
+    this.creditTransactionId = const Value.absent(),
+    this.recoverableTransactionId = const Value.absent(),
+    this.amountPaise = const Value.absent(),
+  });
+  RecoveryLinksCompanion.insert({
+    this.id = const Value.absent(),
+    required int creditTransactionId,
+    required int recoverableTransactionId,
+    required int amountPaise,
+  }) : creditTransactionId = Value(creditTransactionId),
+       recoverableTransactionId = Value(recoverableTransactionId),
+       amountPaise = Value(amountPaise);
+  static Insertable<RecoveryLink> custom({
+    Expression<int>? id,
+    Expression<int>? creditTransactionId,
+    Expression<int>? recoverableTransactionId,
+    Expression<int>? amountPaise,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (creditTransactionId != null)
+        'credit_transaction_id': creditTransactionId,
+      if (recoverableTransactionId != null)
+        'recoverable_transaction_id': recoverableTransactionId,
+      if (amountPaise != null) 'amount_paise': amountPaise,
+    });
+  }
+
+  RecoveryLinksCompanion copyWith({
+    Value<int>? id,
+    Value<int>? creditTransactionId,
+    Value<int>? recoverableTransactionId,
+    Value<int>? amountPaise,
+  }) {
+    return RecoveryLinksCompanion(
+      id: id ?? this.id,
+      creditTransactionId: creditTransactionId ?? this.creditTransactionId,
+      recoverableTransactionId:
+          recoverableTransactionId ?? this.recoverableTransactionId,
+      amountPaise: amountPaise ?? this.amountPaise,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (creditTransactionId.present) {
+      map['credit_transaction_id'] = Variable<int>(creditTransactionId.value);
+    }
+    if (recoverableTransactionId.present) {
+      map['recoverable_transaction_id'] = Variable<int>(
+        recoverableTransactionId.value,
+      );
+    }
+    if (amountPaise.present) {
+      map['amount_paise'] = Variable<int>(amountPaise.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoveryLinksCompanion(')
+          ..write('id: $id, ')
+          ..write('creditTransactionId: $creditTransactionId, ')
+          ..write('recoverableTransactionId: $recoverableTransactionId, ')
+          ..write('amountPaise: $amountPaise')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecoverablePersonsTable extends RecoverablePersons
+    with TableInfo<$RecoverablePersonsTable, RecoverablePerson> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecoverablePersonsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, lastUsedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recoverable_persons';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecoverablePerson> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastUsedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecoverablePerson map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecoverablePerson(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecoverablePersonsTable createAlias(String alias) {
+    return $RecoverablePersonsTable(attachedDatabase, alias);
+  }
+}
+
+class RecoverablePerson extends DataClass
+    implements Insertable<RecoverablePerson> {
+  final int id;
+  final String name;
+  final DateTime lastUsedAt;
+  const RecoverablePerson({
+    required this.id,
+    required this.name,
+    required this.lastUsedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    return map;
+  }
+
+  RecoverablePersonsCompanion toCompanion(bool nullToAbsent) {
+    return RecoverablePersonsCompanion(
+      id: Value(id),
+      name: Value(name),
+      lastUsedAt: Value(lastUsedAt),
+    );
+  }
+
+  factory RecoverablePerson.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecoverablePerson(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      lastUsedAt: serializer.fromJson<DateTime>(json['lastUsedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'lastUsedAt': serializer.toJson<DateTime>(lastUsedAt),
+    };
+  }
+
+  RecoverablePerson copyWith({int? id, String? name, DateTime? lastUsedAt}) =>
+      RecoverablePerson(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      );
+  RecoverablePerson copyWithCompanion(RecoverablePersonsCompanion data) {
+    return RecoverablePerson(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoverablePerson(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('lastUsedAt: $lastUsedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, lastUsedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecoverablePerson &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.lastUsedAt == this.lastUsedAt);
+}
+
+class RecoverablePersonsCompanion extends UpdateCompanion<RecoverablePerson> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<DateTime> lastUsedAt;
+  const RecoverablePersonsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+  });
+  RecoverablePersonsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required DateTime lastUsedAt,
+  }) : name = Value(name),
+       lastUsedAt = Value(lastUsedAt);
+  static Insertable<RecoverablePerson> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<DateTime>? lastUsedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+    });
+  }
+
+  RecoverablePersonsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? lastUsedAt,
+  }) {
+    return RecoverablePersonsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoverablePersonsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('lastUsedAt: $lastUsedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3699,6 +5292,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BankAccountTransactionsTable bankAccountTransactions =
       $BankAccountTransactionsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $BudgetSettingsTable budgetSettings = $BudgetSettingsTable(this);
+  late final $CategoryBudgetsTable categoryBudgets = $CategoryBudgetsTable(
+    this,
+  );
+  late final $BudgetAlertCrossingsTable budgetAlertCrossings =
+      $BudgetAlertCrossingsTable(this);
+  late final $RecoveryLinksTable recoveryLinks = $RecoveryLinksTable(this);
+  late final $RecoverablePersonsTable recoverablePersons =
+      $RecoverablePersonsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3710,6 +5312,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cardTransactions,
     bankAccountTransactions,
     appSettings,
+    budgetSettings,
+    categoryBudgets,
+    budgetAlertCrossings,
+    recoveryLinks,
+    recoverablePersons,
   ];
 }
 
@@ -4618,6 +6225,9 @@ typedef $$CardTransactionsTableCreateCompanionBuilder =
       required String source,
       Value<String?> rawSms,
       Value<String?> referenceNumber,
+      Value<String?> category,
+      Value<bool> isRecoverable,
+      Value<String?> recoverablePerson,
       Value<bool> isReviewed,
       required DateTime createdAt,
     });
@@ -4633,6 +6243,9 @@ typedef $$CardTransactionsTableUpdateCompanionBuilder =
       Value<String> source,
       Value<String?> rawSms,
       Value<String?> referenceNumber,
+      Value<String?> category,
+      Value<bool> isRecoverable,
+      Value<String?> recoverablePerson,
       Value<bool> isReviewed,
       Value<DateTime> createdAt,
     });
@@ -4693,6 +6306,21 @@ class $$CardTransactionsTableFilterComposer
 
   ColumnFilters<String> get referenceNumber => $composableBuilder(
     column: $table.referenceNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRecoverable => $composableBuilder(
+    column: $table.isRecoverable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recoverablePerson => $composableBuilder(
+    column: $table.recoverablePerson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4766,6 +6394,21 @@ class $$CardTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isRecoverable => $composableBuilder(
+    column: $table.isRecoverable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recoverablePerson => $composableBuilder(
+    column: $table.recoverablePerson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isReviewed => $composableBuilder(
     column: $table.isReviewed,
     builder: (column) => ColumnOrderings(column),
@@ -4826,6 +6469,19 @@ class $$CardTransactionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRecoverable => $composableBuilder(
+    column: $table.isRecoverable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recoverablePerson => $composableBuilder(
+    column: $table.recoverablePerson,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isReviewed => $composableBuilder(
     column: $table.isReviewed,
     builder: (column) => column,
@@ -4882,6 +6538,9 @@ class $$CardTransactionsTableTableManager
                 Value<String> source = const Value.absent(),
                 Value<String?> rawSms = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<bool> isRecoverable = const Value.absent(),
+                Value<String?> recoverablePerson = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CardTransactionsCompanion(
@@ -4895,6 +6554,9 @@ class $$CardTransactionsTableTableManager
                 source: source,
                 rawSms: rawSms,
                 referenceNumber: referenceNumber,
+                category: category,
+                isRecoverable: isRecoverable,
+                recoverablePerson: recoverablePerson,
                 isReviewed: isReviewed,
                 createdAt: createdAt,
               ),
@@ -4910,6 +6572,9 @@ class $$CardTransactionsTableTableManager
                 required String source,
                 Value<String?> rawSms = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<bool> isRecoverable = const Value.absent(),
+                Value<String?> recoverablePerson = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
                 required DateTime createdAt,
               }) => CardTransactionsCompanion.insert(
@@ -4923,6 +6588,9 @@ class $$CardTransactionsTableTableManager
                 source: source,
                 rawSms: rawSms,
                 referenceNumber: referenceNumber,
+                category: category,
+                isRecoverable: isRecoverable,
+                recoverablePerson: recoverablePerson,
                 isReviewed: isReviewed,
                 createdAt: createdAt,
               ),
@@ -5509,6 +7177,877 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSetting,
       PrefetchHooks Function()
     >;
+typedef $$BudgetSettingsTableCreateCompanionBuilder =
+    BudgetSettingsCompanion Function({
+      Value<int> id,
+      Value<int?> monthlyLimitPaise,
+      Value<DateTime?> currentPeriodStart,
+    });
+typedef $$BudgetSettingsTableUpdateCompanionBuilder =
+    BudgetSettingsCompanion Function({
+      Value<int> id,
+      Value<int?> monthlyLimitPaise,
+      Value<DateTime?> currentPeriodStart,
+    });
+
+class $$BudgetSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $BudgetSettingsTable> {
+  $$BudgetSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get monthlyLimitPaise => $composableBuilder(
+    column: $table.monthlyLimitPaise,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get currentPeriodStart => $composableBuilder(
+    column: $table.currentPeriodStart,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BudgetSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BudgetSettingsTable> {
+  $$BudgetSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get monthlyLimitPaise => $composableBuilder(
+    column: $table.monthlyLimitPaise,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get currentPeriodStart => $composableBuilder(
+    column: $table.currentPeriodStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BudgetSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BudgetSettingsTable> {
+  $$BudgetSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get monthlyLimitPaise => $composableBuilder(
+    column: $table.monthlyLimitPaise,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get currentPeriodStart => $composableBuilder(
+    column: $table.currentPeriodStart,
+    builder: (column) => column,
+  );
+}
+
+class $$BudgetSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BudgetSettingsTable,
+          BudgetSetting,
+          $$BudgetSettingsTableFilterComposer,
+          $$BudgetSettingsTableOrderingComposer,
+          $$BudgetSettingsTableAnnotationComposer,
+          $$BudgetSettingsTableCreateCompanionBuilder,
+          $$BudgetSettingsTableUpdateCompanionBuilder,
+          (
+            BudgetSetting,
+            BaseReferences<_$AppDatabase, $BudgetSettingsTable, BudgetSetting>,
+          ),
+          BudgetSetting,
+          PrefetchHooks Function()
+        > {
+  $$BudgetSettingsTableTableManager(
+    _$AppDatabase db,
+    $BudgetSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BudgetSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BudgetSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BudgetSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> monthlyLimitPaise = const Value.absent(),
+                Value<DateTime?> currentPeriodStart = const Value.absent(),
+              }) => BudgetSettingsCompanion(
+                id: id,
+                monthlyLimitPaise: monthlyLimitPaise,
+                currentPeriodStart: currentPeriodStart,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> monthlyLimitPaise = const Value.absent(),
+                Value<DateTime?> currentPeriodStart = const Value.absent(),
+              }) => BudgetSettingsCompanion.insert(
+                id: id,
+                monthlyLimitPaise: monthlyLimitPaise,
+                currentPeriodStart: currentPeriodStart,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BudgetSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BudgetSettingsTable,
+      BudgetSetting,
+      $$BudgetSettingsTableFilterComposer,
+      $$BudgetSettingsTableOrderingComposer,
+      $$BudgetSettingsTableAnnotationComposer,
+      $$BudgetSettingsTableCreateCompanionBuilder,
+      $$BudgetSettingsTableUpdateCompanionBuilder,
+      (
+        BudgetSetting,
+        BaseReferences<_$AppDatabase, $BudgetSettingsTable, BudgetSetting>,
+      ),
+      BudgetSetting,
+      PrefetchHooks Function()
+    >;
+typedef $$CategoryBudgetsTableCreateCompanionBuilder =
+    CategoryBudgetsCompanion Function({
+      Value<int> id,
+      required String category,
+      required int limitPaise,
+    });
+typedef $$CategoryBudgetsTableUpdateCompanionBuilder =
+    CategoryBudgetsCompanion Function({
+      Value<int> id,
+      Value<String> category,
+      Value<int> limitPaise,
+    });
+
+class $$CategoryBudgetsTableFilterComposer
+    extends Composer<_$AppDatabase, $CategoryBudgetsTable> {
+  $$CategoryBudgetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get limitPaise => $composableBuilder(
+    column: $table.limitPaise,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CategoryBudgetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CategoryBudgetsTable> {
+  $$CategoryBudgetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get limitPaise => $composableBuilder(
+    column: $table.limitPaise,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CategoryBudgetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CategoryBudgetsTable> {
+  $$CategoryBudgetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get limitPaise => $composableBuilder(
+    column: $table.limitPaise,
+    builder: (column) => column,
+  );
+}
+
+class $$CategoryBudgetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CategoryBudgetsTable,
+          CategoryBudget,
+          $$CategoryBudgetsTableFilterComposer,
+          $$CategoryBudgetsTableOrderingComposer,
+          $$CategoryBudgetsTableAnnotationComposer,
+          $$CategoryBudgetsTableCreateCompanionBuilder,
+          $$CategoryBudgetsTableUpdateCompanionBuilder,
+          (
+            CategoryBudget,
+            BaseReferences<
+              _$AppDatabase,
+              $CategoryBudgetsTable,
+              CategoryBudget
+            >,
+          ),
+          CategoryBudget,
+          PrefetchHooks Function()
+        > {
+  $$CategoryBudgetsTableTableManager(
+    _$AppDatabase db,
+    $CategoryBudgetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CategoryBudgetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CategoryBudgetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CategoryBudgetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<int> limitPaise = const Value.absent(),
+              }) => CategoryBudgetsCompanion(
+                id: id,
+                category: category,
+                limitPaise: limitPaise,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String category,
+                required int limitPaise,
+              }) => CategoryBudgetsCompanion.insert(
+                id: id,
+                category: category,
+                limitPaise: limitPaise,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CategoryBudgetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CategoryBudgetsTable,
+      CategoryBudget,
+      $$CategoryBudgetsTableFilterComposer,
+      $$CategoryBudgetsTableOrderingComposer,
+      $$CategoryBudgetsTableAnnotationComposer,
+      $$CategoryBudgetsTableCreateCompanionBuilder,
+      $$CategoryBudgetsTableUpdateCompanionBuilder,
+      (
+        CategoryBudget,
+        BaseReferences<_$AppDatabase, $CategoryBudgetsTable, CategoryBudget>,
+      ),
+      CategoryBudget,
+      PrefetchHooks Function()
+    >;
+typedef $$BudgetAlertCrossingsTableCreateCompanionBuilder =
+    BudgetAlertCrossingsCompanion Function({
+      Value<int> id,
+      required String budgetKey,
+      required String threshold,
+      required DateTime periodStart,
+    });
+typedef $$BudgetAlertCrossingsTableUpdateCompanionBuilder =
+    BudgetAlertCrossingsCompanion Function({
+      Value<int> id,
+      Value<String> budgetKey,
+      Value<String> threshold,
+      Value<DateTime> periodStart,
+    });
+
+class $$BudgetAlertCrossingsTableFilterComposer
+    extends Composer<_$AppDatabase, $BudgetAlertCrossingsTable> {
+  $$BudgetAlertCrossingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get budgetKey => $composableBuilder(
+    column: $table.budgetKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get threshold => $composableBuilder(
+    column: $table.threshold,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get periodStart => $composableBuilder(
+    column: $table.periodStart,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BudgetAlertCrossingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BudgetAlertCrossingsTable> {
+  $$BudgetAlertCrossingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get budgetKey => $composableBuilder(
+    column: $table.budgetKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get threshold => $composableBuilder(
+    column: $table.threshold,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get periodStart => $composableBuilder(
+    column: $table.periodStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BudgetAlertCrossingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BudgetAlertCrossingsTable> {
+  $$BudgetAlertCrossingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get budgetKey =>
+      $composableBuilder(column: $table.budgetKey, builder: (column) => column);
+
+  GeneratedColumn<String> get threshold =>
+      $composableBuilder(column: $table.threshold, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get periodStart => $composableBuilder(
+    column: $table.periodStart,
+    builder: (column) => column,
+  );
+}
+
+class $$BudgetAlertCrossingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BudgetAlertCrossingsTable,
+          BudgetAlertCrossing,
+          $$BudgetAlertCrossingsTableFilterComposer,
+          $$BudgetAlertCrossingsTableOrderingComposer,
+          $$BudgetAlertCrossingsTableAnnotationComposer,
+          $$BudgetAlertCrossingsTableCreateCompanionBuilder,
+          $$BudgetAlertCrossingsTableUpdateCompanionBuilder,
+          (
+            BudgetAlertCrossing,
+            BaseReferences<
+              _$AppDatabase,
+              $BudgetAlertCrossingsTable,
+              BudgetAlertCrossing
+            >,
+          ),
+          BudgetAlertCrossing,
+          PrefetchHooks Function()
+        > {
+  $$BudgetAlertCrossingsTableTableManager(
+    _$AppDatabase db,
+    $BudgetAlertCrossingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BudgetAlertCrossingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BudgetAlertCrossingsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$BudgetAlertCrossingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> budgetKey = const Value.absent(),
+                Value<String> threshold = const Value.absent(),
+                Value<DateTime> periodStart = const Value.absent(),
+              }) => BudgetAlertCrossingsCompanion(
+                id: id,
+                budgetKey: budgetKey,
+                threshold: threshold,
+                periodStart: periodStart,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String budgetKey,
+                required String threshold,
+                required DateTime periodStart,
+              }) => BudgetAlertCrossingsCompanion.insert(
+                id: id,
+                budgetKey: budgetKey,
+                threshold: threshold,
+                periodStart: periodStart,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BudgetAlertCrossingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BudgetAlertCrossingsTable,
+      BudgetAlertCrossing,
+      $$BudgetAlertCrossingsTableFilterComposer,
+      $$BudgetAlertCrossingsTableOrderingComposer,
+      $$BudgetAlertCrossingsTableAnnotationComposer,
+      $$BudgetAlertCrossingsTableCreateCompanionBuilder,
+      $$BudgetAlertCrossingsTableUpdateCompanionBuilder,
+      (
+        BudgetAlertCrossing,
+        BaseReferences<
+          _$AppDatabase,
+          $BudgetAlertCrossingsTable,
+          BudgetAlertCrossing
+        >,
+      ),
+      BudgetAlertCrossing,
+      PrefetchHooks Function()
+    >;
+typedef $$RecoveryLinksTableCreateCompanionBuilder =
+    RecoveryLinksCompanion Function({
+      Value<int> id,
+      required int creditTransactionId,
+      required int recoverableTransactionId,
+      required int amountPaise,
+    });
+typedef $$RecoveryLinksTableUpdateCompanionBuilder =
+    RecoveryLinksCompanion Function({
+      Value<int> id,
+      Value<int> creditTransactionId,
+      Value<int> recoverableTransactionId,
+      Value<int> amountPaise,
+    });
+
+class $$RecoveryLinksTableFilterComposer
+    extends Composer<_$AppDatabase, $RecoveryLinksTable> {
+  $$RecoveryLinksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get creditTransactionId => $composableBuilder(
+    column: $table.creditTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recoverableTransactionId => $composableBuilder(
+    column: $table.recoverableTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountPaise => $composableBuilder(
+    column: $table.amountPaise,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecoveryLinksTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecoveryLinksTable> {
+  $$RecoveryLinksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get creditTransactionId => $composableBuilder(
+    column: $table.creditTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recoverableTransactionId => $composableBuilder(
+    column: $table.recoverableTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountPaise => $composableBuilder(
+    column: $table.amountPaise,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecoveryLinksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecoveryLinksTable> {
+  $$RecoveryLinksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get creditTransactionId => $composableBuilder(
+    column: $table.creditTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get recoverableTransactionId => $composableBuilder(
+    column: $table.recoverableTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountPaise => $composableBuilder(
+    column: $table.amountPaise,
+    builder: (column) => column,
+  );
+}
+
+class $$RecoveryLinksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecoveryLinksTable,
+          RecoveryLink,
+          $$RecoveryLinksTableFilterComposer,
+          $$RecoveryLinksTableOrderingComposer,
+          $$RecoveryLinksTableAnnotationComposer,
+          $$RecoveryLinksTableCreateCompanionBuilder,
+          $$RecoveryLinksTableUpdateCompanionBuilder,
+          (
+            RecoveryLink,
+            BaseReferences<_$AppDatabase, $RecoveryLinksTable, RecoveryLink>,
+          ),
+          RecoveryLink,
+          PrefetchHooks Function()
+        > {
+  $$RecoveryLinksTableTableManager(_$AppDatabase db, $RecoveryLinksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecoveryLinksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecoveryLinksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecoveryLinksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> creditTransactionId = const Value.absent(),
+                Value<int> recoverableTransactionId = const Value.absent(),
+                Value<int> amountPaise = const Value.absent(),
+              }) => RecoveryLinksCompanion(
+                id: id,
+                creditTransactionId: creditTransactionId,
+                recoverableTransactionId: recoverableTransactionId,
+                amountPaise: amountPaise,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int creditTransactionId,
+                required int recoverableTransactionId,
+                required int amountPaise,
+              }) => RecoveryLinksCompanion.insert(
+                id: id,
+                creditTransactionId: creditTransactionId,
+                recoverableTransactionId: recoverableTransactionId,
+                amountPaise: amountPaise,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecoveryLinksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecoveryLinksTable,
+      RecoveryLink,
+      $$RecoveryLinksTableFilterComposer,
+      $$RecoveryLinksTableOrderingComposer,
+      $$RecoveryLinksTableAnnotationComposer,
+      $$RecoveryLinksTableCreateCompanionBuilder,
+      $$RecoveryLinksTableUpdateCompanionBuilder,
+      (
+        RecoveryLink,
+        BaseReferences<_$AppDatabase, $RecoveryLinksTable, RecoveryLink>,
+      ),
+      RecoveryLink,
+      PrefetchHooks Function()
+    >;
+typedef $$RecoverablePersonsTableCreateCompanionBuilder =
+    RecoverablePersonsCompanion Function({
+      Value<int> id,
+      required String name,
+      required DateTime lastUsedAt,
+    });
+typedef $$RecoverablePersonsTableUpdateCompanionBuilder =
+    RecoverablePersonsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<DateTime> lastUsedAt,
+    });
+
+class $$RecoverablePersonsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecoverablePersonsTable> {
+  $$RecoverablePersonsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecoverablePersonsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecoverablePersonsTable> {
+  $$RecoverablePersonsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecoverablePersonsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecoverablePersonsTable> {
+  $$RecoverablePersonsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$RecoverablePersonsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecoverablePersonsTable,
+          RecoverablePerson,
+          $$RecoverablePersonsTableFilterComposer,
+          $$RecoverablePersonsTableOrderingComposer,
+          $$RecoverablePersonsTableAnnotationComposer,
+          $$RecoverablePersonsTableCreateCompanionBuilder,
+          $$RecoverablePersonsTableUpdateCompanionBuilder,
+          (
+            RecoverablePerson,
+            BaseReferences<
+              _$AppDatabase,
+              $RecoverablePersonsTable,
+              RecoverablePerson
+            >,
+          ),
+          RecoverablePerson,
+          PrefetchHooks Function()
+        > {
+  $$RecoverablePersonsTableTableManager(
+    _$AppDatabase db,
+    $RecoverablePersonsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecoverablePersonsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecoverablePersonsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecoverablePersonsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DateTime> lastUsedAt = const Value.absent(),
+              }) => RecoverablePersonsCompanion(
+                id: id,
+                name: name,
+                lastUsedAt: lastUsedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required DateTime lastUsedAt,
+              }) => RecoverablePersonsCompanion.insert(
+                id: id,
+                name: name,
+                lastUsedAt: lastUsedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecoverablePersonsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecoverablePersonsTable,
+      RecoverablePerson,
+      $$RecoverablePersonsTableFilterComposer,
+      $$RecoverablePersonsTableOrderingComposer,
+      $$RecoverablePersonsTableAnnotationComposer,
+      $$RecoverablePersonsTableCreateCompanionBuilder,
+      $$RecoverablePersonsTableUpdateCompanionBuilder,
+      (
+        RecoverablePerson,
+        BaseReferences<
+          _$AppDatabase,
+          $RecoverablePersonsTable,
+          RecoverablePerson
+        >,
+      ),
+      RecoverablePerson,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5528,4 +8067,14 @@ class $AppDatabaseManager {
       );
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$BudgetSettingsTableTableManager get budgetSettings =>
+      $$BudgetSettingsTableTableManager(_db, _db.budgetSettings);
+  $$CategoryBudgetsTableTableManager get categoryBudgets =>
+      $$CategoryBudgetsTableTableManager(_db, _db.categoryBudgets);
+  $$BudgetAlertCrossingsTableTableManager get budgetAlertCrossings =>
+      $$BudgetAlertCrossingsTableTableManager(_db, _db.budgetAlertCrossings);
+  $$RecoveryLinksTableTableManager get recoveryLinks =>
+      $$RecoveryLinksTableTableManager(_db, _db.recoveryLinks);
+  $$RecoverablePersonsTableTableManager get recoverablePersons =>
+      $$RecoverablePersonsTableTableManager(_db, _db.recoverablePersons);
 }

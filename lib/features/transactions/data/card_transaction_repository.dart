@@ -61,6 +61,12 @@ class CardTransactionRepository {
         .get();
   }
 
+  Future<List<CardTransaction>> listForBillingCycle(int billingCycleId) {
+    return (_database.select(_database.cardTransactions)
+          ..where((tx) => tx.billingCycleId.equals(billingCycleId)))
+        .get();
+  }
+
   Future<List<CardTransaction>> listAll() {
     return (_database.select(_database.cardTransactions)
           ..orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)]))
