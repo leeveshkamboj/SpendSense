@@ -15,6 +15,7 @@ class ParsedBankTransaction {
     this.beneficiary,
     this.category,
     this.referenceNumber,
+    this.isCardPayment = false,
   });
 
   final String bank;
@@ -27,4 +28,5 @@ class ParsedBankTransaction {
   final String? beneficiary;
   final String? category;
   final String? referenceNumber;
+  final bool isCardPayment;
 }

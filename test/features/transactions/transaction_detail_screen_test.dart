@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
+import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
 
 void main() {
@@ -12,19 +14,28 @@ void main() {
     const rawSms =
         'Spent Rs.411.67 On HDFC Bank Card 5534 At ZOMATO LTD On 2026-07-09:16:15:20.';
     final database = AppDatabase(NativeDatabase.memory());
+    final creditCards = CreditCardRepository(database);
+    final cardId = await creditCards.create(
+      const NewCreditCard(
+        bank: 'HDFC',
+        lastFourDigits: '5534',
+        nickname: 'HDFC ••5534',
+        colorValue: 0xFF00695C,
+        iconName: 'credit_card',
+      ),
+    );
 
-    final transactionId = await database.into(database.cardTransactions).insert(
-          CardTransactionsCompanion.insert(
-            creditCardId: 1,
-            kind: 'expense',
-            amountPaise: 41167,
-            merchant: 'ZOMATO LTD',
-            transactionAt: DateTime(2026, 7, 9, 16, 15, 20),
-            source: 'SMS',
-            rawSms: const Value(rawSms),
-            createdAt: DateTime.now(),
-          ),
-        );
+    final transactionId = await CardTransactionRepository(database).insert(
+      NewCardTransaction(
+        creditCardId: cardId,
+        kind: 'expense',
+        amountPaise: 41167,
+        merchant: 'ZOMATO LTD',
+        transactionAt: DateTime(2026, 7, 9, 16, 15, 20),
+        source: 'SMS',
+        rawSms: rawSms,
+      ),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -37,6 +48,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Original SMS'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
 
     expect(find.text('Original SMS'), findsOneWidget);
     expect(find.text(rawSms), findsOneWidget);

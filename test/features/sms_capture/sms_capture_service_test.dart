@@ -4,6 +4,9 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/accounts/data/bank_account_repository.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_repository.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/linking/data/linking_repository.dart';
+import 'package:spendsense/features/merchants/data/merchant_repository.dart';
+import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
@@ -23,6 +26,13 @@ void main() {
         cardTransactions: CardTransactionRepository(database),
         bankAccounts: BankAccountRepository(database),
         bankAccountTransactions: BankAccountTransactionRepository(database),
+        merchants: MerchantRepository(database),
+        tags: TagRepository(database),
+        linking: LinkingRepository(
+          database: database,
+          creditCards: CreditCardRepository(database),
+          cardTransactions: CardTransactionRepository(database),
+        ),
       );
     });
 
@@ -60,6 +70,17 @@ void main() {
       final tx = (await BankAccountTransactionRepository(database).listAll())
           .single;
       expect(tx.category, 'Salary');
+    });
+
+    test('assigns interest category to credit SMS', () async {
+      const sms =
+          'Axis Bank A/c XX3456 credited with INR 250.00 on 09-07-26 INTEREST';
+
+      await service.processSms(sms);
+
+      final tx = (await BankAccountTransactionRepository(database).listAll())
+          .single;
+      expect(tx.category, 'Investment');
     });
   });
 }
