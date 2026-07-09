@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
+import 'package:spendsense/features/onboarding/sms_import_filter.dart';
 import 'package:spendsense/features/onboarding/sms_import_service.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_providers.dart';
-import 'package:spendsense/features/sms_capture/sms_permission_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_providers.dart';
 
@@ -13,9 +13,14 @@ final smsImportServiceProvider = Provider<SmsImportService>((ref) {
 });
 
 class SmsImportScreen extends ConsumerStatefulWidget {
-  const SmsImportScreen({required this.onComplete, super.key});
+  const SmsImportScreen({
+    required this.onComplete,
+    this.since,
+    super.key,
+  });
 
   final VoidCallback onComplete;
+  final DateTime? since;
 
   @override
   ConsumerState<SmsImportScreen> createState() => _SmsImportScreenState();
@@ -45,7 +50,7 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
     }
 
     final sampleMessages = permission == SmsPermissionState.granted
-        ? _sampleHistoricalMessages()
+        ? _messagesToImport()
         : <String>[];
 
     final importService = ref.read(smsImportServiceProvider);
@@ -65,6 +70,15 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
     if (mounted) widget.onComplete();
   }
 
+  List<String> _messagesToImport() {
+    final messages = _sampleHistoricalMessages();
+    final since = widget.since;
+    if (since == null) {
+      return messages;
+    }
+    return filterSmsSince(messages, since: since);
+  }
+
   List<String> _sampleHistoricalMessages() {
     return [
       'Spent Rs.411.67 On HDFC Bank Card 5534 At ZOMATO LTD On 2026-07-09:16:15:20.',
@@ -82,7 +96,11 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Importing the last 12 months of bank SMS…'),
+            Text(
+              widget.since == null
+                  ? 'Importing the last 12 months of bank SMS…'
+                  : 'Importing bank SMS received since ${_formatDate(widget.since!)}…',
+            ),
             const SizedBox(height: 24),
             LinearProgressIndicator(value: _progress),
             const SizedBox(height: 12),
@@ -91,5 +109,11 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
   }
 }

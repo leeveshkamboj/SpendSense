@@ -8,6 +8,7 @@ import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_
 import 'package:spendsense/features/dashboard/dashboard_screen.dart';
 import 'package:spendsense/features/merchants/presentation/merchants_screen.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverables_screen.dart';
+import 'package:spendsense/features/backup/presentation/backup_settings_screen.dart';
 import 'package:spendsense/features/settings/settings_screen.dart';
 import 'package:spendsense/features/shell/app_shell.dart';
 import 'package:spendsense/features/transactions/presentation/copy_transaction_screen.dart';
@@ -151,6 +152,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'merchants',
                     builder: (context, state) => const MerchantsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'backup',
+                    builder: (context, state) => const BackupSettingsScreen(),
                   ),
                 ],
               ),
