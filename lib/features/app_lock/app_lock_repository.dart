@@ -46,6 +46,20 @@ class AppLockRepository {
     return stored == await _hashPin(pin);
   }
 
+  Future<bool> canUnlockWithBiometrics() async {
+    if (!await isBiometricEnabled()) {
+      return false;
+    }
+    return _gateway.canCheckBiometrics();
+  }
+
+  Future<bool> unlockWithBiometrics() async {
+    if (!await canUnlockWithBiometrics()) {
+      return false;
+    }
+    return _gateway.authenticateWithBiometrics();
+  }
+
   Future<bool> resetPinWithDeviceCredential(String newPin) async {
     final verified = await _gateway.authenticateWithDeviceCredential();
     if (!verified) {
