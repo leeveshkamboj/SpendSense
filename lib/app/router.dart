@@ -6,9 +6,16 @@ import 'package:spendsense/features/bills/bills_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_screen.dart';
 import 'package:spendsense/features/dashboard/dashboard_screen.dart';
+import 'package:spendsense/features/merchants/presentation/merchants_screen.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverables_screen.dart';
 import 'package:spendsense/features/settings/settings_screen.dart';
 import 'package:spendsense/features/shell/app_shell.dart';
+import 'package:spendsense/features/transactions/presentation/copy_transaction_screen.dart';
+import 'package:spendsense/features/transactions/presentation/cycle_move_screen.dart';
+import 'package:spendsense/features/transactions/presentation/edit_transaction_screen.dart';
+import 'package:spendsense/features/transactions/presentation/manual_card_transaction_screen.dart';
+import 'package:spendsense/features/transactions/presentation/merge_transaction_screen.dart';
+import 'package:spendsense/features/transactions/presentation/split_transaction_screen.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
 import 'package:spendsense/features/transactions/transactions_screen.dart';
 
@@ -36,10 +43,52 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const TransactionsScreen(),
                 routes: [
                   GoRoute(
+                    path: 'manual',
+                    builder: (context, state) =>
+                        const ManualCardTransactionScreen(),
+                  ),
+                  GoRoute(
+                    path: 'copy/:id',
+                    builder: (context, state) => CopyTransactionScreen(
+                      sourceTransactionId:
+                          int.parse(state.pathParameters['id']!),
+                    ),
+                  ),
+                  GoRoute(
                     path: ':id',
                     builder: (context, state) => TransactionDetailScreen(
                       transactionId: int.parse(state.pathParameters['id']!),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        builder: (context, state) => EditTransactionScreen(
+                          transactionId:
+                              int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'split',
+                        builder: (context, state) => SplitTransactionScreen(
+                          transactionId:
+                              int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'merge',
+                        builder: (context, state) => MergeTransactionScreen(
+                          survivorTransactionId:
+                              int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'cycle-move',
+                        builder: (context, state) => CycleMoveScreen(
+                          transactionId:
+                              int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -98,6 +147,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'merchants',
+                    builder: (context, state) => const MerchantsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

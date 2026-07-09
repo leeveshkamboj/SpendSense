@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/budgets/presentation/budget_settings_screen.dart';
-import 'package:spendsense/features/recoverables/presentation/recoverables_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -17,6 +15,12 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          ListTile(
+            title: const Text('Merchants'),
+            subtitle: const Text('Display names, categories, and tags'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/merchants'),
+          ),
           ListTile(
             title: const Text('Recoverables'),
             subtitle: const Text('Outstanding amounts by person'),

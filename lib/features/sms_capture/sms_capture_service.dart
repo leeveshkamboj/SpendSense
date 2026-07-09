@@ -9,6 +9,10 @@ import 'package:spendsense/features/sms_capture/domain/captured_transaction_snap
 import 'package:spendsense/features/sms_capture/duplicate_detection.dart';
 import 'package:spendsense/features/sms_capture/parsers/sms_parser.dart';
 import 'package:spendsense/features/sms_capture/unparsed_sms_notifier.dart';
+import 'package:spendsense/features/linking/data/linking_repository.dart';
+import 'package:spendsense/features/merchants/data/merchant_repository.dart';
+import 'package:spendsense/features/sms_capture/domain/parsed_card_credit.dart';
+import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
 
 typedef CaptureNotificationHandler = void Function(CaptureNotificationEvent);
@@ -20,17 +24,26 @@ class SmsCaptureService {
     required CardTransactionRepository cardTransactions,
     required BankAccountRepository bankAccounts,
     required BankAccountTransactionRepository bankAccountTransactions,
+    required MerchantRepository merchants,
+    required TagRepository tags,
+    required LinkingRepository linking,
     this.onCaptured,
     this.onManualAddSuggested,
   })  : _creditCards = creditCards,
         _cardTransactions = cardTransactions,
         _bankAccounts = bankAccounts,
-        _bankAccountTransactions = bankAccountTransactions;
+        _bankAccountTransactions = bankAccountTransactions,
+        _merchants = merchants,
+        _tags = tags,
+        _linking = linking;
 
   final CreditCardRepository _creditCards;
   final CardTransactionRepository _cardTransactions;
   final BankAccountRepository _bankAccounts;
   final BankAccountTransactionRepository _bankAccountTransactions;
+  final MerchantRepository _merchants;
+  final TagRepository _tags;
+  final LinkingRepository _linking;
   final CaptureNotificationHandler? onCaptured;
   final ManualAddNotificationHandler? onManualAddSuggested;
 
@@ -45,6 +58,7 @@ class SmsCaptureService {
 
     return switch (parsed) {
       ParsedCardExpenseMessage(:final expense) => _captureCardExpense(expense),
+      ParsedCardCreditMessage(:final credit) => _captureCardCredit(credit),
       ParsedBankTransactionMessage(:final transaction) =>
         _captureBankTransaction(transaction),
     };
@@ -61,6 +75,8 @@ class SmsCaptureService {
       transactionAt: parsed.transactionAt,
     );
 
+    final category = await _merchants.resolveDefaultCategory(parsed.merchant);
+
     final transactionId = await _cardTransactions.insert(
       NewCardTransaction(
         creditCardId: cardId,
@@ -68,12 +84,21 @@ class SmsCaptureService {
         kind: 'expense',
         amountPaise: parsed.amountPaise,
         merchant: parsed.merchant,
+        category: category,
         transactionAt: parsed.transactionAt,
         source: 'SMS',
         rawSms: parsed.rawSms,
         referenceNumber: parsed.referenceNumber,
       ),
     );
+
+    final defaultTags = await _merchants.resolveDefaultTags(parsed.merchant);
+    if (defaultTags.isNotEmpty) {
+      await _tags.setForCardTransaction(
+        transactionId: transactionId,
+        tagNames: defaultTags,
+      );
+    }
 
     final card = await _creditCards.getById(cardId);
     onCaptured?.call(
@@ -113,6 +138,15 @@ class SmsCaptureService {
       ),
     );
 
+    await _linking.tryLinkBankTransaction(
+      transactionId: transactionId,
+      accountId: accountId,
+      kind: kind,
+      amountPaise: parsed.amountPaise,
+      transactionAt: parsed.transactionAt,
+      isCardPayment: parsed.isCardPayment,
+    );
+
     final account = await _bankAccounts.getById(accountId);
     onCaptured?.call(
       CaptureNotificationEvent(
@@ -125,6 +159,140 @@ class SmsCaptureService {
     );
 
     return SmsCaptureResult.captured;
+  }
+
+  Future<SmsCaptureResult> _captureCardCredit(ParsedCardCredit parsed) async {
+    final cardId = await _resolveCardIdFromCredit(parsed);
+    if (await _isCardCreditDuplicate(parsed, cardId)) {
+      return SmsCaptureResult.duplicate;
+    }
+
+    return switch (parsed.kind) {
+      ParsedCardCreditKind.refund => _captureRefund(parsed, cardId),
+      ParsedCardCreditKind.cardPayment => _captureCardPayment(parsed, cardId),
+    };
+  }
+
+  Future<SmsCaptureResult> _captureRefund(
+    ParsedCardCredit parsed,
+    int cardId,
+  ) async {
+    final merchant = parsed.merchant ?? 'Refund';
+    final billingCycleId = await _linking.resolveRefundBillingCycleId(
+      cardId: cardId,
+      merchant: merchant,
+      amountPaise: parsed.amountPaise,
+    );
+
+    final transactionId = await _cardTransactions.insert(
+      NewCardTransaction(
+        creditCardId: cardId,
+        billingCycleId: billingCycleId,
+        kind: 'refund',
+        amountPaise: parsed.amountPaise,
+        merchant: merchant,
+        transactionAt: parsed.transactionAt,
+        source: 'SMS',
+        rawSms: parsed.rawSms,
+        referenceNumber: parsed.referenceNumber,
+      ),
+    );
+
+    final originalId = await _linking.findRefundOriginalExpenseId(
+      cardId: cardId,
+      merchant: merchant,
+      amountPaise: parsed.amountPaise,
+    );
+    if (originalId != null) {
+      await _linking.recordRefundLink(
+        refundTransactionId: transactionId,
+        originalExpenseTransactionId: originalId,
+      );
+    }
+
+    final card = await _creditCards.getById(cardId);
+    onCaptured?.call(
+      CaptureNotificationEvent(
+        transactionId: transactionId,
+        amountPaise: parsed.amountPaise,
+        merchant: merchant,
+        cardNickname: card?.nickname ?? parsed.bank,
+        isBankAccount: false,
+      ),
+    );
+
+    return SmsCaptureResult.captured;
+  }
+
+  Future<SmsCaptureResult> _captureCardPayment(
+    ParsedCardCredit parsed,
+    int cardId,
+  ) async {
+    final transactionId = await _cardTransactions.insert(
+      NewCardTransaction(
+        creditCardId: cardId,
+        kind: 'card_payment',
+        amountPaise: parsed.amountPaise,
+        merchant: 'Card Payment',
+        transactionAt: parsed.transactionAt,
+        source: 'SMS',
+        rawSms: parsed.rawSms,
+        referenceNumber: parsed.referenceNumber,
+      ),
+    );
+
+    await _linking.applyCardPayment(
+      cardId: cardId,
+      cardPaymentTransactionId: transactionId,
+      paymentAmountPaise: parsed.amountPaise,
+      asOf: parsed.transactionAt,
+    );
+    await _linking.tryLinkCardPayment(
+      cardPaymentTransactionId: transactionId,
+      amountPaise: parsed.amountPaise,
+      transactionAt: parsed.transactionAt,
+    );
+
+    final card = await _creditCards.getById(cardId);
+    onCaptured?.call(
+      CaptureNotificationEvent(
+        transactionId: transactionId,
+        amountPaise: parsed.amountPaise,
+        merchant: 'Card Payment',
+        cardNickname: card?.nickname ?? parsed.bank,
+        isBankAccount: false,
+      ),
+    );
+
+    return SmsCaptureResult.captured;
+  }
+
+  Future<int> _resolveCardIdFromCredit(ParsedCardCredit parsed) async {
+    final existing = await _creditCards.findByBankAndLastFour(
+      bank: parsed.bank,
+      lastFourDigits: parsed.lastFourDigits,
+    );
+    if (existing != null) return existing.id;
+
+    return _creditCards.autoCreateFromSms(
+      bank: parsed.bank,
+      lastFourDigits: parsed.lastFourDigits,
+    );
+  }
+
+  Future<bool> _isCardCreditDuplicate(ParsedCardCredit parsed, int cardId) async {
+    final existing = await _cardTransactions.listSnapshotsForCard(cardId);
+    final merchant = parsed.merchant ?? 'Card Payment';
+    return matchesExistingCapture(
+      incoming: CapturedTransactionSnapshot(
+        creditCardId: cardId,
+        amountPaise: parsed.amountPaise,
+        merchant: merchant,
+        transactionAt: parsed.transactionAt,
+        referenceNumber: parsed.referenceNumber,
+      ),
+      existing: existing,
+    );
   }
 
   Future<int> _resolveCardId(ParsedCardExpense parsed) async {

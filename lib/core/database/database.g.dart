@@ -2032,6 +2032,26 @@ class $CardTransactionsTable extends CardTransactions
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2059,6 +2079,8 @@ class $CardTransactionsTable extends CardTransactions
     isRecoverable,
     recoverablePerson,
     isReviewed,
+    notes,
+    location,
     createdAt,
   ];
   @override
@@ -2187,6 +2209,18 @@ class $CardTransactionsTable extends CardTransactions
         isReviewed.isAcceptableOrUnknown(data['is_reviewed']!, _isReviewedMeta),
       );
     }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2260,6 +2294,14 @@ class $CardTransactionsTable extends CardTransactions
         DriftSqlType.bool,
         data['${effectivePrefix}is_reviewed'],
       )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2288,6 +2330,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
   final bool isRecoverable;
   final String? recoverablePerson;
   final bool isReviewed;
+  final String? notes;
+  final String? location;
   final DateTime createdAt;
   const CardTransaction({
     required this.id,
@@ -2304,6 +2348,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     required this.isRecoverable,
     this.recoverablePerson,
     required this.isReviewed,
+    this.notes,
+    this.location,
     required this.createdAt,
   });
   @override
@@ -2333,6 +2379,12 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       map['recoverable_person'] = Variable<String>(recoverablePerson);
     }
     map['is_reviewed'] = Variable<bool>(isReviewed);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || location != null) {
+      map['location'] = Variable<String>(location);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2363,6 +2415,12 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           ? const Value.absent()
           : Value(recoverablePerson),
       isReviewed: Value(isReviewed),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      location: location == null && nullToAbsent
+          ? const Value.absent()
+          : Value(location),
       createdAt: Value(createdAt),
     );
   }
@@ -2389,6 +2447,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
         json['recoverablePerson'],
       ),
       isReviewed: serializer.fromJson<bool>(json['isReviewed']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      location: serializer.fromJson<String?>(json['location']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2410,6 +2470,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       'isRecoverable': serializer.toJson<bool>(isRecoverable),
       'recoverablePerson': serializer.toJson<String?>(recoverablePerson),
       'isReviewed': serializer.toJson<bool>(isReviewed),
+      'notes': serializer.toJson<String?>(notes),
+      'location': serializer.toJson<String?>(location),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -2429,6 +2491,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     bool? isRecoverable,
     Value<String?> recoverablePerson = const Value.absent(),
     bool? isReviewed,
+    Value<String?> notes = const Value.absent(),
+    Value<String?> location = const Value.absent(),
     DateTime? createdAt,
   }) => CardTransaction(
     id: id ?? this.id,
@@ -2451,6 +2515,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
         ? recoverablePerson.value
         : this.recoverablePerson,
     isReviewed: isReviewed ?? this.isReviewed,
+    notes: notes.present ? notes.value : this.notes,
+    location: location.present ? location.value : this.location,
     createdAt: createdAt ?? this.createdAt,
   );
   CardTransaction copyWithCompanion(CardTransactionsCompanion data) {
@@ -2485,6 +2551,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       isReviewed: data.isReviewed.present
           ? data.isReviewed.value
           : this.isReviewed,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      location: data.location.present ? data.location.value : this.location,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2506,6 +2574,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           ..write('isRecoverable: $isRecoverable, ')
           ..write('recoverablePerson: $recoverablePerson, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('notes: $notes, ')
+          ..write('location: $location, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -2527,6 +2597,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     isRecoverable,
     recoverablePerson,
     isReviewed,
+    notes,
+    location,
     createdAt,
   );
   @override
@@ -2547,6 +2619,8 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           other.isRecoverable == this.isRecoverable &&
           other.recoverablePerson == this.recoverablePerson &&
           other.isReviewed == this.isReviewed &&
+          other.notes == this.notes &&
+          other.location == this.location &&
           other.createdAt == this.createdAt);
 }
 
@@ -2565,6 +2639,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
   final Value<bool> isRecoverable;
   final Value<String?> recoverablePerson;
   final Value<bool> isReviewed;
+  final Value<String?> notes;
+  final Value<String?> location;
   final Value<DateTime> createdAt;
   const CardTransactionsCompanion({
     this.id = const Value.absent(),
@@ -2581,6 +2657,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     this.isRecoverable = const Value.absent(),
     this.recoverablePerson = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.location = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   CardTransactionsCompanion.insert({
@@ -2598,6 +2676,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     this.isRecoverable = const Value.absent(),
     this.recoverablePerson = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.location = const Value.absent(),
     required DateTime createdAt,
   }) : creditCardId = Value(creditCardId),
        kind = Value(kind),
@@ -2621,6 +2701,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     Expression<bool>? isRecoverable,
     Expression<String>? recoverablePerson,
     Expression<bool>? isReviewed,
+    Expression<String>? notes,
+    Expression<String>? location,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -2638,6 +2720,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
       if (isRecoverable != null) 'is_recoverable': isRecoverable,
       if (recoverablePerson != null) 'recoverable_person': recoverablePerson,
       if (isReviewed != null) 'is_reviewed': isReviewed,
+      if (notes != null) 'notes': notes,
+      if (location != null) 'location': location,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -2657,6 +2741,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     Value<bool>? isRecoverable,
     Value<String?>? recoverablePerson,
     Value<bool>? isReviewed,
+    Value<String?>? notes,
+    Value<String?>? location,
     Value<DateTime>? createdAt,
   }) {
     return CardTransactionsCompanion(
@@ -2674,6 +2760,8 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
       isRecoverable: isRecoverable ?? this.isRecoverable,
       recoverablePerson: recoverablePerson ?? this.recoverablePerson,
       isReviewed: isReviewed ?? this.isReviewed,
+      notes: notes ?? this.notes,
+      location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -2723,6 +2811,12 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     if (isReviewed.present) {
       map['is_reviewed'] = Variable<bool>(isReviewed.value);
     }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2746,6 +2840,322 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
           ..write('isRecoverable: $isRecoverable, ')
           ..write('recoverablePerson: $recoverablePerson, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('notes: $notes, ')
+          ..write('location: $location, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CardTransactionReceiptsTable extends CardTransactionReceipts
+    with TableInfo<$CardTransactionReceiptsTable, CardTransactionReceipt> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CardTransactionReceiptsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _cardTransactionIdMeta = const VerificationMeta(
+    'cardTransactionId',
+  );
+  @override
+  late final GeneratedColumn<int> cardTransactionId = GeneratedColumn<int>(
+    'card_transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _filePathMeta = const VerificationMeta(
+    'filePath',
+  );
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+    'file_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    cardTransactionId,
+    filePath,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'card_transaction_receipts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CardTransactionReceipt> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('card_transaction_id')) {
+      context.handle(
+        _cardTransactionIdMeta,
+        cardTransactionId.isAcceptableOrUnknown(
+          data['card_transaction_id']!,
+          _cardTransactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cardTransactionIdMeta);
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(
+        _filePathMeta,
+        filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_filePathMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CardTransactionReceipt map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CardTransactionReceipt(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      cardTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_transaction_id'],
+      )!,
+      filePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_path'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CardTransactionReceiptsTable createAlias(String alias) {
+    return $CardTransactionReceiptsTable(attachedDatabase, alias);
+  }
+}
+
+class CardTransactionReceipt extends DataClass
+    implements Insertable<CardTransactionReceipt> {
+  final int id;
+  final int cardTransactionId;
+  final String filePath;
+  final DateTime createdAt;
+  const CardTransactionReceipt({
+    required this.id,
+    required this.cardTransactionId,
+    required this.filePath,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['card_transaction_id'] = Variable<int>(cardTransactionId);
+    map['file_path'] = Variable<String>(filePath);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CardTransactionReceiptsCompanion toCompanion(bool nullToAbsent) {
+    return CardTransactionReceiptsCompanion(
+      id: Value(id),
+      cardTransactionId: Value(cardTransactionId),
+      filePath: Value(filePath),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CardTransactionReceipt.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CardTransactionReceipt(
+      id: serializer.fromJson<int>(json['id']),
+      cardTransactionId: serializer.fromJson<int>(json['cardTransactionId']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'cardTransactionId': serializer.toJson<int>(cardTransactionId),
+      'filePath': serializer.toJson<String>(filePath),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CardTransactionReceipt copyWith({
+    int? id,
+    int? cardTransactionId,
+    String? filePath,
+    DateTime? createdAt,
+  }) => CardTransactionReceipt(
+    id: id ?? this.id,
+    cardTransactionId: cardTransactionId ?? this.cardTransactionId,
+    filePath: filePath ?? this.filePath,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CardTransactionReceipt copyWithCompanion(
+    CardTransactionReceiptsCompanion data,
+  ) {
+    return CardTransactionReceipt(
+      id: data.id.present ? data.id.value : this.id,
+      cardTransactionId: data.cardTransactionId.present
+          ? data.cardTransactionId.value
+          : this.cardTransactionId,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CardTransactionReceipt(')
+          ..write('id: $id, ')
+          ..write('cardTransactionId: $cardTransactionId, ')
+          ..write('filePath: $filePath, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, cardTransactionId, filePath, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CardTransactionReceipt &&
+          other.id == this.id &&
+          other.cardTransactionId == this.cardTransactionId &&
+          other.filePath == this.filePath &&
+          other.createdAt == this.createdAt);
+}
+
+class CardTransactionReceiptsCompanion
+    extends UpdateCompanion<CardTransactionReceipt> {
+  final Value<int> id;
+  final Value<int> cardTransactionId;
+  final Value<String> filePath;
+  final Value<DateTime> createdAt;
+  const CardTransactionReceiptsCompanion({
+    this.id = const Value.absent(),
+    this.cardTransactionId = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  CardTransactionReceiptsCompanion.insert({
+    this.id = const Value.absent(),
+    required int cardTransactionId,
+    required String filePath,
+    required DateTime createdAt,
+  }) : cardTransactionId = Value(cardTransactionId),
+       filePath = Value(filePath),
+       createdAt = Value(createdAt);
+  static Insertable<CardTransactionReceipt> custom({
+    Expression<int>? id,
+    Expression<int>? cardTransactionId,
+    Expression<String>? filePath,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (cardTransactionId != null) 'card_transaction_id': cardTransactionId,
+      if (filePath != null) 'file_path': filePath,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  CardTransactionReceiptsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? cardTransactionId,
+    Value<String>? filePath,
+    Value<DateTime>? createdAt,
+  }) {
+    return CardTransactionReceiptsCompanion(
+      id: id ?? this.id,
+      cardTransactionId: cardTransactionId ?? this.cardTransactionId,
+      filePath: filePath ?? this.filePath,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (cardTransactionId.present) {
+      map['card_transaction_id'] = Variable<int>(cardTransactionId.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CardTransactionReceiptsCompanion(')
+          ..write('id: $id, ')
+          ..write('cardTransactionId: $cardTransactionId, ')
+          ..write('filePath: $filePath, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -2891,6 +3301,26 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2916,6 +3346,8 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
     rawSms,
     referenceNumber,
     isReviewed,
+    notes,
+    location,
     createdAt,
   ];
   @override
@@ -3024,6 +3456,18 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
         isReviewed.isAcceptableOrUnknown(data['is_reviewed']!, _isReviewedMeta),
       );
     }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3089,6 +3533,14 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
         DriftSqlType.bool,
         data['${effectivePrefix}is_reviewed'],
       )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3116,6 +3568,8 @@ class BankAccountTransaction extends DataClass
   final String? rawSms;
   final String? referenceNumber;
   final bool isReviewed;
+  final String? notes;
+  final String? location;
   final DateTime createdAt;
   const BankAccountTransaction({
     required this.id,
@@ -3130,6 +3584,8 @@ class BankAccountTransaction extends DataClass
     this.rawSms,
     this.referenceNumber,
     required this.isReviewed,
+    this.notes,
+    this.location,
     required this.createdAt,
   });
   @override
@@ -3157,6 +3613,12 @@ class BankAccountTransaction extends DataClass
       map['reference_number'] = Variable<String>(referenceNumber);
     }
     map['is_reviewed'] = Variable<bool>(isReviewed);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || location != null) {
+      map['location'] = Variable<String>(location);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -3185,6 +3647,12 @@ class BankAccountTransaction extends DataClass
           ? const Value.absent()
           : Value(referenceNumber),
       isReviewed: Value(isReviewed),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      location: location == null && nullToAbsent
+          ? const Value.absent()
+          : Value(location),
       createdAt: Value(createdAt),
     );
   }
@@ -3207,6 +3675,8 @@ class BankAccountTransaction extends DataClass
       rawSms: serializer.fromJson<String?>(json['rawSms']),
       referenceNumber: serializer.fromJson<String?>(json['referenceNumber']),
       isReviewed: serializer.fromJson<bool>(json['isReviewed']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      location: serializer.fromJson<String?>(json['location']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3226,6 +3696,8 @@ class BankAccountTransaction extends DataClass
       'rawSms': serializer.toJson<String?>(rawSms),
       'referenceNumber': serializer.toJson<String?>(referenceNumber),
       'isReviewed': serializer.toJson<bool>(isReviewed),
+      'notes': serializer.toJson<String?>(notes),
+      'location': serializer.toJson<String?>(location),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -3243,6 +3715,8 @@ class BankAccountTransaction extends DataClass
     Value<String?> rawSms = const Value.absent(),
     Value<String?> referenceNumber = const Value.absent(),
     bool? isReviewed,
+    Value<String?> notes = const Value.absent(),
+    Value<String?> location = const Value.absent(),
     DateTime? createdAt,
   }) => BankAccountTransaction(
     id: id ?? this.id,
@@ -3259,6 +3733,8 @@ class BankAccountTransaction extends DataClass
         ? referenceNumber.value
         : this.referenceNumber,
     isReviewed: isReviewed ?? this.isReviewed,
+    notes: notes.present ? notes.value : this.notes,
+    location: location.present ? location.value : this.location,
     createdAt: createdAt ?? this.createdAt,
   );
   BankAccountTransaction copyWithCompanion(
@@ -3289,6 +3765,8 @@ class BankAccountTransaction extends DataClass
       isReviewed: data.isReviewed.present
           ? data.isReviewed.value
           : this.isReviewed,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      location: data.location.present ? data.location.value : this.location,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -3308,6 +3786,8 @@ class BankAccountTransaction extends DataClass
           ..write('rawSms: $rawSms, ')
           ..write('referenceNumber: $referenceNumber, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('notes: $notes, ')
+          ..write('location: $location, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3327,6 +3807,8 @@ class BankAccountTransaction extends DataClass
     rawSms,
     referenceNumber,
     isReviewed,
+    notes,
+    location,
     createdAt,
   );
   @override
@@ -3345,6 +3827,8 @@ class BankAccountTransaction extends DataClass
           other.rawSms == this.rawSms &&
           other.referenceNumber == this.referenceNumber &&
           other.isReviewed == this.isReviewed &&
+          other.notes == this.notes &&
+          other.location == this.location &&
           other.createdAt == this.createdAt);
 }
 
@@ -3362,6 +3846,8 @@ class BankAccountTransactionsCompanion
   final Value<String?> rawSms;
   final Value<String?> referenceNumber;
   final Value<bool> isReviewed;
+  final Value<String?> notes;
+  final Value<String?> location;
   final Value<DateTime> createdAt;
   const BankAccountTransactionsCompanion({
     this.id = const Value.absent(),
@@ -3376,6 +3862,8 @@ class BankAccountTransactionsCompanion
     this.rawSms = const Value.absent(),
     this.referenceNumber = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.location = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   BankAccountTransactionsCompanion.insert({
@@ -3391,6 +3879,8 @@ class BankAccountTransactionsCompanion
     this.rawSms = const Value.absent(),
     this.referenceNumber = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.location = const Value.absent(),
     required DateTime createdAt,
   }) : bankAccountId = Value(bankAccountId),
        kind = Value(kind),
@@ -3411,6 +3901,8 @@ class BankAccountTransactionsCompanion
     Expression<String>? rawSms,
     Expression<String>? referenceNumber,
     Expression<bool>? isReviewed,
+    Expression<String>? notes,
+    Expression<String>? location,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -3426,6 +3918,8 @@ class BankAccountTransactionsCompanion
       if (rawSms != null) 'raw_sms': rawSms,
       if (referenceNumber != null) 'reference_number': referenceNumber,
       if (isReviewed != null) 'is_reviewed': isReviewed,
+      if (notes != null) 'notes': notes,
+      if (location != null) 'location': location,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -3443,6 +3937,8 @@ class BankAccountTransactionsCompanion
     Value<String?>? rawSms,
     Value<String?>? referenceNumber,
     Value<bool>? isReviewed,
+    Value<String?>? notes,
+    Value<String?>? location,
     Value<DateTime>? createdAt,
   }) {
     return BankAccountTransactionsCompanion(
@@ -3458,6 +3954,8 @@ class BankAccountTransactionsCompanion
       rawSms: rawSms ?? this.rawSms,
       referenceNumber: referenceNumber ?? this.referenceNumber,
       isReviewed: isReviewed ?? this.isReviewed,
+      notes: notes ?? this.notes,
+      location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -3501,6 +3999,12 @@ class BankAccountTransactionsCompanion
     if (isReviewed.present) {
       map['is_reviewed'] = Variable<bool>(isReviewed.value);
     }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3522,6 +4026,8 @@ class BankAccountTransactionsCompanion
           ..write('rawSms: $rawSms, ')
           ..write('referenceNumber: $referenceNumber, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('notes: $notes, ')
+          ..write('location: $location, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -5280,6 +5786,1732 @@ class RecoverablePersonsCompanion extends UpdateCompanion<RecoverablePerson> {
   }
 }
 
+class $MerchantsTable extends Merchants
+    with TableInfo<$MerchantsTable, Merchant> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MerchantsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _rawNameMeta = const VerificationMeta(
+    'rawName',
+  );
+  @override
+  late final GeneratedColumn<String> rawName = GeneratedColumn<String>(
+    'raw_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _defaultCategoryMeta = const VerificationMeta(
+    'defaultCategory',
+  );
+  @override
+  late final GeneratedColumn<String> defaultCategory = GeneratedColumn<String>(
+    'default_category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isUserCustomizedMeta = const VerificationMeta(
+    'isUserCustomized',
+  );
+  @override
+  late final GeneratedColumn<bool> isUserCustomized = GeneratedColumn<bool>(
+    'is_user_customized',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_user_customized" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    rawName,
+    displayName,
+    defaultCategory,
+    isUserCustomized,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'merchants';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Merchant> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('raw_name')) {
+      context.handle(
+        _rawNameMeta,
+        rawName.isAcceptableOrUnknown(data['raw_name']!, _rawNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawNameMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('default_category')) {
+      context.handle(
+        _defaultCategoryMeta,
+        defaultCategory.isAcceptableOrUnknown(
+          data['default_category']!,
+          _defaultCategoryMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_user_customized')) {
+      context.handle(
+        _isUserCustomizedMeta,
+        isUserCustomized.isAcceptableOrUnknown(
+          data['is_user_customized']!,
+          _isUserCustomizedMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Merchant map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Merchant(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      rawName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_name'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      ),
+      defaultCategory: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_category'],
+      ),
+      isUserCustomized: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_user_customized'],
+      )!,
+    );
+  }
+
+  @override
+  $MerchantsTable createAlias(String alias) {
+    return $MerchantsTable(attachedDatabase, alias);
+  }
+}
+
+class Merchant extends DataClass implements Insertable<Merchant> {
+  final int id;
+  final String rawName;
+  final String? displayName;
+  final String? defaultCategory;
+  final bool isUserCustomized;
+  const Merchant({
+    required this.id,
+    required this.rawName,
+    this.displayName,
+    this.defaultCategory,
+    required this.isUserCustomized,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['raw_name'] = Variable<String>(rawName);
+    if (!nullToAbsent || displayName != null) {
+      map['display_name'] = Variable<String>(displayName);
+    }
+    if (!nullToAbsent || defaultCategory != null) {
+      map['default_category'] = Variable<String>(defaultCategory);
+    }
+    map['is_user_customized'] = Variable<bool>(isUserCustomized);
+    return map;
+  }
+
+  MerchantsCompanion toCompanion(bool nullToAbsent) {
+    return MerchantsCompanion(
+      id: Value(id),
+      rawName: Value(rawName),
+      displayName: displayName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(displayName),
+      defaultCategory: defaultCategory == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultCategory),
+      isUserCustomized: Value(isUserCustomized),
+    );
+  }
+
+  factory Merchant.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Merchant(
+      id: serializer.fromJson<int>(json['id']),
+      rawName: serializer.fromJson<String>(json['rawName']),
+      displayName: serializer.fromJson<String?>(json['displayName']),
+      defaultCategory: serializer.fromJson<String?>(json['defaultCategory']),
+      isUserCustomized: serializer.fromJson<bool>(json['isUserCustomized']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'rawName': serializer.toJson<String>(rawName),
+      'displayName': serializer.toJson<String?>(displayName),
+      'defaultCategory': serializer.toJson<String?>(defaultCategory),
+      'isUserCustomized': serializer.toJson<bool>(isUserCustomized),
+    };
+  }
+
+  Merchant copyWith({
+    int? id,
+    String? rawName,
+    Value<String?> displayName = const Value.absent(),
+    Value<String?> defaultCategory = const Value.absent(),
+    bool? isUserCustomized,
+  }) => Merchant(
+    id: id ?? this.id,
+    rawName: rawName ?? this.rawName,
+    displayName: displayName.present ? displayName.value : this.displayName,
+    defaultCategory: defaultCategory.present
+        ? defaultCategory.value
+        : this.defaultCategory,
+    isUserCustomized: isUserCustomized ?? this.isUserCustomized,
+  );
+  Merchant copyWithCompanion(MerchantsCompanion data) {
+    return Merchant(
+      id: data.id.present ? data.id.value : this.id,
+      rawName: data.rawName.present ? data.rawName.value : this.rawName,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      defaultCategory: data.defaultCategory.present
+          ? data.defaultCategory.value
+          : this.defaultCategory,
+      isUserCustomized: data.isUserCustomized.present
+          ? data.isUserCustomized.value
+          : this.isUserCustomized,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Merchant(')
+          ..write('id: $id, ')
+          ..write('rawName: $rawName, ')
+          ..write('displayName: $displayName, ')
+          ..write('defaultCategory: $defaultCategory, ')
+          ..write('isUserCustomized: $isUserCustomized')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, rawName, displayName, defaultCategory, isUserCustomized);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Merchant &&
+          other.id == this.id &&
+          other.rawName == this.rawName &&
+          other.displayName == this.displayName &&
+          other.defaultCategory == this.defaultCategory &&
+          other.isUserCustomized == this.isUserCustomized);
+}
+
+class MerchantsCompanion extends UpdateCompanion<Merchant> {
+  final Value<int> id;
+  final Value<String> rawName;
+  final Value<String?> displayName;
+  final Value<String?> defaultCategory;
+  final Value<bool> isUserCustomized;
+  const MerchantsCompanion({
+    this.id = const Value.absent(),
+    this.rawName = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.defaultCategory = const Value.absent(),
+    this.isUserCustomized = const Value.absent(),
+  });
+  MerchantsCompanion.insert({
+    this.id = const Value.absent(),
+    required String rawName,
+    this.displayName = const Value.absent(),
+    this.defaultCategory = const Value.absent(),
+    this.isUserCustomized = const Value.absent(),
+  }) : rawName = Value(rawName);
+  static Insertable<Merchant> custom({
+    Expression<int>? id,
+    Expression<String>? rawName,
+    Expression<String>? displayName,
+    Expression<String>? defaultCategory,
+    Expression<bool>? isUserCustomized,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rawName != null) 'raw_name': rawName,
+      if (displayName != null) 'display_name': displayName,
+      if (defaultCategory != null) 'default_category': defaultCategory,
+      if (isUserCustomized != null) 'is_user_customized': isUserCustomized,
+    });
+  }
+
+  MerchantsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? rawName,
+    Value<String?>? displayName,
+    Value<String?>? defaultCategory,
+    Value<bool>? isUserCustomized,
+  }) {
+    return MerchantsCompanion(
+      id: id ?? this.id,
+      rawName: rawName ?? this.rawName,
+      displayName: displayName ?? this.displayName,
+      defaultCategory: defaultCategory ?? this.defaultCategory,
+      isUserCustomized: isUserCustomized ?? this.isUserCustomized,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (rawName.present) {
+      map['raw_name'] = Variable<String>(rawName.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (defaultCategory.present) {
+      map['default_category'] = Variable<String>(defaultCategory.value);
+    }
+    if (isUserCustomized.present) {
+      map['is_user_customized'] = Variable<bool>(isUserCustomized.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantsCompanion(')
+          ..write('id: $id, ')
+          ..write('rawName: $rawName, ')
+          ..write('displayName: $displayName, ')
+          ..write('defaultCategory: $defaultCategory, ')
+          ..write('isUserCustomized: $isUserCustomized')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CategoriesTable extends Categories
+    with TableInfo<$CategoriesTable, Category> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _isBuiltInMeta = const VerificationMeta(
+    'isBuiltIn',
+  );
+  @override
+  late final GeneratedColumn<bool> isBuiltIn = GeneratedColumn<bool>(
+    'is_built_in',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_built_in" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, isBuiltIn];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Category> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('is_built_in')) {
+      context.handle(
+        _isBuiltInMeta,
+        isBuiltIn.isAcceptableOrUnknown(data['is_built_in']!, _isBuiltInMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Category map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Category(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      isBuiltIn: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_built_in'],
+      )!,
+    );
+  }
+
+  @override
+  $CategoriesTable createAlias(String alias) {
+    return $CategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class Category extends DataClass implements Insertable<Category> {
+  final int id;
+  final String name;
+  final bool isBuiltIn;
+  const Category({
+    required this.id,
+    required this.name,
+    required this.isBuiltIn,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['is_built_in'] = Variable<bool>(isBuiltIn);
+    return map;
+  }
+
+  CategoriesCompanion toCompanion(bool nullToAbsent) {
+    return CategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      isBuiltIn: Value(isBuiltIn),
+    );
+  }
+
+  factory Category.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Category(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      isBuiltIn: serializer.fromJson<bool>(json['isBuiltIn']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'isBuiltIn': serializer.toJson<bool>(isBuiltIn),
+    };
+  }
+
+  Category copyWith({int? id, String? name, bool? isBuiltIn}) => Category(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+  );
+  Category copyWithCompanion(CategoriesCompanion data) {
+    return Category(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      isBuiltIn: data.isBuiltIn.present ? data.isBuiltIn.value : this.isBuiltIn,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Category(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('isBuiltIn: $isBuiltIn')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, isBuiltIn);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Category &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.isBuiltIn == this.isBuiltIn);
+}
+
+class CategoriesCompanion extends UpdateCompanion<Category> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<bool> isBuiltIn;
+  const CategoriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.isBuiltIn = const Value.absent(),
+  });
+  CategoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.isBuiltIn = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<Category> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<bool>? isBuiltIn,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (isBuiltIn != null) 'is_built_in': isBuiltIn,
+    });
+  }
+
+  CategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<bool>? isBuiltIn,
+  }) {
+    return CategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isBuiltIn.present) {
+      map['is_built_in'] = Variable<bool>(isBuiltIn.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('isBuiltIn: $isBuiltIn')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Tag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Tag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Tag(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $TagsTable createAlias(String alias) {
+    return $TagsTable(attachedDatabase, alias);
+  }
+}
+
+class Tag extends DataClass implements Insertable<Tag> {
+  final int id;
+  final String name;
+  const Tag({required this.id, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  TagsCompanion toCompanion(bool nullToAbsent) {
+    return TagsCompanion(id: Value(id), name: Value(name));
+  }
+
+  factory Tag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Tag(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  Tag copyWith({int? id, String? name}) =>
+      Tag(id: id ?? this.id, name: name ?? this.name);
+  Tag copyWithCompanion(TagsCompanion data) {
+    return Tag(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Tag(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Tag && other.id == this.id && other.name == this.name);
+}
+
+class TagsCompanion extends UpdateCompanion<Tag> {
+  final Value<int> id;
+  final Value<String> name;
+  const TagsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+  });
+  TagsCompanion.insert({this.id = const Value.absent(), required String name})
+    : name = Value(name);
+  static Insertable<Tag> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+    });
+  }
+
+  TagsCompanion copyWith({Value<int>? id, Value<String>? name}) {
+    return TagsCompanion(id: id ?? this.id, name: name ?? this.name);
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CardTransactionTagsTable extends CardTransactionTags
+    with TableInfo<$CardTransactionTagsTable, CardTransactionTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CardTransactionTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cardTransactionIdMeta = const VerificationMeta(
+    'cardTransactionId',
+  );
+  @override
+  late final GeneratedColumn<int> cardTransactionId = GeneratedColumn<int>(
+    'card_transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<int> tagId = GeneratedColumn<int>(
+    'tag_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [cardTransactionId, tagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'card_transaction_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CardTransactionTag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('card_transaction_id')) {
+      context.handle(
+        _cardTransactionIdMeta,
+        cardTransactionId.isAcceptableOrUnknown(
+          data['card_transaction_id']!,
+          _cardTransactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cardTransactionIdMeta);
+    }
+    if (data.containsKey('tag_id')) {
+      context.handle(
+        _tagIdMeta,
+        tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cardTransactionId, tagId};
+  @override
+  CardTransactionTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CardTransactionTag(
+      cardTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_transaction_id'],
+      )!,
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tag_id'],
+      )!,
+    );
+  }
+
+  @override
+  $CardTransactionTagsTable createAlias(String alias) {
+    return $CardTransactionTagsTable(attachedDatabase, alias);
+  }
+}
+
+class CardTransactionTag extends DataClass
+    implements Insertable<CardTransactionTag> {
+  final int cardTransactionId;
+  final int tagId;
+  const CardTransactionTag({
+    required this.cardTransactionId,
+    required this.tagId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['card_transaction_id'] = Variable<int>(cardTransactionId);
+    map['tag_id'] = Variable<int>(tagId);
+    return map;
+  }
+
+  CardTransactionTagsCompanion toCompanion(bool nullToAbsent) {
+    return CardTransactionTagsCompanion(
+      cardTransactionId: Value(cardTransactionId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory CardTransactionTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CardTransactionTag(
+      cardTransactionId: serializer.fromJson<int>(json['cardTransactionId']),
+      tagId: serializer.fromJson<int>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cardTransactionId': serializer.toJson<int>(cardTransactionId),
+      'tagId': serializer.toJson<int>(tagId),
+    };
+  }
+
+  CardTransactionTag copyWith({int? cardTransactionId, int? tagId}) =>
+      CardTransactionTag(
+        cardTransactionId: cardTransactionId ?? this.cardTransactionId,
+        tagId: tagId ?? this.tagId,
+      );
+  CardTransactionTag copyWithCompanion(CardTransactionTagsCompanion data) {
+    return CardTransactionTag(
+      cardTransactionId: data.cardTransactionId.present
+          ? data.cardTransactionId.value
+          : this.cardTransactionId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CardTransactionTag(')
+          ..write('cardTransactionId: $cardTransactionId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cardTransactionId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CardTransactionTag &&
+          other.cardTransactionId == this.cardTransactionId &&
+          other.tagId == this.tagId);
+}
+
+class CardTransactionTagsCompanion extends UpdateCompanion<CardTransactionTag> {
+  final Value<int> cardTransactionId;
+  final Value<int> tagId;
+  final Value<int> rowid;
+  const CardTransactionTagsCompanion({
+    this.cardTransactionId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CardTransactionTagsCompanion.insert({
+    required int cardTransactionId,
+    required int tagId,
+    this.rowid = const Value.absent(),
+  }) : cardTransactionId = Value(cardTransactionId),
+       tagId = Value(tagId);
+  static Insertable<CardTransactionTag> custom({
+    Expression<int>? cardTransactionId,
+    Expression<int>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cardTransactionId != null) 'card_transaction_id': cardTransactionId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CardTransactionTagsCompanion copyWith({
+    Value<int>? cardTransactionId,
+    Value<int>? tagId,
+    Value<int>? rowid,
+  }) {
+    return CardTransactionTagsCompanion(
+      cardTransactionId: cardTransactionId ?? this.cardTransactionId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cardTransactionId.present) {
+      map['card_transaction_id'] = Variable<int>(cardTransactionId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<int>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CardTransactionTagsCompanion(')
+          ..write('cardTransactionId: $cardTransactionId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MerchantDefaultTagsTable extends MerchantDefaultTags
+    with TableInfo<$MerchantDefaultTagsTable, MerchantDefaultTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MerchantDefaultTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _merchantIdMeta = const VerificationMeta(
+    'merchantId',
+  );
+  @override
+  late final GeneratedColumn<int> merchantId = GeneratedColumn<int>(
+    'merchant_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<int> tagId = GeneratedColumn<int>(
+    'tag_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [merchantId, tagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'merchant_default_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MerchantDefaultTag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('merchant_id')) {
+      context.handle(
+        _merchantIdMeta,
+        merchantId.isAcceptableOrUnknown(data['merchant_id']!, _merchantIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantIdMeta);
+    }
+    if (data.containsKey('tag_id')) {
+      context.handle(
+        _tagIdMeta,
+        tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {merchantId, tagId};
+  @override
+  MerchantDefaultTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MerchantDefaultTag(
+      merchantId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}merchant_id'],
+      )!,
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tag_id'],
+      )!,
+    );
+  }
+
+  @override
+  $MerchantDefaultTagsTable createAlias(String alias) {
+    return $MerchantDefaultTagsTable(attachedDatabase, alias);
+  }
+}
+
+class MerchantDefaultTag extends DataClass
+    implements Insertable<MerchantDefaultTag> {
+  final int merchantId;
+  final int tagId;
+  const MerchantDefaultTag({required this.merchantId, required this.tagId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['merchant_id'] = Variable<int>(merchantId);
+    map['tag_id'] = Variable<int>(tagId);
+    return map;
+  }
+
+  MerchantDefaultTagsCompanion toCompanion(bool nullToAbsent) {
+    return MerchantDefaultTagsCompanion(
+      merchantId: Value(merchantId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory MerchantDefaultTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MerchantDefaultTag(
+      merchantId: serializer.fromJson<int>(json['merchantId']),
+      tagId: serializer.fromJson<int>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'merchantId': serializer.toJson<int>(merchantId),
+      'tagId': serializer.toJson<int>(tagId),
+    };
+  }
+
+  MerchantDefaultTag copyWith({int? merchantId, int? tagId}) =>
+      MerchantDefaultTag(
+        merchantId: merchantId ?? this.merchantId,
+        tagId: tagId ?? this.tagId,
+      );
+  MerchantDefaultTag copyWithCompanion(MerchantDefaultTagsCompanion data) {
+    return MerchantDefaultTag(
+      merchantId: data.merchantId.present
+          ? data.merchantId.value
+          : this.merchantId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantDefaultTag(')
+          ..write('merchantId: $merchantId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(merchantId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MerchantDefaultTag &&
+          other.merchantId == this.merchantId &&
+          other.tagId == this.tagId);
+}
+
+class MerchantDefaultTagsCompanion extends UpdateCompanion<MerchantDefaultTag> {
+  final Value<int> merchantId;
+  final Value<int> tagId;
+  final Value<int> rowid;
+  const MerchantDefaultTagsCompanion({
+    this.merchantId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MerchantDefaultTagsCompanion.insert({
+    required int merchantId,
+    required int tagId,
+    this.rowid = const Value.absent(),
+  }) : merchantId = Value(merchantId),
+       tagId = Value(tagId);
+  static Insertable<MerchantDefaultTag> custom({
+    Expression<int>? merchantId,
+    Expression<int>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (merchantId != null) 'merchant_id': merchantId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MerchantDefaultTagsCompanion copyWith({
+    Value<int>? merchantId,
+    Value<int>? tagId,
+    Value<int>? rowid,
+  }) {
+    return MerchantDefaultTagsCompanion(
+      merchantId: merchantId ?? this.merchantId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (merchantId.present) {
+      map['merchant_id'] = Variable<int>(merchantId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<int>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantDefaultTagsCompanion(')
+          ..write('merchantId: $merchantId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TransactionLinksTable extends TransactionLinks
+    with TableInfo<$TransactionLinksTable, TransactionLink> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransactionLinksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cardTransactionIdMeta = const VerificationMeta(
+    'cardTransactionId',
+  );
+  @override
+  late final GeneratedColumn<int> cardTransactionId = GeneratedColumn<int>(
+    'card_transaction_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bankAccountTransactionIdMeta =
+      const VerificationMeta('bankAccountTransactionId');
+  @override
+  late final GeneratedColumn<int> bankAccountTransactionId =
+      GeneratedColumn<int>(
+        'bank_account_transaction_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _linkedCardTransactionIdMeta =
+      const VerificationMeta('linkedCardTransactionId');
+  @override
+  late final GeneratedColumn<int> linkedCardTransactionId =
+      GeneratedColumn<int>(
+        'linked_card_transaction_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _linkedBankAccountTransactionIdMeta =
+      const VerificationMeta('linkedBankAccountTransactionId');
+  @override
+  late final GeneratedColumn<int> linkedBankAccountTransactionId =
+      GeneratedColumn<int>(
+        'linked_bank_account_transaction_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    cardTransactionId,
+    bankAccountTransactionId,
+    linkedCardTransactionId,
+    linkedBankAccountTransactionId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transaction_links';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TransactionLink> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('card_transaction_id')) {
+      context.handle(
+        _cardTransactionIdMeta,
+        cardTransactionId.isAcceptableOrUnknown(
+          data['card_transaction_id']!,
+          _cardTransactionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bank_account_transaction_id')) {
+      context.handle(
+        _bankAccountTransactionIdMeta,
+        bankAccountTransactionId.isAcceptableOrUnknown(
+          data['bank_account_transaction_id']!,
+          _bankAccountTransactionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('linked_card_transaction_id')) {
+      context.handle(
+        _linkedCardTransactionIdMeta,
+        linkedCardTransactionId.isAcceptableOrUnknown(
+          data['linked_card_transaction_id']!,
+          _linkedCardTransactionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('linked_bank_account_transaction_id')) {
+      context.handle(
+        _linkedBankAccountTransactionIdMeta,
+        linkedBankAccountTransactionId.isAcceptableOrUnknown(
+          data['linked_bank_account_transaction_id']!,
+          _linkedBankAccountTransactionIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TransactionLink map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TransactionLink(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      cardTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_transaction_id'],
+      ),
+      bankAccountTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bank_account_transaction_id'],
+      ),
+      linkedCardTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}linked_card_transaction_id'],
+      ),
+      linkedBankAccountTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}linked_bank_account_transaction_id'],
+      ),
+    );
+  }
+
+  @override
+  $TransactionLinksTable createAlias(String alias) {
+    return $TransactionLinksTable(attachedDatabase, alias);
+  }
+}
+
+class TransactionLink extends DataClass implements Insertable<TransactionLink> {
+  final int id;
+  final String kind;
+  final int? cardTransactionId;
+  final int? bankAccountTransactionId;
+  final int? linkedCardTransactionId;
+  final int? linkedBankAccountTransactionId;
+  const TransactionLink({
+    required this.id,
+    required this.kind,
+    this.cardTransactionId,
+    this.bankAccountTransactionId,
+    this.linkedCardTransactionId,
+    this.linkedBankAccountTransactionId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || cardTransactionId != null) {
+      map['card_transaction_id'] = Variable<int>(cardTransactionId);
+    }
+    if (!nullToAbsent || bankAccountTransactionId != null) {
+      map['bank_account_transaction_id'] = Variable<int>(
+        bankAccountTransactionId,
+      );
+    }
+    if (!nullToAbsent || linkedCardTransactionId != null) {
+      map['linked_card_transaction_id'] = Variable<int>(
+        linkedCardTransactionId,
+      );
+    }
+    if (!nullToAbsent || linkedBankAccountTransactionId != null) {
+      map['linked_bank_account_transaction_id'] = Variable<int>(
+        linkedBankAccountTransactionId,
+      );
+    }
+    return map;
+  }
+
+  TransactionLinksCompanion toCompanion(bool nullToAbsent) {
+    return TransactionLinksCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      cardTransactionId: cardTransactionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cardTransactionId),
+      bankAccountTransactionId: bankAccountTransactionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bankAccountTransactionId),
+      linkedCardTransactionId: linkedCardTransactionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkedCardTransactionId),
+      linkedBankAccountTransactionId:
+          linkedBankAccountTransactionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkedBankAccountTransactionId),
+    );
+  }
+
+  factory TransactionLink.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TransactionLink(
+      id: serializer.fromJson<int>(json['id']),
+      kind: serializer.fromJson<String>(json['kind']),
+      cardTransactionId: serializer.fromJson<int?>(json['cardTransactionId']),
+      bankAccountTransactionId: serializer.fromJson<int?>(
+        json['bankAccountTransactionId'],
+      ),
+      linkedCardTransactionId: serializer.fromJson<int?>(
+        json['linkedCardTransactionId'],
+      ),
+      linkedBankAccountTransactionId: serializer.fromJson<int?>(
+        json['linkedBankAccountTransactionId'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'kind': serializer.toJson<String>(kind),
+      'cardTransactionId': serializer.toJson<int?>(cardTransactionId),
+      'bankAccountTransactionId': serializer.toJson<int?>(
+        bankAccountTransactionId,
+      ),
+      'linkedCardTransactionId': serializer.toJson<int?>(
+        linkedCardTransactionId,
+      ),
+      'linkedBankAccountTransactionId': serializer.toJson<int?>(
+        linkedBankAccountTransactionId,
+      ),
+    };
+  }
+
+  TransactionLink copyWith({
+    int? id,
+    String? kind,
+    Value<int?> cardTransactionId = const Value.absent(),
+    Value<int?> bankAccountTransactionId = const Value.absent(),
+    Value<int?> linkedCardTransactionId = const Value.absent(),
+    Value<int?> linkedBankAccountTransactionId = const Value.absent(),
+  }) => TransactionLink(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    cardTransactionId: cardTransactionId.present
+        ? cardTransactionId.value
+        : this.cardTransactionId,
+    bankAccountTransactionId: bankAccountTransactionId.present
+        ? bankAccountTransactionId.value
+        : this.bankAccountTransactionId,
+    linkedCardTransactionId: linkedCardTransactionId.present
+        ? linkedCardTransactionId.value
+        : this.linkedCardTransactionId,
+    linkedBankAccountTransactionId: linkedBankAccountTransactionId.present
+        ? linkedBankAccountTransactionId.value
+        : this.linkedBankAccountTransactionId,
+  );
+  TransactionLink copyWithCompanion(TransactionLinksCompanion data) {
+    return TransactionLink(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      cardTransactionId: data.cardTransactionId.present
+          ? data.cardTransactionId.value
+          : this.cardTransactionId,
+      bankAccountTransactionId: data.bankAccountTransactionId.present
+          ? data.bankAccountTransactionId.value
+          : this.bankAccountTransactionId,
+      linkedCardTransactionId: data.linkedCardTransactionId.present
+          ? data.linkedCardTransactionId.value
+          : this.linkedCardTransactionId,
+      linkedBankAccountTransactionId:
+          data.linkedBankAccountTransactionId.present
+          ? data.linkedBankAccountTransactionId.value
+          : this.linkedBankAccountTransactionId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionLink(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('cardTransactionId: $cardTransactionId, ')
+          ..write('bankAccountTransactionId: $bankAccountTransactionId, ')
+          ..write('linkedCardTransactionId: $linkedCardTransactionId, ')
+          ..write(
+            'linkedBankAccountTransactionId: $linkedBankAccountTransactionId',
+          )
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    cardTransactionId,
+    bankAccountTransactionId,
+    linkedCardTransactionId,
+    linkedBankAccountTransactionId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TransactionLink &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.cardTransactionId == this.cardTransactionId &&
+          other.bankAccountTransactionId == this.bankAccountTransactionId &&
+          other.linkedCardTransactionId == this.linkedCardTransactionId &&
+          other.linkedBankAccountTransactionId ==
+              this.linkedBankAccountTransactionId);
+}
+
+class TransactionLinksCompanion extends UpdateCompanion<TransactionLink> {
+  final Value<int> id;
+  final Value<String> kind;
+  final Value<int?> cardTransactionId;
+  final Value<int?> bankAccountTransactionId;
+  final Value<int?> linkedCardTransactionId;
+  final Value<int?> linkedBankAccountTransactionId;
+  const TransactionLinksCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.cardTransactionId = const Value.absent(),
+    this.bankAccountTransactionId = const Value.absent(),
+    this.linkedCardTransactionId = const Value.absent(),
+    this.linkedBankAccountTransactionId = const Value.absent(),
+  });
+  TransactionLinksCompanion.insert({
+    this.id = const Value.absent(),
+    required String kind,
+    this.cardTransactionId = const Value.absent(),
+    this.bankAccountTransactionId = const Value.absent(),
+    this.linkedCardTransactionId = const Value.absent(),
+    this.linkedBankAccountTransactionId = const Value.absent(),
+  }) : kind = Value(kind);
+  static Insertable<TransactionLink> custom({
+    Expression<int>? id,
+    Expression<String>? kind,
+    Expression<int>? cardTransactionId,
+    Expression<int>? bankAccountTransactionId,
+    Expression<int>? linkedCardTransactionId,
+    Expression<int>? linkedBankAccountTransactionId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (cardTransactionId != null) 'card_transaction_id': cardTransactionId,
+      if (bankAccountTransactionId != null)
+        'bank_account_transaction_id': bankAccountTransactionId,
+      if (linkedCardTransactionId != null)
+        'linked_card_transaction_id': linkedCardTransactionId,
+      if (linkedBankAccountTransactionId != null)
+        'linked_bank_account_transaction_id': linkedBankAccountTransactionId,
+    });
+  }
+
+  TransactionLinksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? kind,
+    Value<int?>? cardTransactionId,
+    Value<int?>? bankAccountTransactionId,
+    Value<int?>? linkedCardTransactionId,
+    Value<int?>? linkedBankAccountTransactionId,
+  }) {
+    return TransactionLinksCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      cardTransactionId: cardTransactionId ?? this.cardTransactionId,
+      bankAccountTransactionId:
+          bankAccountTransactionId ?? this.bankAccountTransactionId,
+      linkedCardTransactionId:
+          linkedCardTransactionId ?? this.linkedCardTransactionId,
+      linkedBankAccountTransactionId:
+          linkedBankAccountTransactionId ?? this.linkedBankAccountTransactionId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (cardTransactionId.present) {
+      map['card_transaction_id'] = Variable<int>(cardTransactionId.value);
+    }
+    if (bankAccountTransactionId.present) {
+      map['bank_account_transaction_id'] = Variable<int>(
+        bankAccountTransactionId.value,
+      );
+    }
+    if (linkedCardTransactionId.present) {
+      map['linked_card_transaction_id'] = Variable<int>(
+        linkedCardTransactionId.value,
+      );
+    }
+    if (linkedBankAccountTransactionId.present) {
+      map['linked_bank_account_transaction_id'] = Variable<int>(
+        linkedBankAccountTransactionId.value,
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionLinksCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('cardTransactionId: $cardTransactionId, ')
+          ..write('bankAccountTransactionId: $bankAccountTransactionId, ')
+          ..write('linkedCardTransactionId: $linkedCardTransactionId, ')
+          ..write(
+            'linkedBankAccountTransactionId: $linkedBankAccountTransactionId',
+          )
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5289,6 +7521,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CardTransactionsTable cardTransactions = $CardTransactionsTable(
     this,
   );
+  late final $CardTransactionReceiptsTable cardTransactionReceipts =
+      $CardTransactionReceiptsTable(this);
   late final $BankAccountTransactionsTable bankAccountTransactions =
       $BankAccountTransactionsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
@@ -5301,6 +7535,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecoveryLinksTable recoveryLinks = $RecoveryLinksTable(this);
   late final $RecoverablePersonsTable recoverablePersons =
       $RecoverablePersonsTable(this);
+  late final $MerchantsTable merchants = $MerchantsTable(this);
+  late final $CategoriesTable categories = $CategoriesTable(this);
+  late final $TagsTable tags = $TagsTable(this);
+  late final $CardTransactionTagsTable cardTransactionTags =
+      $CardTransactionTagsTable(this);
+  late final $MerchantDefaultTagsTable merchantDefaultTags =
+      $MerchantDefaultTagsTable(this);
+  late final $TransactionLinksTable transactionLinks = $TransactionLinksTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5310,6 +7554,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     billingCycles,
     bankAccounts,
     cardTransactions,
+    cardTransactionReceipts,
     bankAccountTransactions,
     appSettings,
     budgetSettings,
@@ -5317,6 +7562,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     budgetAlertCrossings,
     recoveryLinks,
     recoverablePersons,
+    merchants,
+    categories,
+    tags,
+    cardTransactionTags,
+    merchantDefaultTags,
+    transactionLinks,
   ];
 }
 
@@ -6229,6 +8480,8 @@ typedef $$CardTransactionsTableCreateCompanionBuilder =
       Value<bool> isRecoverable,
       Value<String?> recoverablePerson,
       Value<bool> isReviewed,
+      Value<String?> notes,
+      Value<String?> location,
       required DateTime createdAt,
     });
 typedef $$CardTransactionsTableUpdateCompanionBuilder =
@@ -6247,6 +8500,8 @@ typedef $$CardTransactionsTableUpdateCompanionBuilder =
       Value<bool> isRecoverable,
       Value<String?> recoverablePerson,
       Value<bool> isReviewed,
+      Value<String?> notes,
+      Value<String?> location,
       Value<DateTime> createdAt,
     });
 
@@ -6326,6 +8581,16 @@ class $$CardTransactionsTableFilterComposer
 
   ColumnFilters<bool> get isReviewed => $composableBuilder(
     column: $table.isReviewed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6414,6 +8679,16 @@ class $$CardTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6487,6 +8762,12 @@ class $$CardTransactionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
@@ -6542,6 +8823,8 @@ class $$CardTransactionsTableTableManager
                 Value<bool> isRecoverable = const Value.absent(),
                 Value<String?> recoverablePerson = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> location = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CardTransactionsCompanion(
                 id: id,
@@ -6558,6 +8841,8 @@ class $$CardTransactionsTableTableManager
                 isRecoverable: isRecoverable,
                 recoverablePerson: recoverablePerson,
                 isReviewed: isReviewed,
+                notes: notes,
+                location: location,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -6576,6 +8861,8 @@ class $$CardTransactionsTableTableManager
                 Value<bool> isRecoverable = const Value.absent(),
                 Value<String?> recoverablePerson = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> location = const Value.absent(),
                 required DateTime createdAt,
               }) => CardTransactionsCompanion.insert(
                 id: id,
@@ -6592,6 +8879,8 @@ class $$CardTransactionsTableTableManager
                 isRecoverable: isRecoverable,
                 recoverablePerson: recoverablePerson,
                 isReviewed: isReviewed,
+                notes: notes,
+                location: location,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -6619,6 +8908,202 @@ typedef $$CardTransactionsTableProcessedTableManager =
       CardTransaction,
       PrefetchHooks Function()
     >;
+typedef $$CardTransactionReceiptsTableCreateCompanionBuilder =
+    CardTransactionReceiptsCompanion Function({
+      Value<int> id,
+      required int cardTransactionId,
+      required String filePath,
+      required DateTime createdAt,
+    });
+typedef $$CardTransactionReceiptsTableUpdateCompanionBuilder =
+    CardTransactionReceiptsCompanion Function({
+      Value<int> id,
+      Value<int> cardTransactionId,
+      Value<String> filePath,
+      Value<DateTime> createdAt,
+    });
+
+class $$CardTransactionReceiptsTableFilterComposer
+    extends Composer<_$AppDatabase, $CardTransactionReceiptsTable> {
+  $$CardTransactionReceiptsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CardTransactionReceiptsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CardTransactionReceiptsTable> {
+  $$CardTransactionReceiptsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CardTransactionReceiptsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CardTransactionReceiptsTable> {
+  $$CardTransactionReceiptsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CardTransactionReceiptsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CardTransactionReceiptsTable,
+          CardTransactionReceipt,
+          $$CardTransactionReceiptsTableFilterComposer,
+          $$CardTransactionReceiptsTableOrderingComposer,
+          $$CardTransactionReceiptsTableAnnotationComposer,
+          $$CardTransactionReceiptsTableCreateCompanionBuilder,
+          $$CardTransactionReceiptsTableUpdateCompanionBuilder,
+          (
+            CardTransactionReceipt,
+            BaseReferences<
+              _$AppDatabase,
+              $CardTransactionReceiptsTable,
+              CardTransactionReceipt
+            >,
+          ),
+          CardTransactionReceipt,
+          PrefetchHooks Function()
+        > {
+  $$CardTransactionReceiptsTableTableManager(
+    _$AppDatabase db,
+    $CardTransactionReceiptsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CardTransactionReceiptsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CardTransactionReceiptsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CardTransactionReceiptsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> cardTransactionId = const Value.absent(),
+                Value<String> filePath = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => CardTransactionReceiptsCompanion(
+                id: id,
+                cardTransactionId: cardTransactionId,
+                filePath: filePath,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int cardTransactionId,
+                required String filePath,
+                required DateTime createdAt,
+              }) => CardTransactionReceiptsCompanion.insert(
+                id: id,
+                cardTransactionId: cardTransactionId,
+                filePath: filePath,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CardTransactionReceiptsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CardTransactionReceiptsTable,
+      CardTransactionReceipt,
+      $$CardTransactionReceiptsTableFilterComposer,
+      $$CardTransactionReceiptsTableOrderingComposer,
+      $$CardTransactionReceiptsTableAnnotationComposer,
+      $$CardTransactionReceiptsTableCreateCompanionBuilder,
+      $$CardTransactionReceiptsTableUpdateCompanionBuilder,
+      (
+        CardTransactionReceipt,
+        BaseReferences<
+          _$AppDatabase,
+          $CardTransactionReceiptsTable,
+          CardTransactionReceipt
+        >,
+      ),
+      CardTransactionReceipt,
+      PrefetchHooks Function()
+    >;
 typedef $$BankAccountTransactionsTableCreateCompanionBuilder =
     BankAccountTransactionsCompanion Function({
       Value<int> id,
@@ -6633,6 +9118,8 @@ typedef $$BankAccountTransactionsTableCreateCompanionBuilder =
       Value<String?> rawSms,
       Value<String?> referenceNumber,
       Value<bool> isReviewed,
+      Value<String?> notes,
+      Value<String?> location,
       required DateTime createdAt,
     });
 typedef $$BankAccountTransactionsTableUpdateCompanionBuilder =
@@ -6649,6 +9136,8 @@ typedef $$BankAccountTransactionsTableUpdateCompanionBuilder =
       Value<String?> rawSms,
       Value<String?> referenceNumber,
       Value<bool> isReviewed,
+      Value<String?> notes,
+      Value<String?> location,
       Value<DateTime> createdAt,
     });
 
@@ -6718,6 +9207,16 @@ class $$BankAccountTransactionsTableFilterComposer
 
   ColumnFilters<bool> get isReviewed => $composableBuilder(
     column: $table.isReviewed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6796,6 +9295,16 @@ class $$BankAccountTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6859,6 +9368,12 @@ class $$BankAccountTransactionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
@@ -6921,6 +9436,8 @@ class $$BankAccountTransactionsTableTableManager
                 Value<String?> rawSms = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> location = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => BankAccountTransactionsCompanion(
                 id: id,
@@ -6935,6 +9452,8 @@ class $$BankAccountTransactionsTableTableManager
                 rawSms: rawSms,
                 referenceNumber: referenceNumber,
                 isReviewed: isReviewed,
+                notes: notes,
+                location: location,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -6951,6 +9470,8 @@ class $$BankAccountTransactionsTableTableManager
                 Value<String?> rawSms = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> location = const Value.absent(),
                 required DateTime createdAt,
               }) => BankAccountTransactionsCompanion.insert(
                 id: id,
@@ -6965,6 +9486,8 @@ class $$BankAccountTransactionsTableTableManager
                 rawSms: rawSms,
                 referenceNumber: referenceNumber,
                 isReviewed: isReviewed,
+                notes: notes,
+                location: location,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -8048,6 +10571,1013 @@ typedef $$RecoverablePersonsTableProcessedTableManager =
       RecoverablePerson,
       PrefetchHooks Function()
     >;
+typedef $$MerchantsTableCreateCompanionBuilder =
+    MerchantsCompanion Function({
+      Value<int> id,
+      required String rawName,
+      Value<String?> displayName,
+      Value<String?> defaultCategory,
+      Value<bool> isUserCustomized,
+    });
+typedef $$MerchantsTableUpdateCompanionBuilder =
+    MerchantsCompanion Function({
+      Value<int> id,
+      Value<String> rawName,
+      Value<String?> displayName,
+      Value<String?> defaultCategory,
+      Value<bool> isUserCustomized,
+    });
+
+class $$MerchantsTableFilterComposer
+    extends Composer<_$AppDatabase, $MerchantsTable> {
+  $$MerchantsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawName => $composableBuilder(
+    column: $table.rawName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultCategory => $composableBuilder(
+    column: $table.defaultCategory,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isUserCustomized => $composableBuilder(
+    column: $table.isUserCustomized,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MerchantsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MerchantsTable> {
+  $$MerchantsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawName => $composableBuilder(
+    column: $table.rawName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultCategory => $composableBuilder(
+    column: $table.defaultCategory,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isUserCustomized => $composableBuilder(
+    column: $table.isUserCustomized,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MerchantsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MerchantsTable> {
+  $$MerchantsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rawName =>
+      $composableBuilder(column: $table.rawName, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultCategory => $composableBuilder(
+    column: $table.defaultCategory,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isUserCustomized => $composableBuilder(
+    column: $table.isUserCustomized,
+    builder: (column) => column,
+  );
+}
+
+class $$MerchantsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MerchantsTable,
+          Merchant,
+          $$MerchantsTableFilterComposer,
+          $$MerchantsTableOrderingComposer,
+          $$MerchantsTableAnnotationComposer,
+          $$MerchantsTableCreateCompanionBuilder,
+          $$MerchantsTableUpdateCompanionBuilder,
+          (Merchant, BaseReferences<_$AppDatabase, $MerchantsTable, Merchant>),
+          Merchant,
+          PrefetchHooks Function()
+        > {
+  $$MerchantsTableTableManager(_$AppDatabase db, $MerchantsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MerchantsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MerchantsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MerchantsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> rawName = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                Value<String?> defaultCategory = const Value.absent(),
+                Value<bool> isUserCustomized = const Value.absent(),
+              }) => MerchantsCompanion(
+                id: id,
+                rawName: rawName,
+                displayName: displayName,
+                defaultCategory: defaultCategory,
+                isUserCustomized: isUserCustomized,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String rawName,
+                Value<String?> displayName = const Value.absent(),
+                Value<String?> defaultCategory = const Value.absent(),
+                Value<bool> isUserCustomized = const Value.absent(),
+              }) => MerchantsCompanion.insert(
+                id: id,
+                rawName: rawName,
+                displayName: displayName,
+                defaultCategory: defaultCategory,
+                isUserCustomized: isUserCustomized,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MerchantsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MerchantsTable,
+      Merchant,
+      $$MerchantsTableFilterComposer,
+      $$MerchantsTableOrderingComposer,
+      $$MerchantsTableAnnotationComposer,
+      $$MerchantsTableCreateCompanionBuilder,
+      $$MerchantsTableUpdateCompanionBuilder,
+      (Merchant, BaseReferences<_$AppDatabase, $MerchantsTable, Merchant>),
+      Merchant,
+      PrefetchHooks Function()
+    >;
+typedef $$CategoriesTableCreateCompanionBuilder =
+    CategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<bool> isBuiltIn,
+    });
+typedef $$CategoriesTableUpdateCompanionBuilder =
+    CategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<bool> isBuiltIn,
+    });
+
+class $$CategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CategoriesTable> {
+  $$CategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isBuiltIn => $composableBuilder(
+    column: $table.isBuiltIn,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CategoriesTable> {
+  $$CategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isBuiltIn => $composableBuilder(
+    column: $table.isBuiltIn,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CategoriesTable> {
+  $$CategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get isBuiltIn =>
+      $composableBuilder(column: $table.isBuiltIn, builder: (column) => column);
+}
+
+class $$CategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CategoriesTable,
+          Category,
+          $$CategoriesTableFilterComposer,
+          $$CategoriesTableOrderingComposer,
+          $$CategoriesTableAnnotationComposer,
+          $$CategoriesTableCreateCompanionBuilder,
+          $$CategoriesTableUpdateCompanionBuilder,
+          (Category, BaseReferences<_$AppDatabase, $CategoriesTable, Category>),
+          Category,
+          PrefetchHooks Function()
+        > {
+  $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CategoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<bool> isBuiltIn = const Value.absent(),
+              }) =>
+                  CategoriesCompanion(id: id, name: name, isBuiltIn: isBuiltIn),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<bool> isBuiltIn = const Value.absent(),
+              }) => CategoriesCompanion.insert(
+                id: id,
+                name: name,
+                isBuiltIn: isBuiltIn,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CategoriesTable,
+      Category,
+      $$CategoriesTableFilterComposer,
+      $$CategoriesTableOrderingComposer,
+      $$CategoriesTableAnnotationComposer,
+      $$CategoriesTableCreateCompanionBuilder,
+      $$CategoriesTableUpdateCompanionBuilder,
+      (Category, BaseReferences<_$AppDatabase, $CategoriesTable, Category>),
+      Category,
+      PrefetchHooks Function()
+    >;
+typedef $$TagsTableCreateCompanionBuilder =
+    TagsCompanion Function({Value<int> id, required String name});
+typedef $$TagsTableUpdateCompanionBuilder =
+    TagsCompanion Function({Value<int> id, Value<String> name});
+
+class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $$TagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TagsTable,
+          Tag,
+          $$TagsTableFilterComposer,
+          $$TagsTableOrderingComposer,
+          $$TagsTableAnnotationComposer,
+          $$TagsTableCreateCompanionBuilder,
+          $$TagsTableUpdateCompanionBuilder,
+          (Tag, BaseReferences<_$AppDatabase, $TagsTable, Tag>),
+          Tag,
+          PrefetchHooks Function()
+        > {
+  $$TagsTableTableManager(_$AppDatabase db, $TagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+              }) => TagsCompanion(id: id, name: name),
+          createCompanionCallback:
+              ({Value<int> id = const Value.absent(), required String name}) =>
+                  TagsCompanion.insert(id: id, name: name),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TagsTable,
+      Tag,
+      $$TagsTableFilterComposer,
+      $$TagsTableOrderingComposer,
+      $$TagsTableAnnotationComposer,
+      $$TagsTableCreateCompanionBuilder,
+      $$TagsTableUpdateCompanionBuilder,
+      (Tag, BaseReferences<_$AppDatabase, $TagsTable, Tag>),
+      Tag,
+      PrefetchHooks Function()
+    >;
+typedef $$CardTransactionTagsTableCreateCompanionBuilder =
+    CardTransactionTagsCompanion Function({
+      required int cardTransactionId,
+      required int tagId,
+      Value<int> rowid,
+    });
+typedef $$CardTransactionTagsTableUpdateCompanionBuilder =
+    CardTransactionTagsCompanion Function({
+      Value<int> cardTransactionId,
+      Value<int> tagId,
+      Value<int> rowid,
+    });
+
+class $$CardTransactionTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $CardTransactionTagsTable> {
+  $$CardTransactionTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tagId => $composableBuilder(
+    column: $table.tagId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CardTransactionTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CardTransactionTagsTable> {
+  $$CardTransactionTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tagId => $composableBuilder(
+    column: $table.tagId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CardTransactionTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CardTransactionTagsTable> {
+  $$CardTransactionTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+}
+
+class $$CardTransactionTagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CardTransactionTagsTable,
+          CardTransactionTag,
+          $$CardTransactionTagsTableFilterComposer,
+          $$CardTransactionTagsTableOrderingComposer,
+          $$CardTransactionTagsTableAnnotationComposer,
+          $$CardTransactionTagsTableCreateCompanionBuilder,
+          $$CardTransactionTagsTableUpdateCompanionBuilder,
+          (
+            CardTransactionTag,
+            BaseReferences<
+              _$AppDatabase,
+              $CardTransactionTagsTable,
+              CardTransactionTag
+            >,
+          ),
+          CardTransactionTag,
+          PrefetchHooks Function()
+        > {
+  $$CardTransactionTagsTableTableManager(
+    _$AppDatabase db,
+    $CardTransactionTagsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CardTransactionTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CardTransactionTagsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CardTransactionTagsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> cardTransactionId = const Value.absent(),
+                Value<int> tagId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CardTransactionTagsCompanion(
+                cardTransactionId: cardTransactionId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int cardTransactionId,
+                required int tagId,
+                Value<int> rowid = const Value.absent(),
+              }) => CardTransactionTagsCompanion.insert(
+                cardTransactionId: cardTransactionId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CardTransactionTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CardTransactionTagsTable,
+      CardTransactionTag,
+      $$CardTransactionTagsTableFilterComposer,
+      $$CardTransactionTagsTableOrderingComposer,
+      $$CardTransactionTagsTableAnnotationComposer,
+      $$CardTransactionTagsTableCreateCompanionBuilder,
+      $$CardTransactionTagsTableUpdateCompanionBuilder,
+      (
+        CardTransactionTag,
+        BaseReferences<
+          _$AppDatabase,
+          $CardTransactionTagsTable,
+          CardTransactionTag
+        >,
+      ),
+      CardTransactionTag,
+      PrefetchHooks Function()
+    >;
+typedef $$MerchantDefaultTagsTableCreateCompanionBuilder =
+    MerchantDefaultTagsCompanion Function({
+      required int merchantId,
+      required int tagId,
+      Value<int> rowid,
+    });
+typedef $$MerchantDefaultTagsTableUpdateCompanionBuilder =
+    MerchantDefaultTagsCompanion Function({
+      Value<int> merchantId,
+      Value<int> tagId,
+      Value<int> rowid,
+    });
+
+class $$MerchantDefaultTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $MerchantDefaultTagsTable> {
+  $$MerchantDefaultTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get merchantId => $composableBuilder(
+    column: $table.merchantId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tagId => $composableBuilder(
+    column: $table.tagId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MerchantDefaultTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MerchantDefaultTagsTable> {
+  $$MerchantDefaultTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get merchantId => $composableBuilder(
+    column: $table.merchantId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tagId => $composableBuilder(
+    column: $table.tagId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MerchantDefaultTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MerchantDefaultTagsTable> {
+  $$MerchantDefaultTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get merchantId => $composableBuilder(
+    column: $table.merchantId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+}
+
+class $$MerchantDefaultTagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MerchantDefaultTagsTable,
+          MerchantDefaultTag,
+          $$MerchantDefaultTagsTableFilterComposer,
+          $$MerchantDefaultTagsTableOrderingComposer,
+          $$MerchantDefaultTagsTableAnnotationComposer,
+          $$MerchantDefaultTagsTableCreateCompanionBuilder,
+          $$MerchantDefaultTagsTableUpdateCompanionBuilder,
+          (
+            MerchantDefaultTag,
+            BaseReferences<
+              _$AppDatabase,
+              $MerchantDefaultTagsTable,
+              MerchantDefaultTag
+            >,
+          ),
+          MerchantDefaultTag,
+          PrefetchHooks Function()
+        > {
+  $$MerchantDefaultTagsTableTableManager(
+    _$AppDatabase db,
+    $MerchantDefaultTagsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MerchantDefaultTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MerchantDefaultTagsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MerchantDefaultTagsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> merchantId = const Value.absent(),
+                Value<int> tagId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MerchantDefaultTagsCompanion(
+                merchantId: merchantId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int merchantId,
+                required int tagId,
+                Value<int> rowid = const Value.absent(),
+              }) => MerchantDefaultTagsCompanion.insert(
+                merchantId: merchantId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MerchantDefaultTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MerchantDefaultTagsTable,
+      MerchantDefaultTag,
+      $$MerchantDefaultTagsTableFilterComposer,
+      $$MerchantDefaultTagsTableOrderingComposer,
+      $$MerchantDefaultTagsTableAnnotationComposer,
+      $$MerchantDefaultTagsTableCreateCompanionBuilder,
+      $$MerchantDefaultTagsTableUpdateCompanionBuilder,
+      (
+        MerchantDefaultTag,
+        BaseReferences<
+          _$AppDatabase,
+          $MerchantDefaultTagsTable,
+          MerchantDefaultTag
+        >,
+      ),
+      MerchantDefaultTag,
+      PrefetchHooks Function()
+    >;
+typedef $$TransactionLinksTableCreateCompanionBuilder =
+    TransactionLinksCompanion Function({
+      Value<int> id,
+      required String kind,
+      Value<int?> cardTransactionId,
+      Value<int?> bankAccountTransactionId,
+      Value<int?> linkedCardTransactionId,
+      Value<int?> linkedBankAccountTransactionId,
+    });
+typedef $$TransactionLinksTableUpdateCompanionBuilder =
+    TransactionLinksCompanion Function({
+      Value<int> id,
+      Value<String> kind,
+      Value<int?> cardTransactionId,
+      Value<int?> bankAccountTransactionId,
+      Value<int?> linkedCardTransactionId,
+      Value<int?> linkedBankAccountTransactionId,
+    });
+
+class $$TransactionLinksTableFilterComposer
+    extends Composer<_$AppDatabase, $TransactionLinksTable> {
+  $$TransactionLinksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bankAccountTransactionId => $composableBuilder(
+    column: $table.bankAccountTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get linkedCardTransactionId => $composableBuilder(
+    column: $table.linkedCardTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get linkedBankAccountTransactionId => $composableBuilder(
+    column: $table.linkedBankAccountTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TransactionLinksTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransactionLinksTable> {
+  $$TransactionLinksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bankAccountTransactionId => $composableBuilder(
+    column: $table.bankAccountTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get linkedCardTransactionId => $composableBuilder(
+    column: $table.linkedCardTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get linkedBankAccountTransactionId => $composableBuilder(
+    column: $table.linkedBankAccountTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TransactionLinksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransactionLinksTable> {
+  $$TransactionLinksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get cardTransactionId => $composableBuilder(
+    column: $table.cardTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bankAccountTransactionId => $composableBuilder(
+    column: $table.bankAccountTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get linkedCardTransactionId => $composableBuilder(
+    column: $table.linkedCardTransactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get linkedBankAccountTransactionId => $composableBuilder(
+    column: $table.linkedBankAccountTransactionId,
+    builder: (column) => column,
+  );
+}
+
+class $$TransactionLinksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TransactionLinksTable,
+          TransactionLink,
+          $$TransactionLinksTableFilterComposer,
+          $$TransactionLinksTableOrderingComposer,
+          $$TransactionLinksTableAnnotationComposer,
+          $$TransactionLinksTableCreateCompanionBuilder,
+          $$TransactionLinksTableUpdateCompanionBuilder,
+          (
+            TransactionLink,
+            BaseReferences<
+              _$AppDatabase,
+              $TransactionLinksTable,
+              TransactionLink
+            >,
+          ),
+          TransactionLink,
+          PrefetchHooks Function()
+        > {
+  $$TransactionLinksTableTableManager(
+    _$AppDatabase db,
+    $TransactionLinksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransactionLinksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransactionLinksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransactionLinksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<int?> cardTransactionId = const Value.absent(),
+                Value<int?> bankAccountTransactionId = const Value.absent(),
+                Value<int?> linkedCardTransactionId = const Value.absent(),
+                Value<int?> linkedBankAccountTransactionId =
+                    const Value.absent(),
+              }) => TransactionLinksCompanion(
+                id: id,
+                kind: kind,
+                cardTransactionId: cardTransactionId,
+                bankAccountTransactionId: bankAccountTransactionId,
+                linkedCardTransactionId: linkedCardTransactionId,
+                linkedBankAccountTransactionId: linkedBankAccountTransactionId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String kind,
+                Value<int?> cardTransactionId = const Value.absent(),
+                Value<int?> bankAccountTransactionId = const Value.absent(),
+                Value<int?> linkedCardTransactionId = const Value.absent(),
+                Value<int?> linkedBankAccountTransactionId =
+                    const Value.absent(),
+              }) => TransactionLinksCompanion.insert(
+                id: id,
+                kind: kind,
+                cardTransactionId: cardTransactionId,
+                bankAccountTransactionId: bankAccountTransactionId,
+                linkedCardTransactionId: linkedCardTransactionId,
+                linkedBankAccountTransactionId: linkedBankAccountTransactionId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TransactionLinksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TransactionLinksTable,
+      TransactionLink,
+      $$TransactionLinksTableFilterComposer,
+      $$TransactionLinksTableOrderingComposer,
+      $$TransactionLinksTableAnnotationComposer,
+      $$TransactionLinksTableCreateCompanionBuilder,
+      $$TransactionLinksTableUpdateCompanionBuilder,
+      (
+        TransactionLink,
+        BaseReferences<_$AppDatabase, $TransactionLinksTable, TransactionLink>,
+      ),
+      TransactionLink,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8060,6 +11590,11 @@ class $AppDatabaseManager {
       $$BankAccountsTableTableManager(_db, _db.bankAccounts);
   $$CardTransactionsTableTableManager get cardTransactions =>
       $$CardTransactionsTableTableManager(_db, _db.cardTransactions);
+  $$CardTransactionReceiptsTableTableManager get cardTransactionReceipts =>
+      $$CardTransactionReceiptsTableTableManager(
+        _db,
+        _db.cardTransactionReceipts,
+      );
   $$BankAccountTransactionsTableTableManager get bankAccountTransactions =>
       $$BankAccountTransactionsTableTableManager(
         _db,
@@ -8077,4 +11612,15 @@ class $AppDatabaseManager {
       $$RecoveryLinksTableTableManager(_db, _db.recoveryLinks);
   $$RecoverablePersonsTableTableManager get recoverablePersons =>
       $$RecoverablePersonsTableTableManager(_db, _db.recoverablePersons);
+  $$MerchantsTableTableManager get merchants =>
+      $$MerchantsTableTableManager(_db, _db.merchants);
+  $$CategoriesTableTableManager get categories =>
+      $$CategoriesTableTableManager(_db, _db.categories);
+  $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$CardTransactionTagsTableTableManager get cardTransactionTags =>
+      $$CardTransactionTagsTableTableManager(_db, _db.cardTransactionTags);
+  $$MerchantDefaultTagsTableTableManager get merchantDefaultTags =>
+      $$MerchantDefaultTagsTableTableManager(_db, _db.merchantDefaultTags);
+  $$TransactionLinksTableTableManager get transactionLinks =>
+      $$TransactionLinksTableTableManager(_db, _db.transactionLinks);
 }

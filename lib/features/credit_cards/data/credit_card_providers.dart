@@ -5,3 +5,7 @@ import 'package:spendsense/features/credit_cards/data/credit_card_repository.dar
 final creditCardRepositoryProvider = Provider<CreditCardRepository>((ref) {
   return CreditCardRepository(ref.watch(databaseProvider));
 });
+
+final activeCreditCardsProvider = FutureProvider((ref) {
+  return ref.watch(creditCardRepositoryProvider).listActive();
+});

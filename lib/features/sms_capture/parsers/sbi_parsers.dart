@@ -12,6 +12,11 @@ final _sbiCardUpiPattern = RegExp(
   caseSensitive: false,
 );
 
+final _sbiCardPaymentDebitPattern = RegExp(
+  r'A/?C\s+X?(\d{4})\s+debited\s+by\s+([\d.]+)\s+on\s+([\d-]+)\s+towards\s+(.+?credit\s+card.+?)(\d{4})',
+  caseSensitive: false,
+);
+
 final _sbiDebitPattern = RegExp(
   r'A/?C\s+X?(\d{4})\s+debited\s+by\s+([\d.]+)\s+on\s+([\d-]+)\s+to\s+(.+?)(?:\s+Ref\s+(\w+))?$',
   caseSensitive: false,
@@ -67,6 +72,20 @@ ParsedBankTransaction? parseSbiBankSms(String sms) {
       transactionAt: parseSmsDate(debit.group(3)) ?? DateTime.now(),
       rawSms: sms,
       referenceNumber: debit.group(5),
+    );
+  }
+
+  final cardPaymentDebit = _sbiCardPaymentDebitPattern.firstMatch(normalized);
+  if (cardPaymentDebit != null) {
+    return ParsedBankTransaction(
+      bank: 'SBI',
+      lastFourDigits: cardPaymentDebit.group(1)!,
+      kind: BankTransactionKind.debit,
+      amountPaise: rupeesToPaise(cardPaymentDebit.group(2)!),
+      beneficiary: cardPaymentDebit.group(4)!.trim(),
+      transactionAt: parseSmsDate(cardPaymentDebit.group(3)) ?? DateTime.now(),
+      rawSms: sms,
+      isCardPayment: true,
     );
   }
 
