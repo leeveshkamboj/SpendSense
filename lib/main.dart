@@ -4,8 +4,6 @@ import 'package:spendsense/app/app.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/bills/data/bill_reminder_providers.dart';
 import 'package:spendsense/features/bills/data/local_notifications_bill_reminder_scheduler.dart';
-import 'package:spendsense/features/backup/presentation/data_recovery_gate.dart';
-import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,8 +26,6 @@ class _AppBootstrap extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(databaseProvider);
-    return const AppHealthGate(
-      child: OnboardingGate(child: SpendSenseApp()),
-    );
+    return const SpendSenseApp();
   }
 }
