@@ -39,6 +39,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Delete all data'),
+        120,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
       await tester.tap(find.text('Delete all data'));
       await tester.pumpAndSettle();
 
@@ -58,6 +65,13 @@ void main() {
           ],
           child: const MaterialApp(home: SettingsScreen()),
         ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Delete all data'),
+        120,
+        scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 

@@ -75,6 +75,38 @@ class BankAccountRepository {
     );
   }
 
+  Future<List<BankAccount>> listArchived() {
+    return (_database.select(_database.bankAccounts)
+          ..where((row) => row.isArchived.equals(true))
+          ..orderBy([(row) => OrderingTerm.asc(row.nickname)]))
+        .get();
+  }
+
+  Future<void> archive(int accountId) async {
+    await (_database.update(_database.bankAccounts)
+          ..where((row) => row.id.equals(accountId)))
+        .write(const BankAccountsCompanion(isArchived: Value(true)));
+  }
+
+  Future<void> unarchive(int accountId) async {
+    await (_database.update(_database.bankAccounts)
+          ..where((row) => row.id.equals(accountId)))
+        .write(const BankAccountsCompanion(isArchived: Value(false)));
+  }
+
+  Future<void> deletePermanently(int accountId) async {
+    await _database.batch((batch) {
+      batch.deleteWhere(
+        _database.bankAccountTransactions,
+        (row) => row.bankAccountId.equals(accountId),
+      );
+      batch.deleteWhere(
+        _database.bankAccounts,
+        (row) => row.id.equals(accountId),
+      );
+    });
+  }
+
   Future<List<BankAccount>> listActive() {
     return (_database.select(_database.bankAccounts)
           ..where((row) => row.isArchived.equals(false))

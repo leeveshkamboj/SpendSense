@@ -6,6 +6,7 @@ typedef SpendingAlertHandler = void Function({
   required BudgetAlertThreshold threshold,
   required int spentPaise,
   required int limitPaise,
+  required bool notificationsGranted,
 });
 
 class SpendingAlertService {
@@ -22,9 +23,8 @@ class SpendingAlertService {
 
   Future<void> syncAlerts({required DateTime asOf}) async {
     final permission = await _permissionGateway.check();
-    if (permission != NotificationPermissionState.granted) {
-      return;
-    }
+    final notificationsGranted =
+        permission == NotificationPermissionState.granted;
 
     final progress = await _budgets.monthlyProgress(asOf: asOf);
     if (progress == null) {
@@ -41,6 +41,7 @@ class SpendingAlertService {
         threshold: threshold,
         spentPaise: progress.spentPaise,
         limitPaise: progress.limitPaise,
+        notificationsGranted: notificationsGranted,
       );
     }
 

@@ -6,7 +6,7 @@ import 'package:spendsense/core/database/database_provider.dart';
 
 void main() {
   group('App database', () {
-    test('initializes with schema version 11 and domain tables', () async {
+    test('initializes with schema version 12 and domain tables', () async {
       final container = ProviderContainer(
         overrides: [
           databaseProvider.overrideWith((ref) {
@@ -17,7 +17,7 @@ void main() {
       addTearDown(container.dispose);
 
       final database = container.read(databaseProvider);
-      expect(database.schemaVersion, 11);
+      expect(database.schemaVersion, 12);
 
       final tables = await database.customSelect(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
@@ -42,6 +42,7 @@ void main() {
           'merchants',
           'recoverable_persons',
           'recovery_links',
+          'sms_senders',
           'tags',
           'transaction_links',
         ],

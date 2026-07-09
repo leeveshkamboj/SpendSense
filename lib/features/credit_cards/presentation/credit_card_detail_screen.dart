@@ -28,7 +28,21 @@ class CreditCardDetailScreen extends ConsumerWidget {
     final cycles = ref.watch(billingCyclesProvider(cardId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Credit Card')),
+      appBar: AppBar(
+        title: const Text('Credit Card'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) => _handleMenuAction(context, ref, value),
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'archive', child: Text('Archive card')),
+              PopupMenuItem(
+                value: 'delete',
+                child: Text('Delete permanently'),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: card.when(
         data: (creditCard) {
           if (creditCard == null) {
@@ -88,6 +102,50 @@ class CreditCardDetailScreen extends ConsumerWidget {
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
     );
+  }
+
+  Future<void> _handleMenuAction(
+    BuildContext context,
+    WidgetRef ref,
+    String value,
+  ) async {
+    final repository = ref.read(creditCardRepositoryProvider);
+    if (value == 'archive') {
+      await repository.archive(cardId);
+      if (context.mounted) {
+        context.pop();
+      }
+      return;
+    }
+
+    if (value == 'delete') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete card permanently?'),
+          content: const Text(
+            'This removes the card and all associated transactions.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) {
+        return;
+      }
+      await repository.deletePermanently(cardId);
+      if (context.mounted) {
+        context.pop();
+      }
+    }
   }
 }
 

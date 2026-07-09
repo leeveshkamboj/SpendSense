@@ -79,6 +79,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Backup & Restore'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Backup & Restore'),
+        120,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Backup & Restore'));
       await tester.pumpAndSettle();
 

@@ -186,6 +186,43 @@ class BudgetRepository {
     }
   }
 
+  Future<BudgetAlertThresholdConfig> alertThresholds() async {
+    final settings = await _settingsRow();
+    return BudgetAlertThresholdConfig(
+      seventyFive: settings?.alertThreshold75 ?? 75,
+      ninety: settings?.alertThreshold90 ?? 90,
+      oneHundred: settings?.alertThreshold100 ?? 100,
+    );
+  }
+
+  Future<void> setAlertThresholds({
+    required int seventyFive,
+    required int ninety,
+    required int oneHundred,
+  }) async {
+    final existing = await _settingsRow();
+    if (existing == null) {
+      await _database.into(_database.budgetSettings).insert(
+            BudgetSettingsCompanion(
+              alertThreshold75: Value(seventyFive),
+              alertThreshold90: Value(ninety),
+              alertThreshold100: Value(oneHundred),
+            ),
+          );
+      return;
+    }
+
+    await (_database.update(_database.budgetSettings)
+          ..where((row) => row.id.equals(existing.id)))
+        .write(
+      BudgetSettingsCompanion(
+        alertThreshold75: Value(seventyFive),
+        alertThreshold90: Value(ninety),
+        alertThreshold100: Value(oneHundred),
+      ),
+    );
+  }
+
   Future<BudgetSettingRow?> _settingsRow() {
     return _database.select(_database.budgetSettings).getSingleOrNull();
   }
@@ -303,3 +340,15 @@ class CategoryBudget {
 }
 
 typedef BudgetSettingRow = BudgetSetting;
+
+class BudgetAlertThresholdConfig {
+  const BudgetAlertThresholdConfig({
+    required this.seventyFive,
+    required this.ninety,
+    required this.oneHundred,
+  });
+
+  final int seventyFive;
+  final int ninety;
+  final int oneHundred;
+}

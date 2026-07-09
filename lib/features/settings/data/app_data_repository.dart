@@ -23,6 +23,7 @@ class AppDataRepository {
     'merchants',
     'categories',
     'tags',
+    'sms_senders',
     'app_settings',
   ];
 
