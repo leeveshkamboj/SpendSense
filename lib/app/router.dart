@@ -44,8 +44,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'manual',
-                    builder: (context, state) =>
-                        const ManualCardTransactionScreen(),
+                    builder: (context, state) => ManualCardTransactionScreen(
+                      initialKind: state.uri.queryParameters['kind'],
+                    ),
                   ),
                   GoRoute(
                     path: 'copy/:id',

@@ -55,12 +55,16 @@ class DashboardRepository {
     int limit = 5,
   }) async {
     final rows = await _cardTransactions.listPage(offset: 0, limit: limit);
+    final cards = await _creditCards.listActive();
+    final colorById = {for (final card in cards) card.id: card.colorValue};
+
     return rows
         .map(
           (tx) => DashboardRecentTransaction(
             merchant: tx.merchant,
             amountPaise: tx.amountPaise,
             transactionAt: tx.transactionAt,
+            colorValue: colorById[tx.creditCardId] ?? 0xFF9E9E9E,
           ),
         )
         .toList();

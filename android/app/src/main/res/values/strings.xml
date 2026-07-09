@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quick_summary_widget_description">Current budget month spend and remaining budget</string>
+    <string name="credit_utilization_widget_description">Credit card spend and utilization across your cards</string>
+    <string name="recent_transactions_widget_description">Latest captured transactions</string>
+    <string name="bills_widget_description">Upcoming credit card bills and due dates</string>
+    <string name="budget_widget_description">Monthly budget progress and daily allowance</string>
+    <string name="quick_add_widget_description">Quickly add an expense or income</string>
+</resources>

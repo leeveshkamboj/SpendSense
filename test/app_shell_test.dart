@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spendsense/features/home_widgets/data/home_widget_providers.dart';
 import 'package:spendsense/app/app.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
@@ -35,6 +36,7 @@ void main() {
             notificationPermissionStateProvider.overrideWith(
               (ref) async => NotificationPermissionState.granted,
             ),
+            homeWidgetSyncProvider.overrideWith((ref) async {}),
           ],
           child: const SpendSenseApp(),
         ),

@@ -1,0 +1,172 @@
+import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/features/bills/data/bills_repository.dart';
+import 'package:spendsense/features/budgets/data/budget_repository.dart';
+import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_repository.dart';
+import 'package:spendsense/features/dashboard/domain/dashboard_spend_summary.dart';
+import 'package:spendsense/features/home_widgets/domain/card_spend_chart_segment.dart';
+import 'package:spendsense/features/home_widgets/domain/card_utilization_segment.dart';
+import 'package:spendsense/features/home_widgets/domain/bills_widget_snapshot.dart';
+import 'package:spendsense/features/home_widgets/domain/budget_widget_snapshot.dart';
+import 'package:spendsense/features/home_widgets/domain/credit_utilization_widget_snapshot.dart';
+import 'package:spendsense/features/home_widgets/domain/quick_summary_widget_snapshot.dart';
+import 'package:spendsense/features/home_widgets/domain/recent_transactions_widget_snapshot.dart';
+
+class HomeWidgetRepository {
+  HomeWidgetRepository({
+    required DashboardRepository dashboard,
+    required BudgetRepository budgets,
+    required CreditCardRepository creditCards,
+    required BillsRepository bills,
+  })  : _dashboard = dashboard,
+        _budgets = budgets,
+        _creditCards = creditCards,
+        _bills = bills;
+
+  final DashboardRepository _dashboard;
+  final BudgetRepository _budgets;
+  final CreditCardRepository _creditCards;
+  final BillsRepository _bills;
+
+  Future<QuickSummaryWidgetSnapshot> quickSummary({
+    required DateTime asOf,
+  }) async {
+    final spend = await _dashboard.cardSpendSummary(asOf: asOf);
+    final progress = await _budgets.monthlyProgress(asOf: asOf);
+    final cards = await _creditCards.listActive();
+
+    return QuickSummaryWidgetSnapshot(
+      spentPaise: spend.totalPaise,
+      budgetLimitPaise: progress?.limitPaise,
+      budgetRemainingPaise: progress?.remainingPaise,
+      cardSpendSegments: _cardSpendSegments(spend, cards),
+    );
+  }
+
+  Future<CreditUtilizationWidgetSnapshot> creditUtilization({
+    required DateTime asOf,
+  }) async {
+    final spend = await _dashboard.cardSpendSummary(asOf: asOf);
+    final cards = await _creditCards.listActive();
+    final needsLimitPrompt = cards.isNotEmpty &&
+        cards.any((card) => card.creditLimitPaise == null);
+    final creditLimitPaise = needsLimitPrompt
+        ? null
+        : cards.fold<int>(
+            0,
+            (total, card) => total + (card.creditLimitPaise ?? 0),
+          );
+    final spendByNickname = {
+      for (final row in spend.cards) row.nickname: row.spentPaise,
+    };
+    final cardSegments = [
+      for (final card in cards)
+        if (card.creditLimitPaise != null)
+          CardUtilizationSegment(
+            nickname: card.nickname,
+            spentPaise: spendByNickname[card.nickname] ?? 0,
+            creditLimitPaise: card.creditLimitPaise!,
+            colorValue: card.colorValue,
+          ),
+    ];
+
+    return CreditUtilizationWidgetSnapshot(
+      spentPaise: spend.totalPaise,
+      creditLimitPaise: creditLimitPaise,
+      needsLimitPrompt: needsLimitPrompt,
+      cardSegments: cardSegments,
+    );
+  }
+
+  Future<RecentTransactionsWidgetSnapshot> recentTransactions({
+    int limit = 5,
+  }) async {
+    final rows = await _dashboard.recentTransactions(limit: limit);
+
+    return RecentTransactionsWidgetSnapshot(
+      transactions: [
+        for (final row in rows)
+          RecentTransactionWidgetItem(
+            merchant: row.merchant,
+            amountPaise: row.amountPaise,
+            transactionAt: row.transactionAt,
+            colorValue: row.colorValue,
+          ),
+      ],
+    );
+  }
+
+  Future<BillsWidgetSnapshot> upcomingBills({
+    required DateTime asOf,
+    int limit = 5,
+  }) async {
+    final rows = await _bills.listUnpaidBills(asOf: asOf);
+    final cards = await _creditCards.listActive();
+    final colorById = {for (final card in cards) card.id: card.colorValue};
+
+    return BillsWidgetSnapshot(
+      bills: [
+        for (final bill in rows.take(limit))
+          BillWidgetItem(
+            cardNickname: bill.cardNickname,
+            dueDate: bill.dueDate,
+            netOutstandingPaise: bill.netOutstandingPaise,
+            colorValue: colorById[bill.creditCardId] ?? 0xFF9E9E9E,
+          ),
+      ],
+    );
+  }
+
+  Future<BudgetWidgetSnapshot> budgetProgress({required DateTime asOf}) async {
+    final spend = await _dashboard.cardSpendSummary(asOf: asOf);
+    final cards = await _creditCards.listActive();
+    final progress = await _budgets.monthlyProgress(asOf: asOf);
+    if (progress == null) {
+      return BudgetWidgetSnapshot(
+        spentPaise: spend.totalPaise,
+        limitPaise: null,
+        remainingPaise: null,
+        dailyBudgetPaise: null,
+        needsBudgetPrompt: true,
+        cardSpendSegments: _cardSpendSegments(spend, cards),
+      );
+    }
+
+    final asOfDay = DateTime(asOf.year, asOf.month, asOf.day);
+    final periodEnd = DateTime(
+      progress.periodEnd.year,
+      progress.periodEnd.month,
+      progress.periodEnd.day,
+    );
+    final daysRemaining = periodEnd.difference(asOfDay).inDays + 1;
+    final remaining = progress.remainingPaise;
+    final dailyBudget = daysRemaining > 0 ? remaining ~/ daysRemaining : remaining;
+
+    return BudgetWidgetSnapshot(
+      spentPaise: progress.spentPaise,
+      limitPaise: progress.limitPaise,
+      remainingPaise: remaining,
+      dailyBudgetPaise: dailyBudget,
+      needsBudgetPrompt: false,
+      cardSpendSegments: _cardSpendSegments(spend, cards),
+    );
+  }
+
+  List<CardSpendChartSegment> _cardSpendSegments(
+    DashboardSpendSummary spend,
+    List<CreditCard> cards,
+  ) {
+    final colorByNickname = {
+      for (final card in cards) card.nickname: card.colorValue,
+    };
+
+    return [
+      for (final row in spend.cards)
+        CardSpendChartSegment(
+          nickname: row.nickname,
+          spentPaise: row.spentPaise,
+          colorValue: colorByNickname[row.nickname] ?? 0xFF9E9E9E,
+        ),
+    ];
+  }
+}
