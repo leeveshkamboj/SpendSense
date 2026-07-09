@@ -10,6 +10,12 @@ import 'package:spendsense/features/merchants/presentation/merchants_screen.dart
 import 'package:spendsense/features/recoverables/presentation/recoverables_screen.dart';
 import 'package:spendsense/features/backup/presentation/backup_settings_screen.dart';
 import 'package:spendsense/features/reports/presentation/report_export_screen.dart';
+import 'package:spendsense/features/settings/presentation/alert_thresholds_settings_screen.dart';
+import 'package:spendsense/features/settings/presentation/app_lock_settings_screen.dart';
+import 'package:spendsense/features/settings/presentation/archive_settings_screen.dart';
+import 'package:spendsense/features/settings/presentation/budget_settings_route_screen.dart';
+import 'package:spendsense/features/settings/presentation/sms_senders_settings_screen.dart';
+import 'package:spendsense/features/settings/presentation/theme_settings_screen.dart';
 import 'package:spendsense/features/settings/settings_screen.dart';
 import 'package:spendsense/features/shell/app_shell.dart';
 import 'package:spendsense/features/transactions/presentation/copy_transaction_screen.dart';
@@ -162,6 +168,33 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'reports',
                     builder: (context, state) => const ReportExportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'app-lock',
+                    builder: (context, state) => const AppLockSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'sms-senders',
+                    builder: (context, state) =>
+                        const SmsSendersSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'archive',
+                    builder: (context, state) => const ArchiveSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'budgets',
+                    builder: (context, state) =>
+                        const BudgetSettingsRouteScreen(),
+                  ),
+                  GoRoute(
+                    path: 'alert-thresholds',
+                    builder: (context, state) =>
+                        const AlertThresholdsSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'theme',
+                    builder: (context, state) => const ThemeSettingsScreen(),
                   ),
                 ],
               ),

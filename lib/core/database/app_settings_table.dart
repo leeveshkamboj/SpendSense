@@ -8,4 +8,12 @@ class AppSettings extends Table {
       integer().withDefault(const Constant(0))();
   BoolColumn get importCompleted =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get locationPermissionExplained =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get themeMode =>
+      text().withDefault(const Constant('system'))();
+  BoolColumn get appLockEnabled =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get appLockBiometricEnabled =>
+      boolean().withDefault(const Constant(false))();
 }

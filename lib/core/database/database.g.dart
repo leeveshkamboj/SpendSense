@@ -4094,12 +4094,73 @@ class $AppSettingsTable extends AppSettings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _locationPermissionExplainedMeta =
+      const VerificationMeta('locationPermissionExplained');
+  @override
+  late final GeneratedColumn<bool> locationPermissionExplained =
+      GeneratedColumn<bool>(
+        'location_permission_explained',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("location_permission_explained" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _themeModeMeta = const VerificationMeta(
+    'themeMode',
+  );
+  @override
+  late final GeneratedColumn<String> themeMode = GeneratedColumn<String>(
+    'theme_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('system'),
+  );
+  static const VerificationMeta _appLockEnabledMeta = const VerificationMeta(
+    'appLockEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> appLockEnabled = GeneratedColumn<bool>(
+    'app_lock_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("app_lock_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _appLockBiometricEnabledMeta =
+      const VerificationMeta('appLockBiometricEnabled');
+  @override
+  late final GeneratedColumn<bool> appLockBiometricEnabled =
+      GeneratedColumn<bool>(
+        'app_lock_biometric_enabled',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("app_lock_biometric_enabled" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     onboardingComplete,
     importLastIndex,
     importCompleted,
+    locationPermissionExplained,
+    themeMode,
+    appLockEnabled,
+    appLockBiometricEnabled,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4143,6 +4204,39 @@ class $AppSettingsTable extends AppSettings
         ),
       );
     }
+    if (data.containsKey('location_permission_explained')) {
+      context.handle(
+        _locationPermissionExplainedMeta,
+        locationPermissionExplained.isAcceptableOrUnknown(
+          data['location_permission_explained']!,
+          _locationPermissionExplainedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('theme_mode')) {
+      context.handle(
+        _themeModeMeta,
+        themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta),
+      );
+    }
+    if (data.containsKey('app_lock_enabled')) {
+      context.handle(
+        _appLockEnabledMeta,
+        appLockEnabled.isAcceptableOrUnknown(
+          data['app_lock_enabled']!,
+          _appLockEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('app_lock_biometric_enabled')) {
+      context.handle(
+        _appLockBiometricEnabledMeta,
+        appLockBiometricEnabled.isAcceptableOrUnknown(
+          data['app_lock_biometric_enabled']!,
+          _appLockBiometricEnabledMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4168,6 +4262,22 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.bool,
         data['${effectivePrefix}import_completed'],
       )!,
+      locationPermissionExplained: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}location_permission_explained'],
+      )!,
+      themeMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme_mode'],
+      )!,
+      appLockEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}app_lock_enabled'],
+      )!,
+      appLockBiometricEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}app_lock_biometric_enabled'],
+      )!,
     );
   }
 
@@ -4182,11 +4292,19 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   final bool onboardingComplete;
   final int importLastIndex;
   final bool importCompleted;
+  final bool locationPermissionExplained;
+  final String themeMode;
+  final bool appLockEnabled;
+  final bool appLockBiometricEnabled;
   const AppSetting({
     required this.id,
     required this.onboardingComplete,
     required this.importLastIndex,
     required this.importCompleted,
+    required this.locationPermissionExplained,
+    required this.themeMode,
+    required this.appLockEnabled,
+    required this.appLockBiometricEnabled,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4195,6 +4313,12 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     map['onboarding_complete'] = Variable<bool>(onboardingComplete);
     map['import_last_index'] = Variable<int>(importLastIndex);
     map['import_completed'] = Variable<bool>(importCompleted);
+    map['location_permission_explained'] = Variable<bool>(
+      locationPermissionExplained,
+    );
+    map['theme_mode'] = Variable<String>(themeMode);
+    map['app_lock_enabled'] = Variable<bool>(appLockEnabled);
+    map['app_lock_biometric_enabled'] = Variable<bool>(appLockBiometricEnabled);
     return map;
   }
 
@@ -4204,6 +4328,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       onboardingComplete: Value(onboardingComplete),
       importLastIndex: Value(importLastIndex),
       importCompleted: Value(importCompleted),
+      locationPermissionExplained: Value(locationPermissionExplained),
+      themeMode: Value(themeMode),
+      appLockEnabled: Value(appLockEnabled),
+      appLockBiometricEnabled: Value(appLockBiometricEnabled),
     );
   }
 
@@ -4217,6 +4345,14 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       onboardingComplete: serializer.fromJson<bool>(json['onboardingComplete']),
       importLastIndex: serializer.fromJson<int>(json['importLastIndex']),
       importCompleted: serializer.fromJson<bool>(json['importCompleted']),
+      locationPermissionExplained: serializer.fromJson<bool>(
+        json['locationPermissionExplained'],
+      ),
+      themeMode: serializer.fromJson<String>(json['themeMode']),
+      appLockEnabled: serializer.fromJson<bool>(json['appLockEnabled']),
+      appLockBiometricEnabled: serializer.fromJson<bool>(
+        json['appLockBiometricEnabled'],
+      ),
     );
   }
   @override
@@ -4227,6 +4363,14 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       'onboardingComplete': serializer.toJson<bool>(onboardingComplete),
       'importLastIndex': serializer.toJson<int>(importLastIndex),
       'importCompleted': serializer.toJson<bool>(importCompleted),
+      'locationPermissionExplained': serializer.toJson<bool>(
+        locationPermissionExplained,
+      ),
+      'themeMode': serializer.toJson<String>(themeMode),
+      'appLockEnabled': serializer.toJson<bool>(appLockEnabled),
+      'appLockBiometricEnabled': serializer.toJson<bool>(
+        appLockBiometricEnabled,
+      ),
     };
   }
 
@@ -4235,11 +4379,21 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     bool? onboardingComplete,
     int? importLastIndex,
     bool? importCompleted,
+    bool? locationPermissionExplained,
+    String? themeMode,
+    bool? appLockEnabled,
+    bool? appLockBiometricEnabled,
   }) => AppSetting(
     id: id ?? this.id,
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     importLastIndex: importLastIndex ?? this.importLastIndex,
     importCompleted: importCompleted ?? this.importCompleted,
+    locationPermissionExplained:
+        locationPermissionExplained ?? this.locationPermissionExplained,
+    themeMode: themeMode ?? this.themeMode,
+    appLockEnabled: appLockEnabled ?? this.appLockEnabled,
+    appLockBiometricEnabled:
+        appLockBiometricEnabled ?? this.appLockBiometricEnabled,
   );
   AppSetting copyWithCompanion(AppSettingsCompanion data) {
     return AppSetting(
@@ -4253,6 +4407,16 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       importCompleted: data.importCompleted.present
           ? data.importCompleted.value
           : this.importCompleted,
+      locationPermissionExplained: data.locationPermissionExplained.present
+          ? data.locationPermissionExplained.value
+          : this.locationPermissionExplained,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
+      appLockEnabled: data.appLockEnabled.present
+          ? data.appLockEnabled.value
+          : this.appLockEnabled,
+      appLockBiometricEnabled: data.appLockBiometricEnabled.present
+          ? data.appLockBiometricEnabled.value
+          : this.appLockBiometricEnabled,
     );
   }
 
@@ -4262,14 +4426,26 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('id: $id, ')
           ..write('onboardingComplete: $onboardingComplete, ')
           ..write('importLastIndex: $importLastIndex, ')
-          ..write('importCompleted: $importCompleted')
+          ..write('importCompleted: $importCompleted, ')
+          ..write('locationPermissionExplained: $locationPermissionExplained, ')
+          ..write('themeMode: $themeMode, ')
+          ..write('appLockEnabled: $appLockEnabled, ')
+          ..write('appLockBiometricEnabled: $appLockBiometricEnabled')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, onboardingComplete, importLastIndex, importCompleted);
+  int get hashCode => Object.hash(
+    id,
+    onboardingComplete,
+    importLastIndex,
+    importCompleted,
+    locationPermissionExplained,
+    themeMode,
+    appLockEnabled,
+    appLockBiometricEnabled,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4277,7 +4453,12 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.id == this.id &&
           other.onboardingComplete == this.onboardingComplete &&
           other.importLastIndex == this.importLastIndex &&
-          other.importCompleted == this.importCompleted);
+          other.importCompleted == this.importCompleted &&
+          other.locationPermissionExplained ==
+              this.locationPermissionExplained &&
+          other.themeMode == this.themeMode &&
+          other.appLockEnabled == this.appLockEnabled &&
+          other.appLockBiometricEnabled == this.appLockBiometricEnabled);
 }
 
 class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
@@ -4285,29 +4466,51 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<bool> onboardingComplete;
   final Value<int> importLastIndex;
   final Value<bool> importCompleted;
+  final Value<bool> locationPermissionExplained;
+  final Value<String> themeMode;
+  final Value<bool> appLockEnabled;
+  final Value<bool> appLockBiometricEnabled;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.onboardingComplete = const Value.absent(),
     this.importLastIndex = const Value.absent(),
     this.importCompleted = const Value.absent(),
+    this.locationPermissionExplained = const Value.absent(),
+    this.themeMode = const Value.absent(),
+    this.appLockEnabled = const Value.absent(),
+    this.appLockBiometricEnabled = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
     this.onboardingComplete = const Value.absent(),
     this.importLastIndex = const Value.absent(),
     this.importCompleted = const Value.absent(),
+    this.locationPermissionExplained = const Value.absent(),
+    this.themeMode = const Value.absent(),
+    this.appLockEnabled = const Value.absent(),
+    this.appLockBiometricEnabled = const Value.absent(),
   });
   static Insertable<AppSetting> custom({
     Expression<int>? id,
     Expression<bool>? onboardingComplete,
     Expression<int>? importLastIndex,
     Expression<bool>? importCompleted,
+    Expression<bool>? locationPermissionExplained,
+    Expression<String>? themeMode,
+    Expression<bool>? appLockEnabled,
+    Expression<bool>? appLockBiometricEnabled,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (onboardingComplete != null) 'onboarding_complete': onboardingComplete,
       if (importLastIndex != null) 'import_last_index': importLastIndex,
       if (importCompleted != null) 'import_completed': importCompleted,
+      if (locationPermissionExplained != null)
+        'location_permission_explained': locationPermissionExplained,
+      if (themeMode != null) 'theme_mode': themeMode,
+      if (appLockEnabled != null) 'app_lock_enabled': appLockEnabled,
+      if (appLockBiometricEnabled != null)
+        'app_lock_biometric_enabled': appLockBiometricEnabled,
     });
   }
 
@@ -4316,12 +4519,22 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Value<bool>? onboardingComplete,
     Value<int>? importLastIndex,
     Value<bool>? importCompleted,
+    Value<bool>? locationPermissionExplained,
+    Value<String>? themeMode,
+    Value<bool>? appLockEnabled,
+    Value<bool>? appLockBiometricEnabled,
   }) {
     return AppSettingsCompanion(
       id: id ?? this.id,
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       importLastIndex: importLastIndex ?? this.importLastIndex,
       importCompleted: importCompleted ?? this.importCompleted,
+      locationPermissionExplained:
+          locationPermissionExplained ?? this.locationPermissionExplained,
+      themeMode: themeMode ?? this.themeMode,
+      appLockEnabled: appLockEnabled ?? this.appLockEnabled,
+      appLockBiometricEnabled:
+          appLockBiometricEnabled ?? this.appLockBiometricEnabled,
     );
   }
 
@@ -4340,6 +4553,22 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     if (importCompleted.present) {
       map['import_completed'] = Variable<bool>(importCompleted.value);
     }
+    if (locationPermissionExplained.present) {
+      map['location_permission_explained'] = Variable<bool>(
+        locationPermissionExplained.value,
+      );
+    }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<String>(themeMode.value);
+    }
+    if (appLockEnabled.present) {
+      map['app_lock_enabled'] = Variable<bool>(appLockEnabled.value);
+    }
+    if (appLockBiometricEnabled.present) {
+      map['app_lock_biometric_enabled'] = Variable<bool>(
+        appLockBiometricEnabled.value,
+      );
+    }
     return map;
   }
 
@@ -4349,7 +4578,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('id: $id, ')
           ..write('onboardingComplete: $onboardingComplete, ')
           ..write('importLastIndex: $importLastIndex, ')
-          ..write('importCompleted: $importCompleted')
+          ..write('importCompleted: $importCompleted, ')
+          ..write('locationPermissionExplained: $locationPermissionExplained, ')
+          ..write('themeMode: $themeMode, ')
+          ..write('appLockEnabled: $appLockEnabled, ')
+          ..write('appLockBiometricEnabled: $appLockBiometricEnabled')
           ..write(')'))
         .toString();
   }
@@ -4396,11 +4629,50 @@ class $BudgetSettingsTable extends BudgetSettings
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _alertThreshold75Meta = const VerificationMeta(
+    'alertThreshold75',
+  );
+  @override
+  late final GeneratedColumn<int> alertThreshold75 = GeneratedColumn<int>(
+    'alert_threshold75',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(75),
+  );
+  static const VerificationMeta _alertThreshold90Meta = const VerificationMeta(
+    'alertThreshold90',
+  );
+  @override
+  late final GeneratedColumn<int> alertThreshold90 = GeneratedColumn<int>(
+    'alert_threshold90',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(90),
+  );
+  static const VerificationMeta _alertThreshold100Meta = const VerificationMeta(
+    'alertThreshold100',
+  );
+  @override
+  late final GeneratedColumn<int> alertThreshold100 = GeneratedColumn<int>(
+    'alert_threshold100',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(100),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     monthlyLimitPaise,
     currentPeriodStart,
+    alertThreshold75,
+    alertThreshold90,
+    alertThreshold100,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4435,6 +4707,33 @@ class $BudgetSettingsTable extends BudgetSettings
         ),
       );
     }
+    if (data.containsKey('alert_threshold75')) {
+      context.handle(
+        _alertThreshold75Meta,
+        alertThreshold75.isAcceptableOrUnknown(
+          data['alert_threshold75']!,
+          _alertThreshold75Meta,
+        ),
+      );
+    }
+    if (data.containsKey('alert_threshold90')) {
+      context.handle(
+        _alertThreshold90Meta,
+        alertThreshold90.isAcceptableOrUnknown(
+          data['alert_threshold90']!,
+          _alertThreshold90Meta,
+        ),
+      );
+    }
+    if (data.containsKey('alert_threshold100')) {
+      context.handle(
+        _alertThreshold100Meta,
+        alertThreshold100.isAcceptableOrUnknown(
+          data['alert_threshold100']!,
+          _alertThreshold100Meta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4456,6 +4755,18 @@ class $BudgetSettingsTable extends BudgetSettings
         DriftSqlType.dateTime,
         data['${effectivePrefix}current_period_start'],
       ),
+      alertThreshold75: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}alert_threshold75'],
+      )!,
+      alertThreshold90: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}alert_threshold90'],
+      )!,
+      alertThreshold100: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}alert_threshold100'],
+      )!,
     );
   }
 
@@ -4469,10 +4780,16 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
   final int id;
   final int? monthlyLimitPaise;
   final DateTime? currentPeriodStart;
+  final int alertThreshold75;
+  final int alertThreshold90;
+  final int alertThreshold100;
   const BudgetSetting({
     required this.id,
     this.monthlyLimitPaise,
     this.currentPeriodStart,
+    required this.alertThreshold75,
+    required this.alertThreshold90,
+    required this.alertThreshold100,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4484,6 +4801,9 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
     if (!nullToAbsent || currentPeriodStart != null) {
       map['current_period_start'] = Variable<DateTime>(currentPeriodStart);
     }
+    map['alert_threshold75'] = Variable<int>(alertThreshold75);
+    map['alert_threshold90'] = Variable<int>(alertThreshold90);
+    map['alert_threshold100'] = Variable<int>(alertThreshold100);
     return map;
   }
 
@@ -4496,6 +4816,9 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
       currentPeriodStart: currentPeriodStart == null && nullToAbsent
           ? const Value.absent()
           : Value(currentPeriodStart),
+      alertThreshold75: Value(alertThreshold75),
+      alertThreshold90: Value(alertThreshold90),
+      alertThreshold100: Value(alertThreshold100),
     );
   }
 
@@ -4510,6 +4833,9 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
       currentPeriodStart: serializer.fromJson<DateTime?>(
         json['currentPeriodStart'],
       ),
+      alertThreshold75: serializer.fromJson<int>(json['alertThreshold75']),
+      alertThreshold90: serializer.fromJson<int>(json['alertThreshold90']),
+      alertThreshold100: serializer.fromJson<int>(json['alertThreshold100']),
     );
   }
   @override
@@ -4519,6 +4845,9 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
       'id': serializer.toJson<int>(id),
       'monthlyLimitPaise': serializer.toJson<int?>(monthlyLimitPaise),
       'currentPeriodStart': serializer.toJson<DateTime?>(currentPeriodStart),
+      'alertThreshold75': serializer.toJson<int>(alertThreshold75),
+      'alertThreshold90': serializer.toJson<int>(alertThreshold90),
+      'alertThreshold100': serializer.toJson<int>(alertThreshold100),
     };
   }
 
@@ -4526,6 +4855,9 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
     int? id,
     Value<int?> monthlyLimitPaise = const Value.absent(),
     Value<DateTime?> currentPeriodStart = const Value.absent(),
+    int? alertThreshold75,
+    int? alertThreshold90,
+    int? alertThreshold100,
   }) => BudgetSetting(
     id: id ?? this.id,
     monthlyLimitPaise: monthlyLimitPaise.present
@@ -4534,6 +4866,9 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
     currentPeriodStart: currentPeriodStart.present
         ? currentPeriodStart.value
         : this.currentPeriodStart,
+    alertThreshold75: alertThreshold75 ?? this.alertThreshold75,
+    alertThreshold90: alertThreshold90 ?? this.alertThreshold90,
+    alertThreshold100: alertThreshold100 ?? this.alertThreshold100,
   );
   BudgetSetting copyWithCompanion(BudgetSettingsCompanion data) {
     return BudgetSetting(
@@ -4544,6 +4879,15 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
       currentPeriodStart: data.currentPeriodStart.present
           ? data.currentPeriodStart.value
           : this.currentPeriodStart,
+      alertThreshold75: data.alertThreshold75.present
+          ? data.alertThreshold75.value
+          : this.alertThreshold75,
+      alertThreshold90: data.alertThreshold90.present
+          ? data.alertThreshold90.value
+          : this.alertThreshold90,
+      alertThreshold100: data.alertThreshold100.present
+          ? data.alertThreshold100.value
+          : this.alertThreshold100,
     );
   }
 
@@ -4552,46 +4896,74 @@ class BudgetSetting extends DataClass implements Insertable<BudgetSetting> {
     return (StringBuffer('BudgetSetting(')
           ..write('id: $id, ')
           ..write('monthlyLimitPaise: $monthlyLimitPaise, ')
-          ..write('currentPeriodStart: $currentPeriodStart')
+          ..write('currentPeriodStart: $currentPeriodStart, ')
+          ..write('alertThreshold75: $alertThreshold75, ')
+          ..write('alertThreshold90: $alertThreshold90, ')
+          ..write('alertThreshold100: $alertThreshold100')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, monthlyLimitPaise, currentPeriodStart);
+  int get hashCode => Object.hash(
+    id,
+    monthlyLimitPaise,
+    currentPeriodStart,
+    alertThreshold75,
+    alertThreshold90,
+    alertThreshold100,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is BudgetSetting &&
           other.id == this.id &&
           other.monthlyLimitPaise == this.monthlyLimitPaise &&
-          other.currentPeriodStart == this.currentPeriodStart);
+          other.currentPeriodStart == this.currentPeriodStart &&
+          other.alertThreshold75 == this.alertThreshold75 &&
+          other.alertThreshold90 == this.alertThreshold90 &&
+          other.alertThreshold100 == this.alertThreshold100);
 }
 
 class BudgetSettingsCompanion extends UpdateCompanion<BudgetSetting> {
   final Value<int> id;
   final Value<int?> monthlyLimitPaise;
   final Value<DateTime?> currentPeriodStart;
+  final Value<int> alertThreshold75;
+  final Value<int> alertThreshold90;
+  final Value<int> alertThreshold100;
   const BudgetSettingsCompanion({
     this.id = const Value.absent(),
     this.monthlyLimitPaise = const Value.absent(),
     this.currentPeriodStart = const Value.absent(),
+    this.alertThreshold75 = const Value.absent(),
+    this.alertThreshold90 = const Value.absent(),
+    this.alertThreshold100 = const Value.absent(),
   });
   BudgetSettingsCompanion.insert({
     this.id = const Value.absent(),
     this.monthlyLimitPaise = const Value.absent(),
     this.currentPeriodStart = const Value.absent(),
+    this.alertThreshold75 = const Value.absent(),
+    this.alertThreshold90 = const Value.absent(),
+    this.alertThreshold100 = const Value.absent(),
   });
   static Insertable<BudgetSetting> custom({
     Expression<int>? id,
     Expression<int>? monthlyLimitPaise,
     Expression<DateTime>? currentPeriodStart,
+    Expression<int>? alertThreshold75,
+    Expression<int>? alertThreshold90,
+    Expression<int>? alertThreshold100,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (monthlyLimitPaise != null) 'monthly_limit_paise': monthlyLimitPaise,
       if (currentPeriodStart != null)
         'current_period_start': currentPeriodStart,
+      if (alertThreshold75 != null) 'alert_threshold75': alertThreshold75,
+      if (alertThreshold90 != null) 'alert_threshold90': alertThreshold90,
+      if (alertThreshold100 != null) 'alert_threshold100': alertThreshold100,
     });
   }
 
@@ -4599,11 +4971,17 @@ class BudgetSettingsCompanion extends UpdateCompanion<BudgetSetting> {
     Value<int>? id,
     Value<int?>? monthlyLimitPaise,
     Value<DateTime?>? currentPeriodStart,
+    Value<int>? alertThreshold75,
+    Value<int>? alertThreshold90,
+    Value<int>? alertThreshold100,
   }) {
     return BudgetSettingsCompanion(
       id: id ?? this.id,
       monthlyLimitPaise: monthlyLimitPaise ?? this.monthlyLimitPaise,
       currentPeriodStart: currentPeriodStart ?? this.currentPeriodStart,
+      alertThreshold75: alertThreshold75 ?? this.alertThreshold75,
+      alertThreshold90: alertThreshold90 ?? this.alertThreshold90,
+      alertThreshold100: alertThreshold100 ?? this.alertThreshold100,
     );
   }
 
@@ -4621,6 +4999,15 @@ class BudgetSettingsCompanion extends UpdateCompanion<BudgetSetting> {
         currentPeriodStart.value,
       );
     }
+    if (alertThreshold75.present) {
+      map['alert_threshold75'] = Variable<int>(alertThreshold75.value);
+    }
+    if (alertThreshold90.present) {
+      map['alert_threshold90'] = Variable<int>(alertThreshold90.value);
+    }
+    if (alertThreshold100.present) {
+      map['alert_threshold100'] = Variable<int>(alertThreshold100.value);
+    }
     return map;
   }
 
@@ -4629,7 +5016,10 @@ class BudgetSettingsCompanion extends UpdateCompanion<BudgetSetting> {
     return (StringBuffer('BudgetSettingsCompanion(')
           ..write('id: $id, ')
           ..write('monthlyLimitPaise: $monthlyLimitPaise, ')
-          ..write('currentPeriodStart: $currentPeriodStart')
+          ..write('currentPeriodStart: $currentPeriodStart, ')
+          ..write('alertThreshold75: $alertThreshold75, ')
+          ..write('alertThreshold90: $alertThreshold90, ')
+          ..write('alertThreshold100: $alertThreshold100')
           ..write(')'))
         .toString();
   }
@@ -7512,6 +7902,257 @@ class TransactionLinksCompanion extends UpdateCompanion<TransactionLink> {
   }
 }
 
+class $SmsSendersTable extends SmsSenders
+    with TableInfo<$SmsSendersTable, SmsSender> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SmsSendersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _addressMeta = const VerificationMeta(
+    'address',
+  );
+  @override
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+    'address',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isBuiltInMeta = const VerificationMeta(
+    'isBuiltIn',
+  );
+  @override
+  late final GeneratedColumn<bool> isBuiltIn = GeneratedColumn<bool>(
+    'is_built_in',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_built_in" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, address, isBuiltIn];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sms_senders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SmsSender> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('address')) {
+      context.handle(
+        _addressMeta,
+        address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addressMeta);
+    }
+    if (data.containsKey('is_built_in')) {
+      context.handle(
+        _isBuiltInMeta,
+        isBuiltIn.isAcceptableOrUnknown(data['is_built_in']!, _isBuiltInMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SmsSender map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SmsSender(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      address: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}address'],
+      )!,
+      isBuiltIn: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_built_in'],
+      )!,
+    );
+  }
+
+  @override
+  $SmsSendersTable createAlias(String alias) {
+    return $SmsSendersTable(attachedDatabase, alias);
+  }
+}
+
+class SmsSender extends DataClass implements Insertable<SmsSender> {
+  final int id;
+  final String address;
+  final bool isBuiltIn;
+  const SmsSender({
+    required this.id,
+    required this.address,
+    required this.isBuiltIn,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['address'] = Variable<String>(address);
+    map['is_built_in'] = Variable<bool>(isBuiltIn);
+    return map;
+  }
+
+  SmsSendersCompanion toCompanion(bool nullToAbsent) {
+    return SmsSendersCompanion(
+      id: Value(id),
+      address: Value(address),
+      isBuiltIn: Value(isBuiltIn),
+    );
+  }
+
+  factory SmsSender.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SmsSender(
+      id: serializer.fromJson<int>(json['id']),
+      address: serializer.fromJson<String>(json['address']),
+      isBuiltIn: serializer.fromJson<bool>(json['isBuiltIn']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'address': serializer.toJson<String>(address),
+      'isBuiltIn': serializer.toJson<bool>(isBuiltIn),
+    };
+  }
+
+  SmsSender copyWith({int? id, String? address, bool? isBuiltIn}) => SmsSender(
+    id: id ?? this.id,
+    address: address ?? this.address,
+    isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+  );
+  SmsSender copyWithCompanion(SmsSendersCompanion data) {
+    return SmsSender(
+      id: data.id.present ? data.id.value : this.id,
+      address: data.address.present ? data.address.value : this.address,
+      isBuiltIn: data.isBuiltIn.present ? data.isBuiltIn.value : this.isBuiltIn,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmsSender(')
+          ..write('id: $id, ')
+          ..write('address: $address, ')
+          ..write('isBuiltIn: $isBuiltIn')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, address, isBuiltIn);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SmsSender &&
+          other.id == this.id &&
+          other.address == this.address &&
+          other.isBuiltIn == this.isBuiltIn);
+}
+
+class SmsSendersCompanion extends UpdateCompanion<SmsSender> {
+  final Value<int> id;
+  final Value<String> address;
+  final Value<bool> isBuiltIn;
+  const SmsSendersCompanion({
+    this.id = const Value.absent(),
+    this.address = const Value.absent(),
+    this.isBuiltIn = const Value.absent(),
+  });
+  SmsSendersCompanion.insert({
+    this.id = const Value.absent(),
+    required String address,
+    this.isBuiltIn = const Value.absent(),
+  }) : address = Value(address);
+  static Insertable<SmsSender> custom({
+    Expression<int>? id,
+    Expression<String>? address,
+    Expression<bool>? isBuiltIn,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (address != null) 'address': address,
+      if (isBuiltIn != null) 'is_built_in': isBuiltIn,
+    });
+  }
+
+  SmsSendersCompanion copyWith({
+    Value<int>? id,
+    Value<String>? address,
+    Value<bool>? isBuiltIn,
+  }) {
+    return SmsSendersCompanion(
+      id: id ?? this.id,
+      address: address ?? this.address,
+      isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (isBuiltIn.present) {
+      map['is_built_in'] = Variable<bool>(isBuiltIn.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmsSendersCompanion(')
+          ..write('id: $id, ')
+          ..write('address: $address, ')
+          ..write('isBuiltIn: $isBuiltIn')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7545,6 +8186,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TransactionLinksTable transactionLinks = $TransactionLinksTable(
     this,
   );
+  late final $SmsSendersTable smsSenders = $SmsSendersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7568,6 +8210,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cardTransactionTags,
     merchantDefaultTags,
     transactionLinks,
+    smsSenders,
   ];
 }
 
@@ -9525,6 +10168,10 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<bool> onboardingComplete,
       Value<int> importLastIndex,
       Value<bool> importCompleted,
+      Value<bool> locationPermissionExplained,
+      Value<String> themeMode,
+      Value<bool> appLockEnabled,
+      Value<bool> appLockBiometricEnabled,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
     AppSettingsCompanion Function({
@@ -9532,6 +10179,10 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<bool> onboardingComplete,
       Value<int> importLastIndex,
       Value<bool> importCompleted,
+      Value<bool> locationPermissionExplained,
+      Value<String> themeMode,
+      Value<bool> appLockEnabled,
+      Value<bool> appLockBiometricEnabled,
     });
 
 class $$AppSettingsTableFilterComposer
@@ -9560,6 +10211,26 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<bool> get importCompleted => $composableBuilder(
     column: $table.importCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get locationPermissionExplained => $composableBuilder(
+    column: $table.locationPermissionExplained,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get appLockEnabled => $composableBuilder(
+    column: $table.appLockEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get appLockBiometricEnabled => $composableBuilder(
+    column: $table.appLockBiometricEnabled,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -9592,6 +10263,26 @@ class $$AppSettingsTableOrderingComposer
     column: $table.importCompleted,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get locationPermissionExplained => $composableBuilder(
+    column: $table.locationPermissionExplained,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get appLockEnabled => $composableBuilder(
+    column: $table.appLockEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get appLockBiometricEnabled => $composableBuilder(
+    column: $table.appLockBiometricEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableAnnotationComposer
@@ -9618,6 +10309,24 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get importCompleted => $composableBuilder(
     column: $table.importCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get locationPermissionExplained => $composableBuilder(
+    column: $table.locationPermissionExplained,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
+
+  GeneratedColumn<bool> get appLockEnabled => $composableBuilder(
+    column: $table.appLockEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get appLockBiometricEnabled => $composableBuilder(
+    column: $table.appLockBiometricEnabled,
     builder: (column) => column,
   );
 }
@@ -9657,11 +10366,19 @@ class $$AppSettingsTableTableManager
                 Value<bool> onboardingComplete = const Value.absent(),
                 Value<int> importLastIndex = const Value.absent(),
                 Value<bool> importCompleted = const Value.absent(),
+                Value<bool> locationPermissionExplained = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
+                Value<bool> appLockEnabled = const Value.absent(),
+                Value<bool> appLockBiometricEnabled = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
                 onboardingComplete: onboardingComplete,
                 importLastIndex: importLastIndex,
                 importCompleted: importCompleted,
+                locationPermissionExplained: locationPermissionExplained,
+                themeMode: themeMode,
+                appLockEnabled: appLockEnabled,
+                appLockBiometricEnabled: appLockBiometricEnabled,
               ),
           createCompanionCallback:
               ({
@@ -9669,11 +10386,19 @@ class $$AppSettingsTableTableManager
                 Value<bool> onboardingComplete = const Value.absent(),
                 Value<int> importLastIndex = const Value.absent(),
                 Value<bool> importCompleted = const Value.absent(),
+                Value<bool> locationPermissionExplained = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
+                Value<bool> appLockEnabled = const Value.absent(),
+                Value<bool> appLockBiometricEnabled = const Value.absent(),
               }) => AppSettingsCompanion.insert(
                 id: id,
                 onboardingComplete: onboardingComplete,
                 importLastIndex: importLastIndex,
                 importCompleted: importCompleted,
+                locationPermissionExplained: locationPermissionExplained,
+                themeMode: themeMode,
+                appLockEnabled: appLockEnabled,
+                appLockBiometricEnabled: appLockBiometricEnabled,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9705,12 +10430,18 @@ typedef $$BudgetSettingsTableCreateCompanionBuilder =
       Value<int> id,
       Value<int?> monthlyLimitPaise,
       Value<DateTime?> currentPeriodStart,
+      Value<int> alertThreshold75,
+      Value<int> alertThreshold90,
+      Value<int> alertThreshold100,
     });
 typedef $$BudgetSettingsTableUpdateCompanionBuilder =
     BudgetSettingsCompanion Function({
       Value<int> id,
       Value<int?> monthlyLimitPaise,
       Value<DateTime?> currentPeriodStart,
+      Value<int> alertThreshold75,
+      Value<int> alertThreshold90,
+      Value<int> alertThreshold100,
     });
 
 class $$BudgetSettingsTableFilterComposer
@@ -9734,6 +10465,21 @@ class $$BudgetSettingsTableFilterComposer
 
   ColumnFilters<DateTime> get currentPeriodStart => $composableBuilder(
     column: $table.currentPeriodStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get alertThreshold75 => $composableBuilder(
+    column: $table.alertThreshold75,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get alertThreshold90 => $composableBuilder(
+    column: $table.alertThreshold90,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get alertThreshold100 => $composableBuilder(
+    column: $table.alertThreshold100,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -9761,6 +10507,21 @@ class $$BudgetSettingsTableOrderingComposer
     column: $table.currentPeriodStart,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get alertThreshold75 => $composableBuilder(
+    column: $table.alertThreshold75,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get alertThreshold90 => $composableBuilder(
+    column: $table.alertThreshold90,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get alertThreshold100 => $composableBuilder(
+    column: $table.alertThreshold100,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BudgetSettingsTableAnnotationComposer
@@ -9782,6 +10543,21 @@ class $$BudgetSettingsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get currentPeriodStart => $composableBuilder(
     column: $table.currentPeriodStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get alertThreshold75 => $composableBuilder(
+    column: $table.alertThreshold75,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get alertThreshold90 => $composableBuilder(
+    column: $table.alertThreshold90,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get alertThreshold100 => $composableBuilder(
+    column: $table.alertThreshold100,
     builder: (column) => column,
   );
 }
@@ -9822,20 +10598,32 @@ class $$BudgetSettingsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<int?> monthlyLimitPaise = const Value.absent(),
                 Value<DateTime?> currentPeriodStart = const Value.absent(),
+                Value<int> alertThreshold75 = const Value.absent(),
+                Value<int> alertThreshold90 = const Value.absent(),
+                Value<int> alertThreshold100 = const Value.absent(),
               }) => BudgetSettingsCompanion(
                 id: id,
                 monthlyLimitPaise: monthlyLimitPaise,
                 currentPeriodStart: currentPeriodStart,
+                alertThreshold75: alertThreshold75,
+                alertThreshold90: alertThreshold90,
+                alertThreshold100: alertThreshold100,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<int?> monthlyLimitPaise = const Value.absent(),
                 Value<DateTime?> currentPeriodStart = const Value.absent(),
+                Value<int> alertThreshold75 = const Value.absent(),
+                Value<int> alertThreshold90 = const Value.absent(),
+                Value<int> alertThreshold100 = const Value.absent(),
               }) => BudgetSettingsCompanion.insert(
                 id: id,
                 monthlyLimitPaise: monthlyLimitPaise,
                 currentPeriodStart: currentPeriodStart,
+                alertThreshold75: alertThreshold75,
+                alertThreshold90: alertThreshold90,
+                alertThreshold100: alertThreshold100,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -11578,6 +12366,159 @@ typedef $$TransactionLinksTableProcessedTableManager =
       TransactionLink,
       PrefetchHooks Function()
     >;
+typedef $$SmsSendersTableCreateCompanionBuilder =
+    SmsSendersCompanion Function({
+      Value<int> id,
+      required String address,
+      Value<bool> isBuiltIn,
+    });
+typedef $$SmsSendersTableUpdateCompanionBuilder =
+    SmsSendersCompanion Function({
+      Value<int> id,
+      Value<String> address,
+      Value<bool> isBuiltIn,
+    });
+
+class $$SmsSendersTableFilterComposer
+    extends Composer<_$AppDatabase, $SmsSendersTable> {
+  $$SmsSendersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isBuiltIn => $composableBuilder(
+    column: $table.isBuiltIn,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SmsSendersTableOrderingComposer
+    extends Composer<_$AppDatabase, $SmsSendersTable> {
+  $$SmsSendersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isBuiltIn => $composableBuilder(
+    column: $table.isBuiltIn,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SmsSendersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SmsSendersTable> {
+  $$SmsSendersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<bool> get isBuiltIn =>
+      $composableBuilder(column: $table.isBuiltIn, builder: (column) => column);
+}
+
+class $$SmsSendersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SmsSendersTable,
+          SmsSender,
+          $$SmsSendersTableFilterComposer,
+          $$SmsSendersTableOrderingComposer,
+          $$SmsSendersTableAnnotationComposer,
+          $$SmsSendersTableCreateCompanionBuilder,
+          $$SmsSendersTableUpdateCompanionBuilder,
+          (
+            SmsSender,
+            BaseReferences<_$AppDatabase, $SmsSendersTable, SmsSender>,
+          ),
+          SmsSender,
+          PrefetchHooks Function()
+        > {
+  $$SmsSendersTableTableManager(_$AppDatabase db, $SmsSendersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SmsSendersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SmsSendersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SmsSendersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> address = const Value.absent(),
+                Value<bool> isBuiltIn = const Value.absent(),
+              }) => SmsSendersCompanion(
+                id: id,
+                address: address,
+                isBuiltIn: isBuiltIn,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String address,
+                Value<bool> isBuiltIn = const Value.absent(),
+              }) => SmsSendersCompanion.insert(
+                id: id,
+                address: address,
+                isBuiltIn: isBuiltIn,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SmsSendersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SmsSendersTable,
+      SmsSender,
+      $$SmsSendersTableFilterComposer,
+      $$SmsSendersTableOrderingComposer,
+      $$SmsSendersTableAnnotationComposer,
+      $$SmsSendersTableCreateCompanionBuilder,
+      $$SmsSendersTableUpdateCompanionBuilder,
+      (SmsSender, BaseReferences<_$AppDatabase, $SmsSendersTable, SmsSender>),
+      SmsSender,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11623,4 +12564,6 @@ class $AppDatabaseManager {
       $$MerchantDefaultTagsTableTableManager(_db, _db.merchantDefaultTags);
   $$TransactionLinksTableTableManager get transactionLinks =>
       $$TransactionLinksTableTableManager(_db, _db.transactionLinks);
+  $$SmsSendersTableTableManager get smsSenders =>
+      $$SmsSendersTableTableManager(_db, _db.smsSenders);
 }

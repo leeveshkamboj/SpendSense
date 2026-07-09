@@ -120,6 +120,69 @@ class CreditCardRepository {
         .get();
   }
 
+  Future<List<CreditCard>> listArchived() {
+    return (_database.select(_database.creditCards)
+          ..where((card) => card.isArchived.equals(true))
+          ..orderBy([(card) => OrderingTerm.asc(card.nickname)]))
+        .get();
+  }
+
+  Future<void> archive(int cardId) async {
+    await (_database.update(_database.creditCards)
+          ..where((card) => card.id.equals(cardId)))
+        .write(const CreditCardsCompanion(isArchived: Value(true)));
+  }
+
+  Future<void> unarchive(int cardId) async {
+    await (_database.update(_database.creditCards)
+          ..where((card) => card.id.equals(cardId)))
+        .write(const CreditCardsCompanion(isArchived: Value(false)));
+  }
+
+  Future<void> deletePermanently(int cardId) async {
+    final transactionIds = await (_database.select(_database.cardTransactions)
+          ..where((row) => row.creditCardId.equals(cardId)))
+        .map((row) => row.id)
+        .get();
+
+    await _database.batch((batch) {
+      for (final transactionId in transactionIds) {
+        batch.deleteWhere(
+          _database.cardTransactionTags,
+          (row) => row.cardTransactionId.equals(transactionId),
+        );
+        batch.deleteWhere(
+          _database.cardTransactionReceipts,
+          (row) => row.cardTransactionId.equals(transactionId),
+        );
+        batch.deleteWhere(
+          _database.recoveryLinks,
+          (row) =>
+              row.creditTransactionId.equals(transactionId) |
+              row.recoverableTransactionId.equals(transactionId),
+        );
+        batch.deleteWhere(
+          _database.transactionLinks,
+          (row) =>
+              row.cardTransactionId.equals(transactionId) |
+              row.linkedCardTransactionId.equals(transactionId),
+        );
+      }
+      batch.deleteWhere(
+        _database.cardTransactions,
+        (row) => row.creditCardId.equals(cardId),
+      );
+      batch.deleteWhere(
+        _database.billingCycles,
+        (row) => row.creditCardId.equals(cardId),
+      );
+      batch.deleteWhere(
+        _database.creditCards,
+        (row) => row.id.equals(cardId),
+      );
+    });
+  }
+
   Future<CreditCard?> findByBankAndLastFour({
     required String bank,
     required String lastFourDigits,

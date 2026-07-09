@@ -1,86 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/settings/data/app_data_providers.dart';
+import 'package:spendsense/features/settings/domain/settings_catalog.dart';
+import 'package:spendsense/features/settings/domain/settings_entry.dart';
 import 'package:spendsense/features/settings/presentation/delete_all_data_dialog.dart';
-import 'package:spendsense/features/budgets/data/budget_providers.dart';
-import 'package:spendsense/features/budgets/presentation/budget_settings_screen.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final categoryBudgets = ref.watch(categoryBudgetsProvider);
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final catalog = buildSettingsCatalog(context);
+    final filtered = filterSettingsEntries(catalog, query: _query);
+    final grouped = groupSettingsEntries(filtered);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
-          ListTile(
-            title: const Text('Merchants'),
-            subtitle: const Text('Display names, categories, and tags'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/merchants'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: SearchBar(
+              hintText: 'Search settings',
+              onChanged: (value) => setState(() => _query = value),
+            ),
           ),
-          ListTile(
-            title: const Text('Recoverables'),
-            subtitle: const Text('Outstanding amounts by person'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/accounts/recoverables'),
-          ),
-          ListTile(
-            title: const Text('Budgets'),
-            subtitle: const Text('Monthly and category limits'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const BudgetSettingsScreen(),
+          for (final group in SettingsGroup.values) ...[
+            if (grouped[group]?.isNotEmpty ?? false) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Text(
+                  group.label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                 ),
-              );
-            },
-          ),
-          ListTile(
-            title: const Text('Export report'),
-            subtitle: const Text('PDF, CSV, or Excel summary'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/reports'),
-          ),
-          ListTile(
-            title: const Text('Backup & Restore'),
-            subtitle: const Text('Encrypted .ssb export and restore'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/backup'),
-          ),
-          const Divider(),
-          categoryBudgets.when(
-            data: (rows) {
-              if (rows.isEmpty) {
-                return const ListTile(
-                  title: Text('No category budgets configured'),
-                );
-              }
-
-              return Column(
-                children: [
-                  for (final row in rows)
-                    ListTile(
-                      title: Text(row.category),
-                      trailing: Text('₹${row.limitPaise / 100}'),
-                    ),
-                ],
-              );
-            },
-            loading: () => const LinearProgressIndicator(),
-            error: (error, _) => ListTile(title: Text('Error: $error')),
-          ),
-          const Divider(),
-          Text(
-            'Danger zone',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
+              ),
+              for (final entry in grouped[group]!)
+                ListTile(
+                  title: Text(entry.title),
+                  subtitle: Text(entry.subtitle),
+                  trailing: entry.onTap == null
+                      ? null
+                      : const Icon(Icons.chevron_right),
+                  onTap: entry.onTap,
                 ),
+            ],
+          ],
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(
+              'Danger zone',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+            ),
           ),
           ListTile(
             title: Text(

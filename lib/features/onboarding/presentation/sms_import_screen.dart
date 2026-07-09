@@ -7,6 +7,8 @@ import 'package:spendsense/features/onboarding/sms_import_service.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_providers.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_providers.dart';
+import 'package:spendsense/features/location/location_providers.dart';
+import 'package:spendsense/features/location/location_permission_gateway.dart';
 
 final smsImportServiceProvider = Provider<SmsImportService>((ref) {
   return SmsImportService(ref.watch(smsCaptureServiceProvider));
@@ -41,6 +43,7 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
     _started = true;
 
     final permission = await ref.read(smsPermissionGatewayProvider).request();
+    await _maybeExplainLocation(context);
     final repository = ref.read(onboardingRepositoryProvider);
     final startIndex = await repository.importLastIndex();
     final completed = await repository.importCompleted();
@@ -68,6 +71,45 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
     );
 
     if (mounted) widget.onComplete();
+  }
+
+  Future<void> _maybeExplainLocation(BuildContext context) async {
+    final service = ref.read(locationCaptureServiceProvider);
+    final decision = await service.requestForCapture();
+    if (!mounted || decision != LocationCaptureDecision.showExplanation) {
+      return;
+    }
+
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add transaction location?'),
+        content: const Text(
+          'SpendSense can attach your location when a bank SMS is captured. '
+          'This helps you remember where a purchase happened.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Not now'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+
+    await service.completeExplanationFlow();
+    if (!mounted) {
+      return;
+    }
+    if (proceed == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location capture skipped')),
+      );
+    }
   }
 
   List<String> _messagesToImport() {

@@ -13,6 +13,7 @@ import 'package:spendsense/features/recoverables/data/recoverables_tables.dart';
 import 'package:spendsense/features/tags/data/tags_tables.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_receipts_table.dart';
 import 'package:spendsense/features/transactions/data/card_transactions_table.dart';
+import 'package:spendsense/features/sms_capture/data/sms_senders_table.dart';
 
 part 'database.g.dart';
 
@@ -36,6 +37,7 @@ part 'database.g.dart';
     CardTransactionTags,
     MerchantDefaultTags,
     TransactionLinks,
+    SmsSenders,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -43,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'spendsense'));
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -104,6 +106,28 @@ class AppDatabase extends _$AppDatabase {
               bankAccountTransactions.location,
             );
             await m.createTable(cardTransactionReceipts);
+          }
+          if (from < 12) {
+            await m.createTable(smsSenders);
+            await m.addColumn(
+              appSettings,
+              appSettings.locationPermissionExplained,
+            );
+            await m.addColumn(appSettings, appSettings.themeMode);
+            await m.addColumn(appSettings, appSettings.appLockEnabled);
+            await m.addColumn(appSettings, appSettings.appLockBiometricEnabled);
+            await m.addColumn(
+              budgetSettings,
+              budgetSettings.alertThreshold75,
+            );
+            await m.addColumn(
+              budgetSettings,
+              budgetSettings.alertThreshold90,
+            );
+            await m.addColumn(
+              budgetSettings,
+              budgetSettings.alertThreshold100,
+            );
           }
         },
       );
