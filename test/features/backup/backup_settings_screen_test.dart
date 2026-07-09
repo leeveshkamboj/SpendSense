@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/backup/data/backup_providers.dart';
 import 'package:spendsense/features/backup/data/backup_service.dart';
@@ -51,12 +52,28 @@ class _FakeBackupService implements BackupService {
 void main() {
   group('Backup settings', () {
     testWidgets('settings screen links to backup and restore', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/settings',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'backup',
+                builder: (context, state) => const BackupSettingsScreen(),
+              ),
+            ],
+          ),
+        ],
+      );
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             categoryBudgetsProvider.overrideWith((ref) async => []),
           ],
-          child: const MaterialApp(home: SettingsScreen()),
+          child: MaterialApp.router(routerConfig: router),
         ),
       );
       await tester.pumpAndSettle();

@@ -9,6 +9,7 @@ import 'package:spendsense/features/dashboard/dashboard_screen.dart';
 import 'package:spendsense/features/merchants/presentation/merchants_screen.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverables_screen.dart';
 import 'package:spendsense/features/backup/presentation/backup_settings_screen.dart';
+import 'package:spendsense/features/reports/presentation/report_export_screen.dart';
 import 'package:spendsense/features/settings/settings_screen.dart';
 import 'package:spendsense/features/shell/app_shell.dart';
 import 'package:spendsense/features/transactions/presentation/copy_transaction_screen.dart';
@@ -157,6 +158,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'backup',
                     builder: (context, state) => const BackupSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'reports',
+                    builder: (context, state) => const ReportExportScreen(),
                   ),
                 ],
               ),

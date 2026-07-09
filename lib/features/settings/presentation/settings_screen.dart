@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:spendsense/features/backup/presentation/backup_settings_screen.dart';
 import 'package:spendsense/features/settings/data/app_data_providers.dart';
 import 'package:spendsense/features/settings/presentation/delete_all_data_dialog.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
@@ -43,16 +42,16 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
           ListTile(
+            title: const Text('Export report'),
+            subtitle: const Text('PDF, CSV, or Excel summary'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/reports'),
+          ),
+          ListTile(
             title: const Text('Backup & Restore'),
             subtitle: const Text('Encrypted .ssb export and restore'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const BackupSettingsScreen(),
-                ),
-              );
-            },
+            onTap: () => context.push('/settings/backup'),
           ),
           const Divider(),
           categoryBudgets.when(
