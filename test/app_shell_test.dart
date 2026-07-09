@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spendsense/features/backup/data/backup_providers.dart';
+import 'package:spendsense/features/backup/presentation/data_recovery_gate.dart';
 import 'package:spendsense/features/home_widgets/data/home_widget_providers.dart';
 import 'package:spendsense/app/app.dart';
 import 'package:spendsense/core/database/database.dart';
@@ -37,6 +39,8 @@ void main() {
               (ref) async => NotificationPermissionState.granted,
             ),
             homeWidgetSyncProvider.overrideWith((ref) async {}),
+            autoBackupSyncProvider.overrideWith((ref) async {}),
+            databaseHealthProvider.overrideWith((ref) async => true),
           ],
           child: const SpendSenseApp(),
         ),

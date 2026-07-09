@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/backup/data/backup_providers.dart';
 import 'package:spendsense/features/bills/presentation/notification_permission_banner.dart';
 import 'package:spendsense/features/budgets/data/spending_alert_providers.dart';
 import 'package:spendsense/features/home_widgets/data/home_widget_providers.dart';
@@ -24,6 +25,7 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(spendingAlertSyncProvider);
     ref.watch(homeWidgetSyncProvider);
+    ref.watch(autoBackupSyncProvider);
     final showFab = navigationShell.currentIndex != 5;
 
     return Scaffold(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/backup/presentation/backup_settings_screen.dart';
+import 'package:spendsense/features/settings/data/app_data_providers.dart';
+import 'package:spendsense/features/settings/presentation/delete_all_data_dialog.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/budgets/presentation/budget_settings_screen.dart';
 
@@ -39,6 +42,18 @@ class SettingsScreen extends ConsumerWidget {
               );
             },
           ),
+          ListTile(
+            title: const Text('Backup & Restore'),
+            subtitle: const Text('Encrypted .ssb export and restore'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const BackupSettingsScreen(),
+                ),
+              );
+            },
+          ),
           const Divider(),
           categoryBudgets.when(
             data: (rows) {
@@ -61,8 +76,49 @@ class SettingsScreen extends ConsumerWidget {
             loading: () => const LinearProgressIndicator(),
             error: (error, _) => ListTile(title: Text('Error: $error')),
           ),
+          const Divider(),
+          Text(
+            'Danger zone',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+          ),
+          ListTile(
+            title: Text(
+              'Delete all data',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            subtitle: const Text('Permanently remove all local SpendSense data'),
+            onTap: () => _confirmDeleteAllData(context, ref),
+          ),
         ],
       ),
+    );
+  }
+
+  Future<void> _confirmDeleteAllData(BuildContext context, WidgetRef ref) async {
+    final choice = await showDeleteAllDataDialog(context);
+    if (!context.mounted || choice == null || choice == DeleteAllChoice.cancel) {
+      return;
+    }
+
+    if (choice == DeleteAllChoice.backupFirst) {
+      await openBackupSettings(context);
+      return;
+    }
+
+    final confirmed = await confirmDeleteAllAnyway(context);
+    if (!context.mounted || !confirmed) {
+      return;
+    }
+
+    await ref.read(appDataRepositoryProvider).deleteAllData();
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All data deleted')),
     );
   }
 }
