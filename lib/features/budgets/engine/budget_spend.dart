@@ -14,6 +14,28 @@ int calculatePersonalSpendPaise(Iterable<BudgetTransaction> transactions) {
   return total;
 }
 
+Map<int, int> calculateCardSpendPaise(Iterable<BudgetTransaction> transactions) {
+  final totals = <int, int>{};
+
+  for (final transaction in transactions) {
+    if (transaction.source != BudgetTransactionSource.creditCard) {
+      continue;
+    }
+    if (transaction.kind != BudgetTransactionKind.expense) {
+      continue;
+    }
+
+    final cardId = transaction.cardId;
+    if (cardId == null) {
+      continue;
+    }
+
+    totals[cardId] = (totals[cardId] ?? 0) + transaction.amountPaise;
+  }
+
+  return totals;
+}
+
 Map<String, int> calculateCategorySpendPaise(
   Iterable<BudgetTransaction> transactions,
 ) {

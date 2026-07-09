@@ -6,6 +6,8 @@ import 'package:spendsense/features/budgets/engine/budget_alerts.dart';
 import 'package:spendsense/features/budgets/engine/budget_assignment.dart';
 import 'package:spendsense/features/budgets/engine/budget_projection.dart';
 import 'package:spendsense/features/budgets/engine/budget_spend.dart';
+import 'package:spendsense/features/analytics/engine/analytics_period.dart'
+    as analytics_period;
 import 'package:spendsense/features/billing_cycles/engine/cycle_assignment.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
@@ -85,8 +87,34 @@ class BudgetRepository {
       billDaysOfMonth: billDays,
     );
 
+    final periodTransactions = await listBudgetPeriodTransactions(asOf: asOf);
+    final spentPaise = calculatePersonalSpendPaise(periodTransactions);
+    final projectedPaise = projectEndOfPeriodSpend(
+      spentPaise: spentPaise,
+      periodStart: periodStart,
+      asOf: asOf,
+      periodEnd: periodEnd,
+    );
+
+    return BudgetProgressSnapshot(
+      limitPaise: monthlyLimit,
+      spentPaise: spentPaise,
+      projectedPaise: projectedPaise,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+    );
+  }
+
+  Future<List<BudgetTransaction>> listBudgetPeriodTransactions({
+    required DateTime asOf,
+    DateTime? periodStart,
+  }) async {
+    final cards = await _loadCardBillingStates(asOf);
+    final targetStart =
+        periodStart ?? _currentPeriodStart(asOf: asOf, cards: cards);
     final transactions = await _budgetTransactions();
-    final periodTransactions = transactions.where((transaction) {
+
+    return transactions.where((transaction) {
       final card = cards.firstWhere(
         (row) => row.cardId == transaction.cardId,
         orElse: () => const CardBillingState(
@@ -104,23 +132,22 @@ class BudgetRepository {
         billDayOfMonth: card.billDayOfMonth!,
         unifiedRolloverActive: isUnifiedRolloverActive(asOf: asOf, cards: cards),
       );
-      return _sameDay(assignedStart, periodStart);
-    });
+      return _sameDay(assignedStart, targetStart);
+    }).toList();
+  }
 
-    final spentPaise = calculatePersonalSpendPaise(periodTransactions);
-    final projectedPaise = projectEndOfPeriodSpend(
-      spentPaise: spentPaise,
-      periodStart: periodStart,
+  Future<DateTime> currentBudgetPeriodStart({required DateTime asOf}) async {
+    final cards = await _loadCardBillingStates(asOf);
+    return _currentPeriodStart(asOf: asOf, cards: cards);
+  }
+
+  Future<DateTime> previousBudgetPeriodStart({required DateTime asOf}) async {
+    final cards = await _loadCardBillingStates(asOf);
+    final current = _currentPeriodStart(asOf: asOf, cards: cards);
+    return analytics_period.previousBudgetPeriodStart(
+      currentPeriodStart: current,
+      cards: cards,
       asOf: asOf,
-      periodEnd: periodEnd,
-    );
-
-    return BudgetProgressSnapshot(
-      limitPaise: monthlyLimit,
-      spentPaise: spentPaise,
-      projectedPaise: projectedPaise,
-      periodStart: periodStart,
-      periodEnd: periodEnd,
     );
   }
 
