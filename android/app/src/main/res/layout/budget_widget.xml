@@ -5,25 +5,15 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/widget_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Monthly Budget"
-        android:textColor="@color/widget_text_secondary"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+    android:padding="20dp">
 
     <TextView
         android:id="@+id/spent_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="₹0"
         android:textColor="@color/widget_text_primary"
-        android:textSize="24sp"
+        android:textSize="32sp"
         android:textStyle="bold" />
 
     <ProgressBar
@@ -31,51 +21,18 @@
         style="@style/WidgetProgressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
         android:max="100"
         android:progress="0" />
-
-    <LinearLayout
-        android:id="@+id/card_spend_chart"
-        android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/chart_segment_1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/chart_segment_2"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/chart_segment_3"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/chart_segment_4"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-    </LinearLayout>
 
     <TextView
         android:id="@+id/daily_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:text="Set a monthly budget"
         android:textColor="@color/widget_text_secondary"
-        android:textSize="12sp" />
+        android:textSize="13sp" />
 
     <TextView
         android:id="@+id/remaining_text"
@@ -83,5 +40,5 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:textColor="@color/widget_text_tertiary"
-        android:textSize="11sp" />
+        android:textSize="12sp" />
 </LinearLayout>

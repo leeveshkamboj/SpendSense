@@ -24,12 +24,6 @@ class BillsWidget : HomeWidgetProvider() {
                 R.layout.bills_widget,
             ) { views ->
                 WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
-                WidgetThemeUtils.setTitle(
-                    context,
-                    views,
-                    R.id.widget_title,
-                    "Upcoming Bills",
-                )
 
                 val rowIds = listOf(
                     listOf(R.id.bill1, R.id.bill1_color, R.id.bill1_card, R.id.bill1_meta),

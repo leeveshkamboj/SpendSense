@@ -24,12 +24,6 @@ class RecentTransactionsWidget : HomeWidgetProvider() {
                 R.layout.recent_transactions_widget,
             ) { views ->
                 WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
-                WidgetThemeUtils.setTitle(
-                    context,
-                    views,
-                    R.id.widget_title,
-                    "Recent Transactions",
-                )
 
                 val rowIds = listOf(
                     listOf(R.id.row1, R.id.row1_color, R.id.row1_merchant, R.id.row1_meta, R.id.row1_amount),

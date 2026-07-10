@@ -27,9 +27,15 @@ object WidgetThemeUtils {
     fun creditColor(context: Context): Int =
         ContextCompat.getColor(context, R.color.widget_credit)
 
-    fun setTitle(context: Context, views: RemoteViews, viewId: Int, text: String) {
+    fun setHeroAmount(
+        context: Context,
+        views: RemoteViews,
+        viewId: Int,
+        text: String,
+        kind: String = "summary",
+    ) {
         views.setTextViewText(viewId, text)
-        views.setTextColor(viewId, titleColor(context))
+        views.setTextColor(viewId, amountColorForKind(context, kind))
     }
 
     fun setSubtitle(context: Context, views: RemoteViews, viewId: Int, text: String) {
@@ -47,15 +53,14 @@ object WidgetThemeUtils {
         views: RemoteViews,
         viewId: Int,
         text: String,
-        kind: String,
+        kind: String = "summary",
     ) {
-        views.setTextViewText(viewId, text)
-        views.setTextColor(viewId, amountColorForKind(context, kind))
+        setHeroAmount(context, views, viewId, text, kind)
     }
 
     fun amountColorForKind(context: Context, kind: String): Int = when {
         isCreditKind(kind) -> creditColor(context)
-        kind == "card_payment" -> titleColor(context)
+        kind == "card_payment" || kind == "summary" -> titleColor(context)
         else -> debitColor(context)
     }
 

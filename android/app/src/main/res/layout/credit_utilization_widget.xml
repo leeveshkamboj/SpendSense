@@ -5,25 +5,15 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/widget_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Credit Utilization"
-        android:textColor="@color/widget_text_secondary"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+    android:padding="20dp">
 
     <TextView
         android:id="@+id/spent_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="₹0"
         android:textColor="@color/widget_text_primary"
-        android:textSize="24sp"
+        android:textSize="32sp"
         android:textStyle="bold" />
 
     <ProgressBar
@@ -31,7 +21,7 @@
         style="@style/WidgetProgressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
         android:max="100"
         android:progress="0" />
 
@@ -39,29 +29,30 @@
         android:id="@+id/limit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="12dp"
         android:text="Set credit limits on your cards"
         android:textColor="@color/widget_text_secondary"
-        android:textSize="12sp" />
+        android:textSize="13sp" />
 
     <LinearLayout
         android:id="@+id/card_row_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:visibility="gone">
         <TextView
             android:id="@+id/card_row_1_color"
-            android:layout_width="4dp"
-            android:layout_height="24dp" />
+            android:layout_width="3dp"
+            android:layout_height="28dp"
+            android:background="@drawable/widget_accent_bar" />
         <ProgressBar
             android:id="@+id/card_row_1_progress"
             style="@style/WidgetProgressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:max="100" />
     </LinearLayout>
 
@@ -69,20 +60,21 @@
         android:id="@+id/card_row_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:visibility="gone">
         <TextView
             android:id="@+id/card_row_2_color"
-            android:layout_width="4dp"
-            android:layout_height="24dp" />
+            android:layout_width="3dp"
+            android:layout_height="28dp"
+            android:background="@drawable/widget_accent_bar" />
         <ProgressBar
             android:id="@+id/card_row_2_progress"
             style="@style/WidgetProgressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:max="100" />
     </LinearLayout>
 
@@ -90,20 +82,21 @@
         android:id="@+id/card_row_3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:visibility="gone">
         <TextView
             android:id="@+id/card_row_3_color"
-            android:layout_width="4dp"
-            android:layout_height="24dp" />
+            android:layout_width="3dp"
+            android:layout_height="28dp"
+            android:background="@drawable/widget_accent_bar" />
         <ProgressBar
             android:id="@+id/card_row_3_progress"
             style="@style/WidgetProgressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:max="100" />
     </LinearLayout>
 </LinearLayout>

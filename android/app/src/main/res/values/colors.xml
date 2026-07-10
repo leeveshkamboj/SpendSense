@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="widget_surface">#FFFFFF</color>
-    <color name="widget_text_primary">#1C1B1F</color>
-    <color name="widget_text_secondary">#49454F</color>
-    <color name="widget_text_tertiary">#79747E</color>
-    <color name="widget_accent">#006A6A</color>
-    <color name="widget_progress_track">#E7E0EC</color>
-    <color name="widget_debit">#C62828</color>
-    <color name="widget_credit">#2E7D32</color>
+    <color name="widget_surface">#F6F6F8</color>
+    <color name="widget_text_primary">#010101</color>
+    <color name="widget_text_secondary">#636366</color>
+    <color name="widget_text_tertiary">#8E8E93</color>
+    <color name="widget_accent">#387AFF</color>
+    <color name="widget_progress_track">#E5E5EA</color>
+    <color name="widget_debit">#FF3B30</color>
+    <color name="widget_credit">#34C759</color>
+    <color name="widget_debit_bg">#FFF0F0</color>
+    <color name="widget_credit_bg">#EEFBF1</color>
+    <color name="widget_debit_text">#D70015</color>
+    <color name="widget_credit_text">#248A3D</color>
 </resources>

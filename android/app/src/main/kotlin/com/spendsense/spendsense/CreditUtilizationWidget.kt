@@ -25,13 +25,7 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
                 R.layout.credit_utilization_widget,
             ) { views ->
                 WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
-                WidgetThemeUtils.setTitle(
-                    context,
-                    views,
-                    R.id.widget_title,
-                    "Credit Utilization",
-                )
-                WidgetThemeUtils.setAmount(
+                WidgetThemeUtils.setHeroAmount(
                     context,
                     views,
                     R.id.spent_text,

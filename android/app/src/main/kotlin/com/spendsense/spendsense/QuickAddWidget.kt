@@ -19,6 +19,8 @@ class QuickAddWidget : HomeWidgetProvider() {
                 widgetId,
                 R.layout.quick_add_widget,
             ) { views ->
+                WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
+
                 val expenseIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
                     MainActivity::class.java,

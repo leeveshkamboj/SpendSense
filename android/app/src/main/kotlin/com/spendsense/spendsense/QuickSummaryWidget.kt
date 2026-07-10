@@ -15,7 +15,6 @@ class QuickSummaryWidget : HomeWidgetProvider() {
         val spent = widgetData.getString("quick_summary_spent", "0") ?: "0"
         val remaining = widgetData.getString("quick_summary_remaining", "") ?: ""
         val limit = widgetData.getString("quick_summary_budget_limit", "") ?: ""
-        val chartJson = widgetData.getString("quick_summary_card_chart_json", "[]") ?: "[]"
 
         for (widgetId in appWidgetIds) {
             WidgetUpdateUtils.updateSafely(
@@ -25,13 +24,7 @@ class QuickSummaryWidget : HomeWidgetProvider() {
                 R.layout.quick_summary_widget,
             ) { views ->
                 WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
-                WidgetThemeUtils.setTitle(
-                    context,
-                    views,
-                    R.id.widget_title,
-                    "Budget at a Glance",
-                )
-                WidgetThemeUtils.setAmount(
+                WidgetThemeUtils.setHeroAmount(
                     context,
                     views,
                     R.id.spent_text,
@@ -46,7 +39,6 @@ class QuickSummaryWidget : HomeWidgetProvider() {
 
                 if (limit.isEmpty()) {
                     views.setViewVisibility(R.id.budget_progress, View.GONE)
-                    views.setViewVisibility(R.id.card_spend_chart, View.GONE)
                     WidgetThemeUtils.setSubtitle(
                         context,
                         views,
@@ -64,17 +56,6 @@ class QuickSummaryWidget : HomeWidgetProvider() {
                         views,
                         R.id.remaining_text,
                         "${WidgetFormatUtils.formatPaise(remaining)} remaining of ${WidgetFormatUtils.formatPaise(limit)}",
-                    )
-                    WidgetChartUtils.bindStackedSpendChart(
-                        views,
-                        chartJson,
-                        R.id.card_spend_chart,
-                        listOf(
-                            R.id.chart_segment_1,
-                            R.id.chart_segment_2,
-                            R.id.chart_segment_3,
-                            R.id.chart_segment_4,
-                        ),
                     )
                 }
             }

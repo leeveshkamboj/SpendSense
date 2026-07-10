@@ -17,7 +17,6 @@ class BudgetWidget : HomeWidgetProvider() {
         val remaining = widgetData.getString("budget_remaining", "") ?: ""
         val daily = widgetData.getString("budget_daily", "") ?: ""
         val needsPrompt = widgetData.getString("budget_needs_prompt", "false") == "true"
-        val chartJson = widgetData.getString("budget_card_chart_json", "[]") ?: "[]"
 
         for (widgetId in appWidgetIds) {
             WidgetUpdateUtils.updateSafely(
@@ -27,13 +26,7 @@ class BudgetWidget : HomeWidgetProvider() {
                 R.layout.budget_widget,
             ) { views ->
                 WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
-                WidgetThemeUtils.setTitle(
-                    context,
-                    views,
-                    R.id.widget_title,
-                    "Monthly Budget",
-                )
-                WidgetThemeUtils.setAmount(
+                WidgetThemeUtils.setHeroAmount(
                     context,
                     views,
                     R.id.spent_text,
@@ -42,7 +35,6 @@ class BudgetWidget : HomeWidgetProvider() {
 
                 if (needsPrompt || limit.isEmpty()) {
                     views.setViewVisibility(R.id.budget_progress, View.GONE)
-                    views.setViewVisibility(R.id.card_spend_chart, View.GONE)
                     WidgetThemeUtils.setSubtitle(
                         context,
                         views,
@@ -67,17 +59,6 @@ class BudgetWidget : HomeWidgetProvider() {
                         views,
                         R.id.remaining_text,
                         "${WidgetFormatUtils.formatPaise(remaining)} remaining this cycle",
-                    )
-                    WidgetChartUtils.bindStackedSpendChart(
-                        views,
-                        chartJson,
-                        R.id.card_spend_chart,
-                        listOf(
-                            R.id.chart_segment_1,
-                            R.id.chart_segment_2,
-                            R.id.chart_segment_3,
-                            R.id.chart_segment_4,
-                        ),
                     )
                 }
             }
