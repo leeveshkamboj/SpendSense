@@ -137,6 +137,9 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
                       controller: _pinController,
                       style: PinInputStyle.unlock,
                       onCompleted: (_) => _verify(),
+                      onBiometric: _biometricAvailable
+                          ? _promptBiometricIfAvailable
+                          : null,
                     ),
                     if (_errorText.isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -146,25 +149,7 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 24),
-                    if (_biometricAvailable) ...[
-                      IconButton.filledTonal(
-                        onPressed: _promptBiometricIfAvailable,
-                        icon: const Icon(Icons.fingerprint, size: 28),
-                        tooltip: 'Unlock with biometric',
-                        style: IconButton.styleFrom(
-                          minimumSize: const Size(56, 56),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Use biometric',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+                    const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => _resetPin(context),
                       child: const Text('Forgot PIN?'),

@@ -107,5 +107,31 @@ void main() {
 
       expect(find.text('unlocked-content'), findsOneWidget);
     });
+
+    testWidgets('fingerprint key reopens biometric without Overlay error', (
+      tester,
+    ) async {
+      FlutterErrorDetails? firstError;
+      final previous = FlutterError.onError;
+      FlutterError.onError = (details) {
+        firstError ??= details;
+        previous?.call(details);
+      };
+
+      try {
+        await pumpGate(tester);
+
+        expect(find.byIcon(Icons.fingerprint), findsOneWidget);
+        expect(gateway.biometricAuthenticateCalls, 1);
+
+        await tester.tap(find.byIcon(Icons.fingerprint));
+        await tester.pumpAndSettle();
+
+        expect(gateway.biometricAuthenticateCalls, 2);
+        expect(firstError, isNull);
+      } finally {
+        FlutterError.onError = previous;
+      }
+    });
   });
 }

@@ -15,6 +15,7 @@ class PinInputField extends StatefulWidget {
     this.length = 4,
     this.autofocus = false,
     this.onCompleted,
+    this.onBiometric,
     this.label,
     this.helperText,
     this.showKeypad = true,
@@ -26,6 +27,8 @@ class PinInputField extends StatefulWidget {
   final int length;
   final bool autofocus;
   final ValueChanged<String>? onCompleted;
+  /// When set, shows a fingerprint key in the bottom-left of the keypad.
+  final VoidCallback? onBiometric;
   final String? label;
   final String? helperText;
   final bool showKeypad;
@@ -108,6 +111,7 @@ class _PinInputFieldState extends State<PinInputField> {
           _PinKeypad(
             onDigit: _appendDigit,
             onBackspace: _removeDigit,
+            onBiometric: widget.onBiometric,
             compact: !isUnlock,
           ),
         ],
@@ -200,11 +204,13 @@ class _PinKeypad extends StatelessWidget {
   const _PinKeypad({
     required this.onDigit,
     required this.onBackspace,
+    this.onBiometric,
     this.compact = false,
   });
 
   final ValueChanged<String> onDigit;
   final VoidCallback onBackspace;
+  final VoidCallback? onBiometric;
   final bool compact;
 
   @override
@@ -238,7 +244,16 @@ class _PinKeypad extends StatelessWidget {
           ),
         Row(
           children: [
-            const Expanded(child: SizedBox.shrink()),
+            Expanded(
+              child: onBiometric == null
+                  ? const SizedBox.shrink()
+                  : _PinKey(
+                      icon: Icons.fingerprint,
+                      onPressed: (_) => onBiometric!(),
+                      height: keyHeight,
+                      tonal: true,
+                    ),
+            ),
             SizedBox(width: gap),
             Expanded(
               child: _PinKey(
@@ -268,40 +283,52 @@ class _PinKey extends StatelessWidget {
     this.icon,
     required this.onPressed,
     this.height = 56,
+    this.tonal = false,
   }) : assert(digit != null || icon != null);
 
   final String? digit;
   final IconData? icon;
   final ValueChanged<String> onPressed;
   final double height;
+  final bool tonal;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final background = tonal
+        ? theme.colorScheme.secondaryContainer
+        : theme.colorScheme.surfaceContainerHighest;
+    final foreground = tonal
+        ? theme.colorScheme.onSecondaryContainer
+        : theme.colorScheme.onSurface;
 
-    return Material(
-      color: theme.colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(height / 2),
-      child: InkWell(
-        onTap: () {
-          if (digit != null) {
-            onPressed(digit!);
-          } else {
-            onPressed('');
-          }
-        },
+    return Semantics(
+      button: true,
+      label: icon == Icons.fingerprint ? 'Unlock with biometric' : null,
+      child: Material(
+        color: background,
         borderRadius: BorderRadius.circular(height / 2),
-        child: SizedBox(
-          height: height,
-          child: Center(
-            child: icon != null
-                ? Icon(icon, color: theme.colorScheme.onSurface)
-                : Text(
-                    digit!,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+        child: InkWell(
+          onTap: () {
+            if (digit != null) {
+              onPressed(digit!);
+            } else {
+              onPressed('');
+            }
+          },
+          borderRadius: BorderRadius.circular(height / 2),
+          child: SizedBox(
+            height: height,
+            child: Center(
+              child: icon != null
+                  ? Icon(icon, color: foreground, size: tonal ? 28 : 24)
+                  : Text(
+                      digit!,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       ),

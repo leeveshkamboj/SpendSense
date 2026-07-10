@@ -48,4 +48,28 @@ void main() {
 
     expect(controller.text, '1');
   });
+
+  testWidgets('PinInputField shows biometric key when onBiometric is set', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    var biometricTaps = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PinInputField(
+            controller: controller,
+            style: PinInputStyle.unlock,
+            onBiometric: () => biometricTaps++,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.fingerprint));
+    await tester.pump();
+
+    expect(biometricTaps, 1);
+  });
 }
