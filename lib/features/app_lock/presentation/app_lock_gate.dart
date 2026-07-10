@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/app_lock/app_lock_providers.dart';
+import 'package:spendsense/features/app_lock/presentation/pin_input_field.dart';
 import 'package:spendsense/features/settings/data/app_preferences_providers.dart';
 
 class AppLockGate extends ConsumerStatefulWidget {
@@ -15,7 +16,6 @@ class AppLockGate extends ConsumerStatefulWidget {
 class _AppLockGateState extends ConsumerState<AppLockGate>
     with WidgetsBindingObserver {
   bool _unlocked = false;
-  final _pinController = TextEditingController();
 
   @override
   void initState() {
@@ -26,7 +26,6 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _pinController.dispose();
     super.dispose();
   }
 
@@ -47,10 +46,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
         if (!isEnabled || _unlocked) {
           return widget.child;
         }
-        return _LockScreen(
-          pinController: _pinController,
-          onUnlock: () => setState(() => _unlocked = true),
-        );
+        return _LockScreen(onUnlock: () => setState(() => _unlocked = true));
       },
       loading: () => widget.child,
       error: (_, _) => widget.child,
@@ -59,25 +55,40 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
 }
 
 class _LockScreen extends ConsumerStatefulWidget {
-  const _LockScreen({
-    required this.pinController,
-    required this.onUnlock,
-  });
+  const _LockScreen({required this.onUnlock});
 
-  final TextEditingController pinController;
   final VoidCallback onUnlock;
 
   @override
   ConsumerState<_LockScreen> createState() => _LockScreenState();
 }
 
-class _LockScreenState extends ConsumerState<_LockScreen> {
-  bool _biometricAvailable = false;
+class _LockScreenState extends ConsumerState<_LockScreen>
+    with WidgetsBindingObserver {
+  final _pinController = TextEditingController();
+  var _biometricAvailable = false;
+  var _biometricPromptInFlight = false;
+  var _errorText = '';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _initializeUnlock());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _promptBiometricIfAvailable();
+    }
   }
 
   Future<void> _initializeUnlock() async {
@@ -88,20 +99,27 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
     }
 
     setState(() => _biometricAvailable = available);
-    if (available) {
-      await _tryBiometricUnlock();
-    }
+    await _promptBiometricIfAvailable();
   }
 
-  Future<void> _tryBiometricUnlock() async {
-    final unlocked =
-        await ref.read(appLockRepositoryProvider).unlockWithBiometrics();
-    if (!mounted || !unlocked) {
+  Future<void> _promptBiometricIfAvailable() async {
+    if (!_biometricAvailable || _biometricPromptInFlight) {
       return;
     }
 
-    widget.pinController.clear();
-    widget.onUnlock();
+    _biometricPromptInFlight = true;
+    try {
+      final unlocked =
+          await ref.read(appLockRepositoryProvider).unlockWithBiometrics();
+      if (!mounted || !unlocked) {
+        return;
+      }
+
+      _pinController.clear();
+      widget.onUnlock();
+    } finally {
+      _biometricPromptInFlight = false;
+    }
   }
 
   @override
@@ -114,30 +132,44 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
+              Icon(
+                Icons.lock_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 16),
               Text(
                 'SpendSense is locked',
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: widget.pinController,
-                decoration: const InputDecoration(
-                  labelText: 'PIN',
-                  border: OutlineInputBorder(),
+              const SizedBox(height: 8),
+              Text(
+                _biometricAvailable
+                    ? 'Use biometric or enter your PIN'
+                    : 'Enter your PIN to continue',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              PinInputField(
+                controller: _pinController,
+                autofocus: !_biometricAvailable,
+                label: 'PIN',
+                onCompleted: (_) => _verify(),
+              ),
+              if (_errorText.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _errorText,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  textAlign: TextAlign.center,
                 ),
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                onSubmitted: (_) => _verify(context),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => _verify(context),
-                child: const Text('Unlock'),
-              ),
+              ],
+              const SizedBox(height: 20),
               if (_biometricAvailable)
-                TextButton.icon(
-                  onPressed: _tryBiometricUnlock,
+                FilledButton.tonalIcon(
+                  onPressed: _promptBiometricIfAvailable,
                   icon: const Icon(Icons.fingerprint),
                   label: const Text('Unlock with biometric'),
                 ),
@@ -153,21 +185,24 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
     );
   }
 
-  Future<void> _verify(BuildContext context) async {
+  Future<void> _verify() async {
     final valid = await ref
         .read(appLockRepositoryProvider)
-        .verifyPin(widget.pinController.text);
-    if (!context.mounted) {
+        .verifyPin(_pinController.text);
+    if (!mounted) {
       return;
     }
     if (valid) {
-      widget.pinController.clear();
+      setState(() => _errorText = '');
+      _pinController.clear();
       widget.onUnlock();
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Incorrect PIN')),
-    );
+
+    setState(() {
+      _errorText = 'Incorrect PIN';
+      _pinController.clear();
+    });
   }
 
   Future<void> _resetPin(BuildContext context) async {

@@ -42,30 +42,52 @@ class PlatformAppLockGateway implements AppLockGateway {
   final LocalAuthentication _auth;
 
   @override
-  Future<bool> authenticateWithDeviceCredential() {
-    return _auth.authenticate(
-      localizedReason: 'Verify your identity to reset app lock',
-      options: const AuthenticationOptions(
-        biometricOnly: false,
-        stickyAuth: true,
-      ),
-    );
+  Future<bool> authenticateWithDeviceCredential() async {
+    try {
+      return await _auth.authenticate(
+        localizedReason: 'Verify your identity to reset app lock',
+        options: const AuthenticationOptions(
+          biometricOnly: false,
+          stickyAuth: true,
+          useErrorDialogs: true,
+          sensitiveTransaction: true,
+        ),
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
-  Future<bool> authenticateWithBiometrics() {
-    return _auth.authenticate(
-      localizedReason: 'Unlock SpendSense',
-      options: const AuthenticationOptions(
-        biometricOnly: true,
-        stickyAuth: true,
-      ),
-    );
+  Future<bool> authenticateWithBiometrics() async {
+    try {
+      return await _auth.authenticate(
+        localizedReason: 'Unlock SpendSense',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+          useErrorDialogs: true,
+          sensitiveTransaction: true,
+        ),
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
   Future<bool> canCheckBiometrics() async {
-    final biometrics = await _auth.getAvailableBiometrics();
-    return biometrics.isNotEmpty;
+    try {
+      if (!await _auth.isDeviceSupported()) {
+        return false;
+      }
+      if (!await _auth.canCheckBiometrics) {
+        return false;
+      }
+      final biometrics = await _auth.getAvailableBiometrics();
+      return biometrics.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
   }
 }

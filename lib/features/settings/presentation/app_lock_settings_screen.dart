@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/app_lock/app_lock_providers.dart';
+import 'package:spendsense/features/app_lock/presentation/app_lock_pin_setup_sheet.dart';
 import 'package:spendsense/features/settings/data/app_preferences_providers.dart';
 
 class AppLockSettingsScreen extends ConsumerStatefulWidget {
@@ -12,16 +13,6 @@ class AppLockSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
-  final _pinController = TextEditingController();
-  final _confirmController = TextEditingController();
-
-  @override
-  void dispose() {
-    _pinController.dispose();
-    _confirmController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final enabled = ref.watch(appLockEnabledProvider);
@@ -53,12 +44,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                     title: const Text('Use biometric'),
                     subtitle: const Text('Unlock with fingerprint or face'),
                     value: snapshot.data ?? false,
-                    onChanged: (value) async {
-                      await ref
-                          .read(appLockRepositoryProvider)
-                          .setBiometricEnabled(value);
-                      setState(() {});
-                    },
+                    onChanged: (value) => _setBiometricEnabled(context, value),
                   );
                 },
               ),
@@ -77,105 +63,89 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
   }
 
   Future<void> _enableLock(BuildContext context) async {
-    _pinController.clear();
-    _confirmController.clear();
+    final repository = ref.read(appLockRepositoryProvider);
+    final biometricAvailable =
+        await ref.read(appLockGatewayProvider).canCheckBiometrics();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Set app lock PIN'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _pinController,
-              decoration: const InputDecoration(labelText: 'PIN'),
-              keyboardType: TextInputType.number,
-              obscureText: true,
-            ),
-            TextField(
-              controller: _confirmController,
-              decoration: const InputDecoration(labelText: 'Confirm PIN'),
-              keyboardType: TextInputType.number,
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true ||
-        _pinController.text.length < 4 ||
-        _pinController.text != _confirmController.text) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PIN must match and be at least 4 digits')),
-        );
-      }
+    if (!context.mounted) {
       return;
     }
 
-    await ref.read(appLockRepositoryProvider).enableWithPin(_pinController.text);
+    final result = await showAppLockPinSetupSheet(
+      context: context,
+      title: 'Set app lock PIN',
+      offerBiometric: true,
+      biometricAvailable: biometricAvailable,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    await repository.enableWithPin(result.pin);
+    if (result.enableBiometric) {
+      final verified =
+          await ref.read(appLockGatewayProvider).authenticateWithBiometrics();
+      await repository.setBiometricEnabled(verified);
+    } else {
+      await repository.setBiometricEnabled(false);
+    }
     ref.invalidate(appLockEnabledProvider);
   }
 
-  Future<void> _resetPin(BuildContext context) async {
-    _pinController.clear();
-    _confirmController.clear();
+  Future<void> _setBiometricEnabled(BuildContext context, bool value) async {
+    final repository = ref.read(appLockRepositoryProvider);
 
-    final confirmed = await showDialog<bool>(
+    if (value) {
+      final available =
+          await ref.read(appLockGatewayProvider).canCheckBiometrics();
+      if (!available) {
+        if (!context.mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Biometric unlock is not available on this device'),
+          ),
+        );
+        return;
+      }
+
+      final verified =
+          await ref.read(appLockGatewayProvider).authenticateWithBiometrics();
+      if (!verified) {
+        if (!context.mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Biometric verification failed')),
+        );
+        return;
+      }
+    }
+
+    await repository.setBiometricEnabled(value);
+    if (context.mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _resetPin(BuildContext context) async {
+    final result = await showAppLockPinSetupSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Set new PIN'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _pinController,
-              decoration: const InputDecoration(labelText: 'New PIN'),
-              keyboardType: TextInputType.number,
-              obscureText: true,
-            ),
-            TextField(
-              controller: _confirmController,
-              decoration: const InputDecoration(labelText: 'Confirm PIN'),
-              keyboardType: TextInputType.number,
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+      title: 'Set new PIN',
+      confirmLabel: 'Update PIN',
+      offerBiometric: false,
+      biometricAvailable: false,
     );
 
-    if (confirmed != true ||
-        _pinController.text.length < 4 ||
-        _pinController.text != _confirmController.text) {
+    if (result == null) {
       return;
     }
 
     final reset = await ref
         .read(appLockRepositoryProvider)
-        .resetPinWithDeviceCredential(_pinController.text);
+        .resetPinWithDeviceCredential(result.pin);
     if (!context.mounted) {
       return;
     }
