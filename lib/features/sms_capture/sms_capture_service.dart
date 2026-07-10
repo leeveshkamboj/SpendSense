@@ -19,6 +19,7 @@ import 'package:spendsense/features/transactions/data/card_transaction_repositor
 
 typedef CaptureNotificationHandler = void Function(CaptureNotificationEvent);
 typedef ManualAddNotificationHandler = void Function(String sms);
+typedef SmsLocationResolver = Future<String?> Function();
 
 class SmsCaptureService {
   SmsCaptureService({
@@ -31,13 +32,15 @@ class SmsCaptureService {
     required LinkingRepository linking,
     this.onCaptured,
     this.onManualAddSuggested,
+    SmsLocationResolver? resolveLocation,
   })  : _creditCards = creditCards,
         _cardTransactions = cardTransactions,
         _bankAccounts = bankAccounts,
         _bankAccountTransactions = bankAccountTransactions,
         _merchants = merchants,
         _tags = tags,
-        _linking = linking;
+        _linking = linking,
+        _resolveLocation = resolveLocation;
 
   final CreditCardRepository _creditCards;
   final CardTransactionRepository _cardTransactions;
@@ -48,6 +51,7 @@ class SmsCaptureService {
   final LinkingRepository _linking;
   final CaptureNotificationHandler? onCaptured;
   final ManualAddNotificationHandler? onManualAddSuggested;
+  final SmsLocationResolver? _resolveLocation;
 
   Future<SmsCaptureResult> processSms(String sms) async {
     final parsed = parseBankSms(sms);
@@ -66,15 +70,39 @@ class SmsCaptureService {
 
     smsCaptureLog('Parsed SMS: ${describeParsedSms(parsed)}');
 
+    final location = await _captureLocation();
+
     return switch (parsed) {
-      ParsedCardExpenseMessage(:final expense) => _captureCardExpense(expense),
-      ParsedCardCreditMessage(:final credit) => _captureCardCredit(credit),
+      ParsedCardExpenseMessage(:final expense) =>
+        _captureCardExpense(expense, location),
+      ParsedCardCreditMessage(:final credit) => _captureCardCredit(
+          credit,
+          location: location,
+        ),
       ParsedBankTransactionMessage(:final transaction) =>
-        _captureBankTransaction(transaction),
+        _captureBankTransaction(transaction, location),
     };
   }
 
-  Future<SmsCaptureResult> _captureCardExpense(ParsedCardExpense parsed) async {
+  Future<String?> _captureLocation() async {
+    final resolver = _resolveLocation;
+    if (resolver == null) {
+      return null;
+    }
+
+    try {
+      return await resolver();
+    } catch (error, stackTrace) {
+      smsCaptureLog('Location capture failed: $error');
+      smsCaptureLogError('Location capture stack trace', error, stackTrace);
+      return null;
+    }
+  }
+
+  Future<SmsCaptureResult> _captureCardExpense(
+    ParsedCardExpense parsed,
+    String? location,
+  ) async {
     final cardId = await _resolveCardId(parsed);
     if (await _isCardDuplicate(parsed, cardId)) {
       smsCaptureLog(
@@ -108,6 +136,7 @@ class SmsCaptureService {
         source: 'SMS',
         rawSms: parsed.rawSms,
         referenceNumber: parsed.referenceNumber,
+        location: location,
       ),
     );
 
@@ -135,6 +164,7 @@ class SmsCaptureService {
 
   Future<SmsCaptureResult> _captureBankTransaction(
     ParsedBankTransaction parsed,
+    String? location,
   ) async {
     final accountId = await _resolveBankAccountId(parsed);
     if (await _isBankDuplicate(parsed, accountId)) {
@@ -154,6 +184,7 @@ class SmsCaptureService {
         source: 'SMS',
         rawSms: parsed.rawSms,
         referenceNumber: parsed.referenceNumber,
+        location: location,
       ),
     );
 
@@ -180,22 +211,34 @@ class SmsCaptureService {
     return SmsCaptureResult.captured;
   }
 
-  Future<SmsCaptureResult> _captureCardCredit(ParsedCardCredit parsed) async {
+  Future<SmsCaptureResult> _captureCardCredit(
+    ParsedCardCredit parsed, {
+    String? location,
+  }) async {
     final cardId = await _resolveCardIdFromCredit(parsed);
     if (await _isCardCreditDuplicate(parsed, cardId)) {
       return SmsCaptureResult.duplicate;
     }
 
     return switch (parsed.kind) {
-      ParsedCardCreditKind.refund => _captureRefund(parsed, cardId),
-      ParsedCardCreditKind.cardPayment => _captureCardPayment(parsed, cardId),
+      ParsedCardCreditKind.refund => _captureRefund(
+          parsed,
+          cardId,
+          location: location,
+        ),
+      ParsedCardCreditKind.cardPayment => _captureCardPayment(
+          parsed,
+          cardId,
+          location: location,
+        ),
     };
   }
 
   Future<SmsCaptureResult> _captureRefund(
     ParsedCardCredit parsed,
-    int cardId,
-  ) async {
+    int cardId, {
+    String? location,
+  }) async {
     final merchant = parsed.merchant ?? 'Refund';
     final billingCycleId = await _linking.resolveRefundBillingCycleId(
       cardId: cardId,
@@ -214,6 +257,7 @@ class SmsCaptureService {
         source: 'SMS',
         rawSms: parsed.rawSms,
         referenceNumber: parsed.referenceNumber,
+        location: location,
       ),
     );
 
@@ -245,8 +289,9 @@ class SmsCaptureService {
 
   Future<SmsCaptureResult> _captureCardPayment(
     ParsedCardCredit parsed,
-    int cardId,
-  ) async {
+    int cardId, {
+    String? location,
+  }) async {
     final transactionId = await _cardTransactions.insert(
       NewCardTransaction(
         creditCardId: cardId,
@@ -257,6 +302,7 @@ class SmsCaptureService {
         source: 'SMS',
         rawSms: parsed.rawSms,
         referenceNumber: parsed.referenceNumber,
+        location: location,
       ),
     );
 

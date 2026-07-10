@@ -15,12 +15,36 @@ class GeolocationService {
       return null;
     }
 
-    final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
-    );
-    return LatLng(position.latitude, position.longitude);
+    return readCurrentPositionIfPermitted();
+  }
+
+  Future<LatLng?> readCurrentPositionIfPermitted() async {
+    if (await _permissionGateway.check() != LocationPermissionState.granted) {
+      return null;
+    }
+
+    final lastKnown = await Geolocator.getLastKnownPosition();
+    if (lastKnown != null) {
+      final age = DateTime.now().difference(lastKnown.timestamp);
+      if (age <= const Duration(minutes: 15)) {
+        return LatLng(lastKnown.latitude, lastKnown.longitude);
+      }
+    }
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      return LatLng(position.latitude, position.longitude);
+    } catch (_) {
+      if (lastKnown == null) {
+        return null;
+      }
+      return LatLng(lastKnown.latitude, lastKnown.longitude);
+    }
   }
 
   Future<String?> reverseGeocode(LatLng coordinates) async {

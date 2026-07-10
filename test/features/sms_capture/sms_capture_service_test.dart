@@ -82,5 +82,54 @@ void main() {
           .single;
       expect(tx.category, 'Investment');
     });
+
+    test('stores resolved location on captured card expense', () async {
+      const location = 'geo:12.9716,77.5946|Bengaluru';
+      service = SmsCaptureService(
+        creditCards: CreditCardRepository(database),
+        cardTransactions: CardTransactionRepository(database),
+        bankAccounts: BankAccountRepository(database),
+        bankAccountTransactions: BankAccountTransactionRepository(database),
+        merchants: MerchantRepository(database),
+        tags: TagRepository(database),
+        linking: LinkingRepository(
+          database: database,
+          creditCards: CreditCardRepository(database),
+          cardTransactions: CardTransactionRepository(database),
+        ),
+        resolveLocation: () async => location,
+      );
+
+      await service.processSms(spentSms);
+
+      final tx = (await CardTransactionRepository(database).listAll()).single;
+      expect(tx.location, location);
+    });
+
+    test('stores resolved location on captured bank debit', () async {
+      const location = 'geo:19.0760,72.8777|Mumbai';
+      const sms =
+          'Dear UPI user A/C X0428 debited by 25000.00 on 09-07-26 to MERCHANT Ref 987654';
+      service = SmsCaptureService(
+        creditCards: CreditCardRepository(database),
+        cardTransactions: CardTransactionRepository(database),
+        bankAccounts: BankAccountRepository(database),
+        bankAccountTransactions: BankAccountTransactionRepository(database),
+        merchants: MerchantRepository(database),
+        tags: TagRepository(database),
+        linking: LinkingRepository(
+          database: database,
+          creditCards: CreditCardRepository(database),
+          cardTransactions: CardTransactionRepository(database),
+        ),
+        resolveLocation: () async => location,
+      );
+
+      await service.processSms(sms);
+
+      final tx =
+          (await BankAccountTransactionRepository(database).listAll()).single;
+      expect(tx.location, location);
+    });
   });
 }

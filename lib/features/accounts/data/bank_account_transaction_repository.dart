@@ -14,6 +14,7 @@ class NewBankAccountTransaction {
     this.category,
     this.rawSms,
     this.referenceNumber,
+    this.location,
   });
 
   final int bankAccountId;
@@ -26,6 +27,7 @@ class NewBankAccountTransaction {
   final String? category;
   final String? rawSms;
   final String? referenceNumber;
+  final String? location;
 }
 
 class BankAccountTransactionRepository {
@@ -46,6 +48,7 @@ class BankAccountTransactionRepository {
             source: transaction.source,
             rawSms: Value(transaction.rawSms),
             referenceNumber: Value(transaction.referenceNumber),
+            location: Value(transaction.location),
             createdAt: DateTime.now(),
           ),
         );
