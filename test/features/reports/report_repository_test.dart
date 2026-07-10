@@ -2,7 +2,6 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/accounts/data/bank_account_repository.dart';
-import 'package:spendsense/features/accounts/data/bank_account_transaction_repository.dart';
 import 'package:spendsense/features/analytics/data/analytics_repository.dart';
 import 'package:spendsense/features/bills/data/bills_repository.dart';
 import 'package:spendsense/features/budgets/data/budget_repository.dart';
@@ -33,7 +32,6 @@ void main() {
       );
       repository = ReportRepository(
         cardTransactions: cardTransactions,
-        bankTransactions: BankAccountTransactionRepository(database),
         creditCards: creditCards,
         bankAccounts: BankAccountRepository(database),
         categories: CategoryRepository(database),

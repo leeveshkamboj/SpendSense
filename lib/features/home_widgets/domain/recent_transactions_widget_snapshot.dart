@@ -1,5 +1,6 @@
 class RecentTransactionWidgetItem {
   const RecentTransactionWidgetItem({
+    required this.transactionId,
     required this.merchant,
     required this.amountPaise,
     required this.transactionAt,
@@ -7,6 +8,7 @@ class RecentTransactionWidgetItem {
     required this.kind,
   });
 
+  final int transactionId;
   final String merchant;
   final int amountPaise;
   final DateTime transactionAt;

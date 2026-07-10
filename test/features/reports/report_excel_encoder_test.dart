@@ -30,7 +30,6 @@ void main() {
             createdAt: at,
           ),
         ],
-        bankTransactions: const [],
         billingCycles: [
           ReportBillingCycleRow(
             id: 3,
@@ -64,10 +63,15 @@ void main() {
 
       expect(bytes, isNotEmpty);
       expect(String.fromCharCodes(bytes), contains('xl/'));
-      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Transactions'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Summary'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Budget'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Card Transactions'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), isNot(contains('Bank Transactions')));
       expect(ReportExcelEncoder.sheetNames(snapshot), contains('Cycles'));
-      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Budgets'));
       expect(ReportExcelEncoder.sheetNames(snapshot), contains('Recoverables'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Accounts'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Bills'));
+      expect(ReportExcelEncoder.sheetNames(snapshot), contains('Categories'));
     });
   });
 }

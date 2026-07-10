@@ -3,6 +3,309 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class $CreditLimitPoolsTable extends CreditLimitPools
+    with TableInfo<$CreditLimitPoolsTable, CreditLimitPool> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CreditLimitPoolsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _creditLimitPaiseMeta = const VerificationMeta(
+    'creditLimitPaise',
+  );
+  @override
+  late final GeneratedColumn<int> creditLimitPaise = GeneratedColumn<int>(
+    'credit_limit_paise',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, creditLimitPaise, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'credit_limit_pools';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CreditLimitPool> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('credit_limit_paise')) {
+      context.handle(
+        _creditLimitPaiseMeta,
+        creditLimitPaise.isAcceptableOrUnknown(
+          data['credit_limit_paise']!,
+          _creditLimitPaiseMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_creditLimitPaiseMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CreditLimitPool map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CreditLimitPool(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      creditLimitPaise: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}credit_limit_paise'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CreditLimitPoolsTable createAlias(String alias) {
+    return $CreditLimitPoolsTable(attachedDatabase, alias);
+  }
+}
+
+class CreditLimitPool extends DataClass implements Insertable<CreditLimitPool> {
+  final int id;
+  final String name;
+  final int creditLimitPaise;
+  final DateTime createdAt;
+  const CreditLimitPool({
+    required this.id,
+    required this.name,
+    required this.creditLimitPaise,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['credit_limit_paise'] = Variable<int>(creditLimitPaise);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CreditLimitPoolsCompanion toCompanion(bool nullToAbsent) {
+    return CreditLimitPoolsCompanion(
+      id: Value(id),
+      name: Value(name),
+      creditLimitPaise: Value(creditLimitPaise),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CreditLimitPool.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CreditLimitPool(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      creditLimitPaise: serializer.fromJson<int>(json['creditLimitPaise']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'creditLimitPaise': serializer.toJson<int>(creditLimitPaise),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CreditLimitPool copyWith({
+    int? id,
+    String? name,
+    int? creditLimitPaise,
+    DateTime? createdAt,
+  }) => CreditLimitPool(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    creditLimitPaise: creditLimitPaise ?? this.creditLimitPaise,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CreditLimitPool copyWithCompanion(CreditLimitPoolsCompanion data) {
+    return CreditLimitPool(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      creditLimitPaise: data.creditLimitPaise.present
+          ? data.creditLimitPaise.value
+          : this.creditLimitPaise,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CreditLimitPool(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('creditLimitPaise: $creditLimitPaise, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, creditLimitPaise, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CreditLimitPool &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.creditLimitPaise == this.creditLimitPaise &&
+          other.createdAt == this.createdAt);
+}
+
+class CreditLimitPoolsCompanion extends UpdateCompanion<CreditLimitPool> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> creditLimitPaise;
+  final Value<DateTime> createdAt;
+  const CreditLimitPoolsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.creditLimitPaise = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  CreditLimitPoolsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required int creditLimitPaise,
+    required DateTime createdAt,
+  }) : name = Value(name),
+       creditLimitPaise = Value(creditLimitPaise),
+       createdAt = Value(createdAt);
+  static Insertable<CreditLimitPool> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? creditLimitPaise,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (creditLimitPaise != null) 'credit_limit_paise': creditLimitPaise,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  CreditLimitPoolsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int>? creditLimitPaise,
+    Value<DateTime>? createdAt,
+  }) {
+    return CreditLimitPoolsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      creditLimitPaise: creditLimitPaise ?? this.creditLimitPaise,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (creditLimitPaise.present) {
+      map['credit_limit_paise'] = Variable<int>(creditLimitPaise.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CreditLimitPoolsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('creditLimitPaise: $creditLimitPaise, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CreditCardsTable extends CreditCards
     with TableInfo<$CreditCardsTable, CreditCard> {
   @override
@@ -74,6 +377,17 @@ class $CreditCardsTable extends CreditCards
   @override
   late final GeneratedColumn<int> creditLimitPaise = GeneratedColumn<int>(
     'credit_limit_paise',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _creditLimitPoolIdMeta = const VerificationMeta(
+    'creditLimitPoolId',
+  );
+  @override
+  late final GeneratedColumn<int> creditLimitPoolId = GeneratedColumn<int>(
+    'credit_limit_pool_id',
     aliasedName,
     true,
     type: DriftSqlType.int,
@@ -166,6 +480,7 @@ class $CreditCardsTable extends CreditCards
     nickname,
     network,
     creditLimitPaise,
+    creditLimitPoolId,
     billDayOfMonth,
     dueDateOffsetDays,
     colorValue,
@@ -228,6 +543,15 @@ class $CreditCardsTable extends CreditCards
         creditLimitPaise.isAcceptableOrUnknown(
           data['credit_limit_paise']!,
           _creditLimitPaiseMeta,
+        ),
+      );
+    }
+    if (data.containsKey('credit_limit_pool_id')) {
+      context.handle(
+        _creditLimitPoolIdMeta,
+        creditLimitPoolId.isAcceptableOrUnknown(
+          data['credit_limit_pool_id']!,
+          _creditLimitPoolIdMeta,
         ),
       );
     }
@@ -318,6 +642,10 @@ class $CreditCardsTable extends CreditCards
         DriftSqlType.int,
         data['${effectivePrefix}credit_limit_paise'],
       ),
+      creditLimitPoolId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}credit_limit_pool_id'],
+      ),
       billDayOfMonth: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}bill_day_of_month'],
@@ -362,6 +690,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
   final String nickname;
   final String? network;
   final int? creditLimitPaise;
+  final int? creditLimitPoolId;
   final int? billDayOfMonth;
   final int? dueDateOffsetDays;
   final int colorValue;
@@ -376,6 +705,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
     required this.nickname,
     this.network,
     this.creditLimitPaise,
+    this.creditLimitPoolId,
     this.billDayOfMonth,
     this.dueDateOffsetDays,
     required this.colorValue,
@@ -396,6 +726,9 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
     }
     if (!nullToAbsent || creditLimitPaise != null) {
       map['credit_limit_paise'] = Variable<int>(creditLimitPaise);
+    }
+    if (!nullToAbsent || creditLimitPoolId != null) {
+      map['credit_limit_pool_id'] = Variable<int>(creditLimitPoolId);
     }
     if (!nullToAbsent || billDayOfMonth != null) {
       map['bill_day_of_month'] = Variable<int>(billDayOfMonth);
@@ -425,6 +758,9 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
       creditLimitPaise: creditLimitPaise == null && nullToAbsent
           ? const Value.absent()
           : Value(creditLimitPaise),
+      creditLimitPoolId: creditLimitPoolId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(creditLimitPoolId),
       billDayOfMonth: billDayOfMonth == null && nullToAbsent
           ? const Value.absent()
           : Value(billDayOfMonth),
@@ -453,6 +789,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
       nickname: serializer.fromJson<String>(json['nickname']),
       network: serializer.fromJson<String?>(json['network']),
       creditLimitPaise: serializer.fromJson<int?>(json['creditLimitPaise']),
+      creditLimitPoolId: serializer.fromJson<int?>(json['creditLimitPoolId']),
       billDayOfMonth: serializer.fromJson<int?>(json['billDayOfMonth']),
       dueDateOffsetDays: serializer.fromJson<int?>(json['dueDateOffsetDays']),
       colorValue: serializer.fromJson<int>(json['colorValue']),
@@ -472,6 +809,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
       'nickname': serializer.toJson<String>(nickname),
       'network': serializer.toJson<String?>(network),
       'creditLimitPaise': serializer.toJson<int?>(creditLimitPaise),
+      'creditLimitPoolId': serializer.toJson<int?>(creditLimitPoolId),
       'billDayOfMonth': serializer.toJson<int?>(billDayOfMonth),
       'dueDateOffsetDays': serializer.toJson<int?>(dueDateOffsetDays),
       'colorValue': serializer.toJson<int>(colorValue),
@@ -489,6 +827,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
     String? nickname,
     Value<String?> network = const Value.absent(),
     Value<int?> creditLimitPaise = const Value.absent(),
+    Value<int?> creditLimitPoolId = const Value.absent(),
     Value<int?> billDayOfMonth = const Value.absent(),
     Value<int?> dueDateOffsetDays = const Value.absent(),
     int? colorValue,
@@ -505,6 +844,9 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
     creditLimitPaise: creditLimitPaise.present
         ? creditLimitPaise.value
         : this.creditLimitPaise,
+    creditLimitPoolId: creditLimitPoolId.present
+        ? creditLimitPoolId.value
+        : this.creditLimitPoolId,
     billDayOfMonth: billDayOfMonth.present
         ? billDayOfMonth.value
         : this.billDayOfMonth,
@@ -529,6 +871,9 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
       creditLimitPaise: data.creditLimitPaise.present
           ? data.creditLimitPaise.value
           : this.creditLimitPaise,
+      creditLimitPoolId: data.creditLimitPoolId.present
+          ? data.creditLimitPoolId.value
+          : this.creditLimitPoolId,
       billDayOfMonth: data.billDayOfMonth.present
           ? data.billDayOfMonth.value
           : this.billDayOfMonth,
@@ -556,6 +901,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
           ..write('nickname: $nickname, ')
           ..write('network: $network, ')
           ..write('creditLimitPaise: $creditLimitPaise, ')
+          ..write('creditLimitPoolId: $creditLimitPoolId, ')
           ..write('billDayOfMonth: $billDayOfMonth, ')
           ..write('dueDateOffsetDays: $dueDateOffsetDays, ')
           ..write('colorValue: $colorValue, ')
@@ -575,6 +921,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
     nickname,
     network,
     creditLimitPaise,
+    creditLimitPoolId,
     billDayOfMonth,
     dueDateOffsetDays,
     colorValue,
@@ -593,6 +940,7 @@ class CreditCard extends DataClass implements Insertable<CreditCard> {
           other.nickname == this.nickname &&
           other.network == this.network &&
           other.creditLimitPaise == this.creditLimitPaise &&
+          other.creditLimitPoolId == this.creditLimitPoolId &&
           other.billDayOfMonth == this.billDayOfMonth &&
           other.dueDateOffsetDays == this.dueDateOffsetDays &&
           other.colorValue == this.colorValue &&
@@ -609,6 +957,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
   final Value<String> nickname;
   final Value<String?> network;
   final Value<int?> creditLimitPaise;
+  final Value<int?> creditLimitPoolId;
   final Value<int?> billDayOfMonth;
   final Value<int?> dueDateOffsetDays;
   final Value<int> colorValue;
@@ -623,6 +972,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
     this.nickname = const Value.absent(),
     this.network = const Value.absent(),
     this.creditLimitPaise = const Value.absent(),
+    this.creditLimitPoolId = const Value.absent(),
     this.billDayOfMonth = const Value.absent(),
     this.dueDateOffsetDays = const Value.absent(),
     this.colorValue = const Value.absent(),
@@ -638,6 +988,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
     required String nickname,
     this.network = const Value.absent(),
     this.creditLimitPaise = const Value.absent(),
+    this.creditLimitPoolId = const Value.absent(),
     this.billDayOfMonth = const Value.absent(),
     this.dueDateOffsetDays = const Value.absent(),
     required int colorValue,
@@ -658,6 +1009,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
     Expression<String>? nickname,
     Expression<String>? network,
     Expression<int>? creditLimitPaise,
+    Expression<int>? creditLimitPoolId,
     Expression<int>? billDayOfMonth,
     Expression<int>? dueDateOffsetDays,
     Expression<int>? colorValue,
@@ -673,6 +1025,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
       if (nickname != null) 'nickname': nickname,
       if (network != null) 'network': network,
       if (creditLimitPaise != null) 'credit_limit_paise': creditLimitPaise,
+      if (creditLimitPoolId != null) 'credit_limit_pool_id': creditLimitPoolId,
       if (billDayOfMonth != null) 'bill_day_of_month': billDayOfMonth,
       if (dueDateOffsetDays != null) 'due_date_offset_days': dueDateOffsetDays,
       if (colorValue != null) 'color_value': colorValue,
@@ -690,6 +1043,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
     Value<String>? nickname,
     Value<String?>? network,
     Value<int?>? creditLimitPaise,
+    Value<int?>? creditLimitPoolId,
     Value<int?>? billDayOfMonth,
     Value<int?>? dueDateOffsetDays,
     Value<int>? colorValue,
@@ -705,6 +1059,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
       nickname: nickname ?? this.nickname,
       network: network ?? this.network,
       creditLimitPaise: creditLimitPaise ?? this.creditLimitPaise,
+      creditLimitPoolId: creditLimitPoolId ?? this.creditLimitPoolId,
       billDayOfMonth: billDayOfMonth ?? this.billDayOfMonth,
       dueDateOffsetDays: dueDateOffsetDays ?? this.dueDateOffsetDays,
       colorValue: colorValue ?? this.colorValue,
@@ -735,6 +1090,9 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
     }
     if (creditLimitPaise.present) {
       map['credit_limit_paise'] = Variable<int>(creditLimitPaise.value);
+    }
+    if (creditLimitPoolId.present) {
+      map['credit_limit_pool_id'] = Variable<int>(creditLimitPoolId.value);
     }
     if (billDayOfMonth.present) {
       map['bill_day_of_month'] = Variable<int>(billDayOfMonth.value);
@@ -769,6 +1127,7 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
           ..write('nickname: $nickname, ')
           ..write('network: $network, ')
           ..write('creditLimitPaise: $creditLimitPaise, ')
+          ..write('creditLimitPoolId: $creditLimitPoolId, ')
           ..write('billDayOfMonth: $billDayOfMonth, ')
           ..write('dueDateOffsetDays: $dueDateOffsetDays, ')
           ..write('colorValue: $colorValue, ')
@@ -8156,6 +8515,9 @@ class SmsSendersCompanion extends UpdateCompanion<SmsSender> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $CreditLimitPoolsTable creditLimitPools = $CreditLimitPoolsTable(
+    this,
+  );
   late final $CreditCardsTable creditCards = $CreditCardsTable(this);
   late final $BillingCyclesTable billingCycles = $BillingCyclesTable(this);
   late final $BankAccountsTable bankAccounts = $BankAccountsTable(this);
@@ -8192,6 +8554,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    creditLimitPools,
     creditCards,
     billingCycles,
     bankAccounts,
@@ -8214,6 +8577,189 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
+typedef $$CreditLimitPoolsTableCreateCompanionBuilder =
+    CreditLimitPoolsCompanion Function({
+      Value<int> id,
+      required String name,
+      required int creditLimitPaise,
+      required DateTime createdAt,
+    });
+typedef $$CreditLimitPoolsTableUpdateCompanionBuilder =
+    CreditLimitPoolsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int> creditLimitPaise,
+      Value<DateTime> createdAt,
+    });
+
+class $$CreditLimitPoolsTableFilterComposer
+    extends Composer<_$AppDatabase, $CreditLimitPoolsTable> {
+  $$CreditLimitPoolsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get creditLimitPaise => $composableBuilder(
+    column: $table.creditLimitPaise,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CreditLimitPoolsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CreditLimitPoolsTable> {
+  $$CreditLimitPoolsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get creditLimitPaise => $composableBuilder(
+    column: $table.creditLimitPaise,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CreditLimitPoolsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CreditLimitPoolsTable> {
+  $$CreditLimitPoolsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get creditLimitPaise => $composableBuilder(
+    column: $table.creditLimitPaise,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CreditLimitPoolsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CreditLimitPoolsTable,
+          CreditLimitPool,
+          $$CreditLimitPoolsTableFilterComposer,
+          $$CreditLimitPoolsTableOrderingComposer,
+          $$CreditLimitPoolsTableAnnotationComposer,
+          $$CreditLimitPoolsTableCreateCompanionBuilder,
+          $$CreditLimitPoolsTableUpdateCompanionBuilder,
+          (
+            CreditLimitPool,
+            BaseReferences<
+              _$AppDatabase,
+              $CreditLimitPoolsTable,
+              CreditLimitPool
+            >,
+          ),
+          CreditLimitPool,
+          PrefetchHooks Function()
+        > {
+  $$CreditLimitPoolsTableTableManager(
+    _$AppDatabase db,
+    $CreditLimitPoolsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CreditLimitPoolsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CreditLimitPoolsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CreditLimitPoolsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> creditLimitPaise = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => CreditLimitPoolsCompanion(
+                id: id,
+                name: name,
+                creditLimitPaise: creditLimitPaise,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required int creditLimitPaise,
+                required DateTime createdAt,
+              }) => CreditLimitPoolsCompanion.insert(
+                id: id,
+                name: name,
+                creditLimitPaise: creditLimitPaise,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CreditLimitPoolsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CreditLimitPoolsTable,
+      CreditLimitPool,
+      $$CreditLimitPoolsTableFilterComposer,
+      $$CreditLimitPoolsTableOrderingComposer,
+      $$CreditLimitPoolsTableAnnotationComposer,
+      $$CreditLimitPoolsTableCreateCompanionBuilder,
+      $$CreditLimitPoolsTableUpdateCompanionBuilder,
+      (
+        CreditLimitPool,
+        BaseReferences<_$AppDatabase, $CreditLimitPoolsTable, CreditLimitPool>,
+      ),
+      CreditLimitPool,
+      PrefetchHooks Function()
+    >;
 typedef $$CreditCardsTableCreateCompanionBuilder =
     CreditCardsCompanion Function({
       Value<int> id,
@@ -8222,6 +8768,7 @@ typedef $$CreditCardsTableCreateCompanionBuilder =
       required String nickname,
       Value<String?> network,
       Value<int?> creditLimitPaise,
+      Value<int?> creditLimitPoolId,
       Value<int?> billDayOfMonth,
       Value<int?> dueDateOffsetDays,
       required int colorValue,
@@ -8238,6 +8785,7 @@ typedef $$CreditCardsTableUpdateCompanionBuilder =
       Value<String> nickname,
       Value<String?> network,
       Value<int?> creditLimitPaise,
+      Value<int?> creditLimitPoolId,
       Value<int?> billDayOfMonth,
       Value<int?> dueDateOffsetDays,
       Value<int> colorValue,
@@ -8283,6 +8831,11 @@ class $$CreditCardsTableFilterComposer
 
   ColumnFilters<int> get creditLimitPaise => $composableBuilder(
     column: $table.creditLimitPaise,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get creditLimitPoolId => $composableBuilder(
+    column: $table.creditLimitPoolId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8361,6 +8914,11 @@ class $$CreditCardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get creditLimitPoolId => $composableBuilder(
+    column: $table.creditLimitPoolId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get billDayOfMonth => $composableBuilder(
     column: $table.billDayOfMonth,
     builder: (column) => ColumnOrderings(column),
@@ -8425,6 +8983,11 @@ class $$CreditCardsTableAnnotationComposer
 
   GeneratedColumn<int> get creditLimitPaise => $composableBuilder(
     column: $table.creditLimitPaise,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get creditLimitPoolId => $composableBuilder(
+    column: $table.creditLimitPoolId,
     builder: (column) => column,
   );
 
@@ -8495,6 +9058,7 @@ class $$CreditCardsTableTableManager
                 Value<String> nickname = const Value.absent(),
                 Value<String?> network = const Value.absent(),
                 Value<int?> creditLimitPaise = const Value.absent(),
+                Value<int?> creditLimitPoolId = const Value.absent(),
                 Value<int?> billDayOfMonth = const Value.absent(),
                 Value<int?> dueDateOffsetDays = const Value.absent(),
                 Value<int> colorValue = const Value.absent(),
@@ -8509,6 +9073,7 @@ class $$CreditCardsTableTableManager
                 nickname: nickname,
                 network: network,
                 creditLimitPaise: creditLimitPaise,
+                creditLimitPoolId: creditLimitPoolId,
                 billDayOfMonth: billDayOfMonth,
                 dueDateOffsetDays: dueDateOffsetDays,
                 colorValue: colorValue,
@@ -8525,6 +9090,7 @@ class $$CreditCardsTableTableManager
                 required String nickname,
                 Value<String?> network = const Value.absent(),
                 Value<int?> creditLimitPaise = const Value.absent(),
+                Value<int?> creditLimitPoolId = const Value.absent(),
                 Value<int?> billDayOfMonth = const Value.absent(),
                 Value<int?> dueDateOffsetDays = const Value.absent(),
                 required int colorValue,
@@ -8539,6 +9105,7 @@ class $$CreditCardsTableTableManager
                 nickname: nickname,
                 network: network,
                 creditLimitPaise: creditLimitPaise,
+                creditLimitPoolId: creditLimitPoolId,
                 billDayOfMonth: billDayOfMonth,
                 dueDateOffsetDays: dueDateOffsetDays,
                 colorValue: colorValue,
@@ -12523,6 +13090,8 @@ typedef $$SmsSendersTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$CreditLimitPoolsTableTableManager get creditLimitPools =>
+      $$CreditLimitPoolsTableTableManager(_db, _db.creditLimitPools);
   $$CreditCardsTableTableManager get creditCards =>
       $$CreditCardsTableTableManager(_db, _db.creditCards);
   $$BillingCyclesTableTableManager get billingCycles =>

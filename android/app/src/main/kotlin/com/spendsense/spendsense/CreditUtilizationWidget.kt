@@ -38,7 +38,7 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
                         context,
                         views,
                         R.id.limit_text,
-                        "Set credit limits on your cards",
+                        "Set limits in Accounts → Card settings",
                     )
                 } else {
                     views.setViewVisibility(R.id.utilization_progress, View.VISIBLE)
@@ -63,6 +63,29 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
                         Triple(R.id.card_row_3, R.id.card_row_3_color, R.id.card_row_3_progress),
                     ),
                 )
+
+                val rootUri = if (needsLimit || limit.isEmpty()) {
+                    "spendsense://widget/accounts?setup=1"
+                } else {
+                    "spendsense://widget/accounts"
+                }
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.widget_root, rootUri)
+
+                val cards = org.json.JSONArray(cardsJson)
+                val cardRowIds = listOf(R.id.card_row_1, R.id.card_row_2, R.id.card_row_3)
+                for (index in cardRowIds.indices) {
+                    if (index < cards.length()) {
+                        val cardId = cards.getJSONObject(index).optInt("card_id", 0)
+                        if (cardId > 0) {
+                            WidgetLaunchUtils.bindLaunch(
+                                context,
+                                views,
+                                cardRowIds[index],
+                                "spendsense://widget/card/$cardId",
+                            )
+                        }
+                    }
+                }
             }
         }
     }

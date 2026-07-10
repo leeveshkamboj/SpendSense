@@ -11,6 +11,8 @@ class _RecordingShareGateway implements ReportShareGateway {
   String? lastFilePath;
   String? lastMimeType;
   String? lastSubject;
+  String? lastOpenedFilePath;
+  String? lastOpenedMimeType;
 
   @override
   Future<void> shareFile({
@@ -21,6 +23,15 @@ class _RecordingShareGateway implements ReportShareGateway {
     lastFilePath = filePath;
     lastMimeType = mimeType;
     lastSubject = subject;
+  }
+
+  @override
+  Future<void> openFile({
+    required String filePath,
+    required String mimeType,
+  }) async {
+    lastOpenedFilePath = filePath;
+    lastOpenedMimeType = mimeType;
   }
 }
 
@@ -49,7 +60,6 @@ void main() {
       return ReportSnapshot(
         exportedAt: DateTime(2026, 7, 10),
         cardTransactions: const [],
-        bankTransactions: const [],
         billingCycles: const [],
         categories: const [],
         accounts: const [],
@@ -76,7 +86,7 @@ void main() {
 
     test('opens share sheet for generated file', () async {
       final exportResult = await service.export(
-        format: ReportFormat.pdf,
+        format: ReportFormat.csv,
         snapshot: emptySnapshot(),
       );
       final path = (exportResult as ReportExportSuccess).filePath;
@@ -84,8 +94,24 @@ void main() {
       await service.shareExportedFile(path);
 
       expect(shareGateway.lastFilePath, path);
-      expect(shareGateway.lastMimeType, ReportFormat.pdf.mimeType);
+      expect(shareGateway.lastMimeType, ReportFormat.csv.mimeType);
       expect(shareGateway.lastSubject, isNotNull);
+    });
+
+    test('opens exported files directly', () async {
+      for (final format in ReportFormat.values) {
+        final exportResult = await service.export(
+          format: format,
+          snapshot: emptySnapshot(),
+        );
+        final path = (exportResult as ReportExportSuccess).filePath;
+
+        await service.presentExportedFile(format: format, filePath: path);
+
+        expect(shareGateway.lastOpenedFilePath, path);
+        expect(shareGateway.lastOpenedMimeType, format.mimeType);
+        expect(shareGateway.lastFilePath, isNull);
+      }
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/settings/data/app_data_providers.dart';
 import 'package:spendsense/features/settings/domain/settings_catalog.dart';
 import 'package:spendsense/features/settings/domain/settings_entry.dart';
@@ -25,6 +26,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Center(child: AppBrandHeader(logoSize: 72)),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: SearchBar(

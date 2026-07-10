@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({
@@ -20,8 +21,10 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
+              const AppBrandHeader(),
+              const SizedBox(height: 20),
               Text(
-                'Welcome to SpendSense',
+                'Welcome',
                 style: Theme.of(context).textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),

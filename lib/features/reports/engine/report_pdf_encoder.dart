@@ -2,12 +2,13 @@ import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:spendsense/core/formatting/amount_display.dart';
 import 'package:spendsense/features/reports/domain/report_snapshot.dart';
 import 'package:spendsense/features/reports/engine/report_date_format.dart';
+import 'package:spendsense/features/reports/engine/report_snapshot_sections.dart';
+import 'package:spendsense/features/reports/engine/report_transaction_display.dart';
 
 String reportPdfAmount(int paise) {
-  return formatPaise(paise).replaceFirst('₹', 'Rs ');
+  return reportExportAmount(paise).replaceFirst('₹', 'Rs ');
 }
 
 class ReportPdfEncoder {
@@ -15,18 +16,14 @@ class ReportPdfEncoder {
     final doc = pw.Document();
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
         build: (context) => [
           pw.Header(level: 0, child: pw.Text('SpendSense Report')),
           pw.Text('Exported ${formatReportDateTime(snapshot.exportedAt)}'),
           pw.SizedBox(height: 12),
           _sectionTitle('Summary'),
           pw.Bullet(
-            text:
-                'Card transactions: ${snapshot.cardTransactions.length}',
-          ),
-          pw.Bullet(
-            text: 'Bank transactions: ${snapshot.bankTransactions.length}',
+            text: 'Card transactions: ${snapshot.cardTransactions.length}',
           ),
           pw.Bullet(text: 'Billing cycles: ${snapshot.billingCycles.length}'),
           pw.Bullet(text: 'Categories: ${snapshot.categories.length}'),
@@ -58,20 +55,42 @@ class ReportPdfEncoder {
               ],
             ),
           pw.SizedBox(height: 12),
-          _sectionTitle('Recent card transactions'),
+          _sectionTitle('Card transactions'),
           if (snapshot.cardTransactions.isEmpty)
             pw.Text('No card transactions')
           else
             pw.Table.fromTextArray(
-              headers: const ['Merchant', 'Amount', 'Card', 'Date'],
+              headers: const [
+                'Date',
+                'Card',
+                'Merchant',
+                'Kind',
+                'Direction',
+                'Amount',
+                'Category',
+                'Source',
+                'Reference',
+                'Recoverable',
+                'Notes',
+              ],
               data: [
-                for (final row in snapshot.cardTransactions.take(20))
-                  [
-                    row.merchant,
-                    reportPdfAmount(row.amountPaise),
-                    row.cardNickname,
-                    formatReportDate(row.transactionAt),
-                  ],
+                for (final row in snapshot.cardTransactions)
+                  () {
+                    final direction = reportCardDirectionLabel(row.kind);
+                    return [
+                      formatReportDateTime(row.transactionAt),
+                      row.cardNickname,
+                      row.merchant,
+                      row.kind,
+                      direction,
+                      reportPdfAmount(row.amountPaise),
+                      row.category ?? '',
+                      row.source,
+                      row.referenceNumber ?? '',
+                      reportRecoverableLabel(row),
+                      row.notes ?? '',
+                    ];
+                  }(),
               ],
             ),
         ],

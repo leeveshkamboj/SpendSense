@@ -1,5 +1,6 @@
 class DashboardRecentTransaction {
   const DashboardRecentTransaction({
+    required this.id,
     required this.merchant,
     required this.amountPaise,
     required this.transactionAt,
@@ -8,6 +9,7 @@ class DashboardRecentTransaction {
     required this.kind,
   });
 
+  final int id;
   final String merchant;
   final int amountPaise;
   final DateTime transactionAt;

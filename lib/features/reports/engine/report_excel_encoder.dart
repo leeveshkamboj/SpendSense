@@ -1,136 +1,89 @@
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
-import 'package:spendsense/features/reports/domain/report_card_transaction_row.dart';
 import 'package:spendsense/features/reports/domain/report_snapshot.dart';
-import 'package:spendsense/features/reports/engine/report_date_format.dart';
+import 'package:spendsense/features/reports/engine/report_snapshot_sections.dart';
 
 class ReportExcelEncoder {
-  static const transactionsSheet = 'Transactions';
-  static const cyclesSheet = 'Cycles';
-  static const budgetsSheet = 'Budgets';
+  static const summarySheet = 'Summary';
+  static const budgetsSheet = 'Budget';
   static const recoverablesSheet = 'Recoverables';
+  static const cardTransactionsSheet = 'Card Transactions';
+  static const cyclesSheet = 'Cycles';
+  static const accountsSheet = 'Accounts';
+  static const billsSheet = 'Bills';
+  static const categoriesSheet = 'Categories';
 
   static List<String> sheetNames(ReportSnapshot snapshot) {
     return [
-      transactionsSheet,
-      cyclesSheet,
+      summarySheet,
       budgetsSheet,
       recoverablesSheet,
+      cardTransactionsSheet,
+      cyclesSheet,
+      accountsSheet,
+      billsSheet,
+      categoriesSheet,
     ];
   }
 
   static Uint8List encode(ReportSnapshot snapshot) {
     final workbook = Excel.createExcel();
     workbook.delete('Sheet1');
-    _writeTransactions(workbook, snapshot.cardTransactions);
-    _writeCycles(workbook, snapshot.billingCycles);
-    _writeBudgets(workbook, snapshot);
-    _writeRecoverables(workbook, snapshot.recoverablesByPerson);
+    _writeTable(workbook, summarySheet, ReportSnapshotSections.summaryTable(snapshot));
+    _writeTable(workbook, budgetsSheet, ReportSnapshotSections.budgetTable(snapshot));
+    _writeTable(
+      workbook,
+      recoverablesSheet,
+      ReportSnapshotSections.recoverablesTable(snapshot.recoverablesByPerson),
+    );
+    _writeTable(
+      workbook,
+      cardTransactionsSheet,
+      ReportSnapshotSections.cardTransactionsTable(snapshot.cardTransactions),
+    );
+    _writeTable(
+      workbook,
+      cyclesSheet,
+      ReportSnapshotSections.billingCyclesTable(snapshot.billingCycles),
+    );
+    _writeTable(
+      workbook,
+      accountsSheet,
+      ReportSnapshotSections.accountsTable(snapshot.accounts),
+    );
+    _writeTable(
+      workbook,
+      billsSheet,
+      ReportSnapshotSections.billsTable(snapshot.bills),
+    );
+    _writeTable(
+      workbook,
+      categoriesSheet,
+      ReportSnapshotSections.categoriesTable(snapshot.categories),
+    );
     return Uint8List.fromList(workbook.encode()!);
   }
 
-  static void _writeTransactions(
+  static void _writeTable(
     Excel workbook,
-    List<ReportCardTransactionRow> rows,
+    String sheetName,
+    List<List<dynamic>> rows,
   ) {
-    final sheet = workbook[transactionsSheet];
-    sheet.appendRow([
-      TextCellValue('id'),
-      TextCellValue('card_nickname'),
-      TextCellValue('kind'),
-      TextCellValue('amount_paise'),
-      TextCellValue('merchant'),
-      TextCellValue('transaction_at'),
-      TextCellValue('category'),
-      TextCellValue('recoverable_person'),
-    ]);
+    final sheet = workbook[sheetName];
     for (final row in rows) {
       sheet.appendRow([
-        IntCellValue(row.id),
-        TextCellValue(row.cardNickname),
-        TextCellValue(row.kind),
-        IntCellValue(row.amountPaise),
-        TextCellValue(row.merchant),
-        TextCellValue(formatReportDateTime(row.transactionAt)),
-        TextCellValue(row.category ?? ''),
-        TextCellValue(row.recoverablePerson ?? ''),
+        for (final value in row) _cellValue(value),
       ]);
     }
   }
 
-  static void _writeCycles(Excel workbook, List<ReportBillingCycleRow> rows) {
-    final sheet = workbook[cyclesSheet];
-    sheet.appendRow([
-      TextCellValue('id'),
-      TextCellValue('card_nickname'),
-      TextCellValue('start_date'),
-      TextCellValue('end_date'),
-      TextCellValue('bill_generated'),
-      TextCellValue('due_date'),
-      TextCellValue('payments_applied_paise'),
-    ]);
-    for (final row in rows) {
-      sheet.appendRow([
-        IntCellValue(row.id),
-        TextCellValue(row.cardNickname),
-        TextCellValue(formatReportDate(row.startDate)),
-        TextCellValue(formatReportDate(row.endDate)),
-        TextCellValue('${row.billGenerated}'),
-        TextCellValue(
-          row.dueDate == null ? '' : formatReportDate(row.dueDate!),
-        ),
-        IntCellValue(row.paymentsAppliedPaise),
-      ]);
-    }
-  }
-
-  static void _writeBudgets(Excel workbook, ReportSnapshot snapshot) {
-    final sheet = workbook[budgetsSheet];
-    sheet.appendRow([
-      TextCellValue('section'),
-      TextCellValue('name'),
-      TextCellValue('limit_paise'),
-      TextCellValue('spent_paise'),
-      TextCellValue('remaining_paise'),
-    ]);
-
-    final monthly = snapshot.monthlyBudget;
-    if (monthly != null) {
-      sheet.appendRow([
-        TextCellValue('monthly'),
-        TextCellValue('Monthly budget'),
-        IntCellValue(monthly.limitPaise),
-        IntCellValue(monthly.spentPaise),
-        IntCellValue(monthly.remainingPaise),
-      ]);
-    }
-
-    for (final row in snapshot.categoryBudgets) {
-      sheet.appendRow([
-        TextCellValue('category'),
-        TextCellValue(row.category),
-        IntCellValue(row.limitPaise),
-        TextCellValue(''),
-        TextCellValue(''),
-      ]);
-    }
-  }
-
-  static void _writeRecoverables(
-    Excel workbook,
-    Map<String, int> recoverablesByPerson,
-  ) {
-    final sheet = workbook[recoverablesSheet];
-    sheet.appendRow([
-      TextCellValue('person'),
-      TextCellValue('unsettled_paise'),
-    ]);
-    for (final entry in recoverablesByPerson.entries) {
-      sheet.appendRow([
-        TextCellValue(entry.key),
-        IntCellValue(entry.value),
-      ]);
-    }
+  static CellValue _cellValue(dynamic value) {
+    return switch (value) {
+      null => TextCellValue(''),
+      int() => IntCellValue(value),
+      bool() => TextCellValue('$value'),
+      _ => TextCellValue('$value'),
+    };
   }
 }

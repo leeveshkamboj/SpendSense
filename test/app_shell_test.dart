@@ -48,12 +48,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('shows bottom navigation with six icon-only tabs', (
+    testWidgets('shows bottom navigation with five icon-only tabs', (
       tester,
     ) async {
       await pumpApp(tester);
 
-      expect(find.byType(NavigationDestination), findsNWidgets(6));
+      expect(find.byType(NavigationDestination), findsNWidgets(5));
       expect(
         find.descendant(
           of: find.byType(NavigationBar),
@@ -77,12 +77,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.widgetWithText(AppBar, 'Transactions'), findsOneWidget);
 
-      await tester.tap(
-        find.descendant(
-          of: find.byType(NavigationBar),
-          matching: find.byIcon(Icons.settings_outlined),
-        ),
-      );
+      await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
       expect(find.text('Settings'), findsWidgets);
     });
@@ -97,7 +92,7 @@ void main() {
       expect(find.text('Income'), findsOneWidget);
     });
 
-    testWidgets('shows Quick Add FAB on all tabs except Settings', (
+    testWidgets('shows Quick Add FAB only on tabs without a local FAB', (
       tester,
     ) async {
       await pumpApp(tester);
@@ -107,11 +102,21 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.byIcon(Icons.settings_outlined),
+          matching: find.byIcon(Icons.account_balance_wallet_outlined),
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byType(FloatingActionButton), findsNothing);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.text('Add card'), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.receipt_long_outlined),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsOneWidget);
 
       await tester.tap(
         find.descendant(

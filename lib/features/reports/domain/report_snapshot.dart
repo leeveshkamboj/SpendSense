@@ -1,42 +1,6 @@
 import 'package:spendsense/features/analytics/domain/analytics_snapshot.dart';
 import 'package:spendsense/features/reports/domain/report_card_transaction_row.dart';
 
-class ReportBankTransactionRow {
-  const ReportBankTransactionRow({
-    required this.id,
-    required this.bankAccountId,
-    required this.accountNickname,
-    required this.kind,
-    required this.amountPaise,
-    required this.merchant,
-    required this.beneficiary,
-    required this.category,
-    required this.transactionAt,
-    required this.source,
-    required this.referenceNumber,
-    required this.isReviewed,
-    required this.notes,
-    required this.location,
-    required this.createdAt,
-  });
-
-  final int id;
-  final int bankAccountId;
-  final String accountNickname;
-  final String kind;
-  final int amountPaise;
-  final String? merchant;
-  final String? beneficiary;
-  final String? category;
-  final DateTime transactionAt;
-  final String source;
-  final String? referenceNumber;
-  final bool isReviewed;
-  final String? notes;
-  final String? location;
-  final DateTime createdAt;
-}
-
 class ReportBillingCycleRow {
   const ReportBillingCycleRow({
     required this.id,
@@ -125,7 +89,6 @@ class ReportSnapshot {
   const ReportSnapshot({
     required this.exportedAt,
     required this.cardTransactions,
-    required this.bankTransactions,
     required this.billingCycles,
     required this.categories,
     required this.accounts,
@@ -138,7 +101,6 @@ class ReportSnapshot {
 
   final DateTime exportedAt;
   final List<ReportCardTransactionRow> cardTransactions;
-  final List<ReportBankTransactionRow> bankTransactions;
   final List<ReportBillingCycleRow> billingCycles;
   final List<String> categories;
   final List<ReportAccountRow> accounts;

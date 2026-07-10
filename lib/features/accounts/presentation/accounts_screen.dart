@@ -6,7 +6,10 @@ import 'package:spendsense/features/accounts/data/bank_account_providers.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
 import 'package:spendsense/features/accounts/domain/account_balance.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_limit_display.dart';
+import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
 final creditCardsProvider = FutureProvider<List<CreditCard>>((ref) {
   return ref.watch(creditCardRepositoryProvider).listActive();
@@ -25,7 +28,10 @@ class AccountsScreen extends ConsumerWidget {
     final bankAccounts = ref.watch(bankAccountsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Accounts')),
+      appBar: AppBar(
+        title: const AppBrandTitle(title: 'Accounts'),
+        actions: spendSenseAppBarActions(context),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
@@ -34,6 +40,14 @@ class AccountsScreen extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => context.push('/accounts/shared-limits'),
+              icon: const Icon(Icons.link),
+              label: const Text('Shared credit limits'),
+            ),
           ),
           const SizedBox(height: 8),
           creditCards.when(
@@ -84,6 +98,7 @@ class AccountsScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'spendsense-add-card',
         onPressed: () => context.push('/accounts/cards/new'),
         icon: const Icon(Icons.add),
         label: const Text('Add card'),
@@ -126,6 +141,7 @@ class _CreditCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final needsBilling = card.billDayOfMonth == null;
+    final needsCreditLimit = creditCardNeedsLimitSetup(card);
     final color = Color(card.colorValue);
 
     return Card(
@@ -145,6 +161,15 @@ class _CreditCardTile extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 4),
                 child: Chip(
                   label: const Text('Set up billing'),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            if (!needsBilling && needsCreditLimit)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Chip(
+                  label: const Text('Set credit limit'),
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -194,10 +219,18 @@ class _BankAccountTile extends ConsumerWidget {
             ),
             title: Text(account.nickname),
             subtitle: Text('${account.bank} ••${account.lastFourDigits}'),
-            trailing: Text(
-              formatPaise(balance),
-              style: Theme.of(context).textTheme.titleSmall,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  formatPaise(balance),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right),
+              ],
             ),
+            onTap: () => context.push('/accounts/bank/${account.id}'),
           ),
         );
       },

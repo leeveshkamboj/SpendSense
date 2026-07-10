@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">SpendSense</string>
     <string name="quick_summary_widget_label">SpendSense Quick Summary</string>
     <string name="credit_utilization_widget_label">SpendSense Credit Utilization</string>
     <string name="recent_transactions_widget_label">SpendSense Recent Transactions</string>

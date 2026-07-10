@@ -17,7 +17,11 @@ class AppShell extends ConsumerWidget {
     ref.watch(spendingAlertSyncProvider);
     ref.watch(homeWidgetSyncProvider);
     ref.watch(autoBackupSyncProvider);
-    final showFab = navigationShell.currentIndex != 5;
+    final showQuickAddFab = switch (navigationShell.currentIndex) {
+      1 => false, // Transactions
+      2 => false, // Accounts
+      _ => true,
+    };
 
     return Scaffold(
       body: Column(
@@ -57,15 +61,11 @@ class AppShell extends ConsumerWidget {
             selectedIcon: Icon(Icons.request_page),
             label: 'Bills',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
         ],
       ),
-      floatingActionButton: showFab
+      floatingActionButton: showQuickAddFab
           ? FloatingActionButton(
+              heroTag: 'spendsense-quick-add',
               onPressed: () => showQuickAddSheet(context),
               tooltip: 'Quick Add',
               child: const Icon(Icons.add),

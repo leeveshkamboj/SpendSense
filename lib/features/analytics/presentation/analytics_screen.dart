@@ -5,7 +5,9 @@ import 'package:spendsense/features/analytics/domain/analytics_snapshot.dart';
 import 'package:spendsense/features/analytics/engine/analytics_period.dart';
 import 'package:spendsense/features/analytics/presentation/analytics_chart.dart';
 import 'package:spendsense/features/analytics/presentation/analytics_chart_type.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
+import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
 class AnalyticsScreen extends ConsumerStatefulWidget {
   const AnalyticsScreen({super.key});
@@ -25,7 +27,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     final cards = ref.watch(activeCreditCardsForAnalyticsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Analytics')),
+      appBar: AppBar(
+        title: const AppBrandTitle(title: 'Analytics'),
+        actions: spendSenseAppBarActions(context),
+      ),
       body: snapshot.when(
         data: (data) => ListView(
           padding: const EdgeInsets.all(16),

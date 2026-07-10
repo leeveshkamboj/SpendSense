@@ -39,6 +39,12 @@ class BillsWidget : HomeWidgetProvider() {
                         R.id.empty_text,
                         "No upcoming bills",
                     )
+                    WidgetLaunchUtils.bindLaunch(
+                        context,
+                        views,
+                        R.id.empty_text,
+                        "spendsense://widget/bills",
+                    )
                     for (ids in rowIds) {
                         views.setViewVisibility(ids[0], View.GONE)
                     }
@@ -48,6 +54,8 @@ class BillsWidget : HomeWidgetProvider() {
                         val ids = rowIds[index]
                         if (index < rows.length()) {
                             val item = rows.getJSONObject(index)
+                            val cardId = item.optInt("credit_card_id", 0)
+                            val cycleId = item.optInt("cycle_id", 0)
                             val card = item.optString("card_nickname", "Card")
                             val amount = item.optInt("net_outstanding_paise", 0).toString()
                             val color = item.optInt("color_value", 0xFF9E9E9E.toInt())
@@ -70,11 +78,24 @@ class BillsWidget : HomeWidgetProvider() {
                                 "$dueLabel · ${WidgetFormatUtils.formatPaise(amount)}",
                             )
                             views.setTextColor(ids[3], WidgetThemeUtils.tertiaryColor(context))
+                            val rowUri = if (cardId > 0 && cycleId > 0) {
+                                "spendsense://widget/bill?card_id=$cardId&cycle_id=$cycleId"
+                            } else {
+                                "spendsense://widget/bills"
+                            }
+                            WidgetLaunchUtils.bindLaunch(context, views, ids[0], rowUri)
                         } else {
                             views.setViewVisibility(ids[0], View.GONE)
                         }
                     }
                 }
+
+                WidgetLaunchUtils.bindLaunch(
+                    context,
+                    views,
+                    R.id.widget_root,
+                    "spendsense://widget/bills",
+                )
             }
         }
     }

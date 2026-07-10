@@ -44,15 +44,30 @@ class LiveReportExportService implements ReportExportService {
 
   @override
   Future<void> shareExportedFile(String filePath) async {
-    final extension = p.extension(filePath).replaceFirst('.', '');
-    final format = ReportFormat.values.firstWhere(
-      (candidate) => candidate.extension == extension,
-      orElse: () => ReportFormat.pdf,
-    );
+    final format = _formatForFilePath(filePath);
     await _shareGateway.shareFile(
       filePath: filePath,
       mimeType: format.mimeType,
       subject: p.basenameWithoutExtension(filePath),
+    );
+  }
+
+  @override
+  Future<void> presentExportedFile({
+    required ReportFormat format,
+    required String filePath,
+  }) async {
+    await _shareGateway.openFile(
+      filePath: filePath,
+      mimeType: format.mimeType,
+    );
+  }
+
+  ReportFormat _formatForFilePath(String filePath) {
+    final extension = p.extension(filePath).replaceFirst('.', '');
+    return ReportFormat.values.firstWhere(
+      (candidate) => candidate.extension == extension,
+      orElse: () => ReportFormat.pdf,
     );
   }
 

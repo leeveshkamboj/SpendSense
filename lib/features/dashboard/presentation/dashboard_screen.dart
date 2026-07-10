@@ -13,7 +13,10 @@ import 'package:spendsense/features/bills/domain/bill_summary.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_providers.dart';
 import 'package:spendsense/features/dashboard/domain/dashboard_recent_transaction.dart';
 import 'package:spendsense/features/dashboard/domain/dashboard_spend_summary.dart';
+import 'package:spendsense/features/merchants/data/merchant_providers.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverable_summary_card.dart';
+import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -29,7 +32,10 @@ class DashboardScreen extends ConsumerWidget {
     final recent = ref.watch(dashboardRecentTransactionsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+        title: const AppBrandTitle(title: 'Dashboard'),
+        actions: spendSenseAppBarActions(context),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
@@ -488,14 +494,18 @@ class _RecentTransactionsBody extends StatelessWidget {
   }
 }
 
-class _TransactionRow extends StatelessWidget {
+class _TransactionRow extends ConsumerWidget {
   const _TransactionRow({required this.transaction});
 
   final DashboardRecentTransaction transaction;
 
   @override
-  Widget build(BuildContext context) {
-    final label = formatMerchantLabel(transaction.merchant);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final displayNames = ref.watch(merchantDisplayNamesProvider).valueOrNull;
+    final label = resolveMerchantDisplayLabel(
+      transaction.merchant,
+      customDisplayName: displayNames?[transaction.merchant],
+    );
     final color = Color(transaction.colorValue);
     final scheme = Theme.of(context).colorScheme;
     final direction = cardTransactionDirection(transaction.kind);

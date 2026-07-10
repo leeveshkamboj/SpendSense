@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/core/formatting/amount_display.dart';
 import 'package:spendsense/features/analytics/engine/analytics_period.dart';
 import 'package:spendsense/features/billing_cycles/domain/card_transaction_kind_codec.dart';
 import 'package:spendsense/features/billing_cycles/engine/bill_amount.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pool_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_limit_display.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverable_summary_card.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 
@@ -71,6 +74,10 @@ class CreditCardDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final card = ref.watch(creditCardProvider(cardId));
+    final poolId = card.valueOrNull?.creditLimitPoolId;
+    final poolAsync = poolId == null
+        ? null
+        : ref.watch(creditLimitPoolProvider(poolId));
     final summaries = ref.watch(billingCycleSummariesProvider(cardId));
     final currentCycleIds = ref.watch(currentCycleIdsForCardProvider(cardId));
 
@@ -110,6 +117,11 @@ class CreditCardDetailScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Text('${creditCard.bank} ••${creditCard.lastFourDigits}'),
+                      const SizedBox(height: 8),
+                      _CreditLimitLabel(
+                        card: creditCard,
+                        poolAsync: poolAsync,
+                      ),
                       if (creditCard.billDayOfMonth != null) ...[
                         const SizedBox(height: 8),
                         Text(
@@ -130,14 +142,9 @@ class CreditCardDetailScreen extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () =>
                     context.push('/accounts/cards/$cardId/configure'),
-                icon: const Icon(Icons.edit_calendar_outlined),
-                label: Text(
-                  creditCard.billDayOfMonth == null
-                      ? 'Configure billing'
-                      : 'Edit bill date & due offset',
-                ),
+                icon: const Icon(Icons.tune_outlined),
+                label: const Text('Card settings'),
               ),
-              if (creditCard.billDayOfMonth == null) const SizedBox(height: 4),
               const SizedBox(height: 24),
               Text(
                 'Billing Cycles',
@@ -288,6 +295,49 @@ class _CycleTile extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CreditLimitLabel extends StatelessWidget {
+  const _CreditLimitLabel({
+    required this.card,
+    required this.poolAsync,
+  });
+
+  final CreditCard card;
+  final AsyncValue<CreditLimitPool?>? poolAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    if (poolAsync == null) {
+      return Text(
+        formatCreditCardLimitLabel(card: card),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: creditCardNeedsLimitSetup(card)
+                  ? Theme.of(context).colorScheme.error
+                  : null,
+            ),
+      );
+    }
+
+    return poolAsync!.when(
+      data: (sharedPool) => Text(
+        formatCreditCardLimitLabel(card: card, pool: sharedPool),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: creditCardNeedsLimitSetup(card)
+                  ? Theme.of(context).colorScheme.error
+                  : null,
+            ),
+      ),
+      loading: () => Text(
+        formatCreditCardLimitLabel(card: card),
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+      error: (_, __) => Text(
+        formatCreditCardLimitLabel(card: card),
+        style: Theme.of(context).textTheme.bodySmall,
       ),
     );
   }

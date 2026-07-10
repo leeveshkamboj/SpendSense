@@ -16,7 +16,7 @@ class DashboardRepository {
 
   Future<DashboardSpendSummary> cardSpendSummary({required DateTime asOf}) async {
     final cards = await _creditCards.listActive();
-    final spendByCardId = await _spendByCard(asOf: asOf);
+    final spendByCardId = await cardSpendByCardId(asOf: asOf);
 
     final rows = <DashboardCardSpend>[];
     var totalPaise = 0;
@@ -39,6 +39,9 @@ class DashboardRepository {
       cards: rows,
     );
   }
+
+  Future<Map<int, int>> cardSpendByCardId({required DateTime asOf}) =>
+      _spendByCard(asOf: asOf);
 
   Future<Map<int, int>> _spendByCard({required DateTime asOf}) async {
     final spendByCardId = <int, int>{};
@@ -87,6 +90,7 @@ class DashboardRepository {
     return rows
         .map(
           (tx) => DashboardRecentTransaction(
+            id: tx.id,
             merchant: tx.merchant,
             amountPaise: tx.amountPaise,
             transactionAt: tx.transactionAt,

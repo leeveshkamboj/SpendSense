@@ -23,7 +23,7 @@ List<SettingsEntry> buildSettingsCatalog(BuildContext context) {
       title: 'Recoverables',
       subtitle: 'Outstanding amounts by person',
       keywords: ['recoverable', 'person', 'owe'],
-      onTap: () => context.push('/accounts/recoverables'),
+      onTap: () => context.push('/settings/recoverables'),
     ),
     SettingsEntry(
       group: SettingsGroup.data,

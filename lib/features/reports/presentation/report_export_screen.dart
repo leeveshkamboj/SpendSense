@@ -22,8 +22,8 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           const Text(
-            'Export transactions, billing cycles, budgets, analytics, '
-            'and recoverable breakdown by person.',
+            'Export credit card transactions, billing cycles, budgets, '
+            'accounts, bills, and recoverable breakdown by person.',
           ),
           const SizedBox(height: 16),
           for (final format in ReportFormat.values) ...[
@@ -51,12 +51,23 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
 
     switch (result) {
       case ReportExportSuccess(:final filePath):
-        await service.shareExportedFile(filePath);
+        try {
+          await service.presentExportedFile(format: format, filePath: filePath);
+        } catch (error) {
+          if (!mounted) {
+            return;
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open report: $error')),
+          );
+          return;
+        }
         if (!mounted) {
           return;
         }
+        final message = '${format.label} report opened';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${format.label} report ready to share')),
+          SnackBar(content: Text(message)),
         );
       case ReportExportFailure(:final error):
         ScaffoldMessenger.of(context).showSnackBar(

@@ -66,6 +66,7 @@ void main() {
           needsLimitPrompt: false,
           cardSegments: [
             CardUtilizationSegment(
+              cardId: 1,
               nickname: 'HDFC ••5534',
               spentPaise: 50000,
               creditLimitPaise: 200000,
@@ -94,6 +95,7 @@ void main() {
         RecentTransactionsWidgetSnapshot(
           transactions: [
             RecentTransactionWidgetItem(
+              transactionId: 1,
               merchant: 'NEWER',
               amountPaise: 20000,
               transactionAt: at,
@@ -120,6 +122,8 @@ void main() {
         BillsWidgetSnapshot(
           bills: [
             BillWidgetItem(
+              creditCardId: 1,
+              cycleId: 2,
               cardNickname: 'HDFC ••5534',
               dueDate: dueDate,
               netOutstandingPaise: 50000,

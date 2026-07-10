@@ -31,7 +31,6 @@ void main() {
             createdAt: createdAt,
           ),
         ],
-        bankTransactions: const [],
         billingCycles: const [],
         categories: const [],
         accounts: const [],
@@ -44,7 +43,13 @@ void main() {
 
       final csv = ReportCsvEncoder.encode(snapshot);
 
-      expect(csv, contains('id,credit_card_id,card_nickname,billing_cycle_id,kind'));
+      expect(csv, contains('Summary'));
+      expect(csv, contains('Budget'));
+      expect(csv, contains('Card transactions'));
+      expect(csv, contains('transaction_at,card_nickname,merchant,kind'));
+      expect(csv, contains('direction'));
+      expect(csv, contains('signed_amount'));
+      expect(csv, contains('Debit'));
       expect(csv, contains('ZOMATO LTD'));
       expect(csv, contains('Alex Kumar'));
       expect(csv, contains('REF123'));
@@ -55,7 +60,6 @@ void main() {
       final snapshot = ReportSnapshot(
         exportedAt: DateTime(2026, 7, 10),
         cardTransactions: const [],
-        bankTransactions: const [],
         billingCycles: const [],
         categories: const [],
         accounts: const [],
@@ -69,6 +73,7 @@ void main() {
       final csv = ReportCsvEncoder.encode(snapshot);
 
       expect(csv, contains('person,unsettled_paise'));
+      expect(csv, contains('Recoverables by person'));
       expect(csv, contains('Alex Kumar'));
       expect(csv, contains('50000'));
     });

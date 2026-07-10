@@ -1,25 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
-import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
-import 'package:spendsense/features/transactions/data/receipt_repository.dart';
 import 'package:spendsense/features/transactions/data/transaction_cycle_move_repository.dart';
 import 'package:spendsense/features/transactions/data/transaction_merge_repository.dart';
-import 'package:spendsense/features/transactions/domain/grouped_bank_transactions.dart';
 import 'package:spendsense/features/transactions/domain/grouped_card_transactions.dart';
 import 'package:spendsense/features/transactions/engine/transaction_search.dart';
 
-enum TransactionSegment { cards, accounts }
-
 const cardTransactionPageSize = 20;
-
-final transactionSegmentProvider = StateProvider<TransactionSegment>(
-  (ref) => TransactionSegment.cards,
-);
 
 final transactionSearchQueryProvider = StateProvider<String>((ref) => '');
 final searchAllSegmentsProvider = StateProvider<bool>((ref) => false);
@@ -29,10 +20,6 @@ final transactionCardFilterProvider = StateProvider<int?>((ref) => null);
 final pendingCardTransactionDeletesProvider = StateProvider<Set<int>>(
   (ref) => {},
 );
-
-final receiptRepositoryProvider = Provider<ReceiptRepository>((ref) {
-  return ReceiptRepository(ref.watch(databaseProvider));
-});
 
 final transactionMergeRepositoryProvider =
     Provider<TransactionMergeRepository>((ref) {
@@ -305,45 +292,8 @@ final filteredGroupedCardTransactionsProvider =
   return _buildCycleGroups(ref: ref, transactions: filtered);
 });
 
-final filteredGroupedBankTransactionsProvider =
-    FutureProvider<List<BankTransactionMonthGroup>>((ref) async {
-  final transactions =
-      await ref.watch(bankAccountTransactionsProvider.future);
-  final query = ref.watch(transactionSearchQueryProvider);
-  final searchAll = ref.watch(searchAllSegmentsProvider);
-  final segment = ref.watch(transactionSegmentProvider);
-
-  if (!searchAll && segment != TransactionSegment.accounts) {
-    return [];
-  }
-
-  final filtered = transactions
-      .where(
-        (tx) => matchesBankTransactionSearch(
-          merchant: tx.merchant,
-          beneficiary: tx.beneficiary,
-          category: tx.category,
-          referenceNumber: tx.referenceNumber,
-          notes: tx.notes,
-          query: query,
-        ),
-      )
-      .toList();
-
-  return groupBankTransactionsByMonth(
-    transactions: filtered,
-    now: DateTime.now(),
-  );
-});
-
 final filteredGroupedCardTransactionsWhenSearchingProvider =
     FutureProvider<List<TransactionCycleGroup>>((ref) async {
-  final searchAll = ref.watch(searchAllSegmentsProvider);
-  final segment = ref.watch(transactionSegmentProvider);
-  if (!searchAll && segment != TransactionSegment.cards) {
-    return [];
-  }
-
   final query = ref.watch(transactionSearchQueryProvider);
   if (query.trim().isEmpty) {
     return ref.watch(filteredGroupedCardTransactionsProvider.future);

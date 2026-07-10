@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pools_table.dart';
 
 class CreditCards extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -7,6 +8,8 @@ class CreditCards extends Table {
   TextColumn get nickname => text()();
   TextColumn get network => text().nullable()();
   IntColumn get creditLimitPaise => integer().nullable()();
+  IntColumn get creditLimitPoolId =>
+      integer().nullable().references(CreditLimitPools, #id)();
   IntColumn get billDayOfMonth => integer().nullable()();
   IntColumn get dueDateOffsetDays => integer().nullable()();
   IntColumn get colorValue => integer()();

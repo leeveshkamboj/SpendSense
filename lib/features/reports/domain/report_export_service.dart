@@ -28,6 +28,11 @@ abstract class ReportExportService {
   });
 
   Future<void> shareExportedFile(String filePath);
+
+  Future<void> presentExportedFile({
+    required ReportFormat format,
+    required String filePath,
+  });
 }
 
 String formatReportFileName({

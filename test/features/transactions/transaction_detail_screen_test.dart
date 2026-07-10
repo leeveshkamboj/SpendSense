@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/merchants/data/merchant_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
 
@@ -41,6 +42,9 @@ void main() {
       ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(database),
+          cardTransactionReceiptsProvider.overrideWith(
+            (ref, id) async => [],
+          ),
         ],
         child: MaterialApp(
           home: TransactionDetailScreen(transactionId: transactionId),
@@ -57,6 +61,62 @@ void main() {
 
     expect(find.text('Original SMS'), findsOneWidget);
     expect(find.text(rawSms), findsOneWidget);
+
+    await database.close();
+  });
+
+  testWidgets('saves merchant display name from transaction detail', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    final creditCards = CreditCardRepository(database);
+    final cardId = await creditCards.create(
+      const NewCreditCard(
+        bank: 'HDFC',
+        lastFourDigits: '5534',
+        nickname: 'HDFC ••5534',
+        colorValue: 0xFF00695C,
+        iconName: 'credit_card',
+      ),
+    );
+
+    final transactionId = await CardTransactionRepository(database).insert(
+      NewCardTransaction(
+        creditCardId: cardId,
+        kind: 'expense',
+        amountPaise: 41167,
+        merchant: 'ZOMATO LTD',
+        transactionAt: DateTime(2026, 7, 9, 16, 15, 20),
+        source: 'SMS',
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cardTransactionReceiptsProvider.overrideWith(
+            (ref, id) async => [],
+          ),
+        ],
+        child: MaterialApp(
+          home: TransactionDetailScreen(transactionId: transactionId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'Zomato Dinner');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TransactionDetailScreen)),
+    );
+    final displayNames =
+        await container.read(merchantDisplayNamesProvider.future);
+
+    expect(displayNames['ZOMATO LTD'], 'Zomato Dinner');
 
     await database.close();
   });

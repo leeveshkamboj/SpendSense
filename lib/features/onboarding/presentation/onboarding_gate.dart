@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spendsense/core/branding/app_splash.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_flow.dart';
@@ -23,8 +24,7 @@ class OnboardingGate extends ConsumerWidget {
 
     return onboarding.when(
       data: (complete) => complete ? child : const OnboardingNavigator(),
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const AppSplash(),
       error: (error, _) => Scaffold(body: Center(child: Text('Error: $error'))),
     );
   }

@@ -36,6 +36,26 @@ void main() {
       expect(card?.billDayOfMonth, isNull);
     });
 
+    test('updates credit limit on an existing card', () async {
+      final id = await repository.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+
+      await repository.updateCreditLimit(
+        cardId: id,
+        creditLimitPaise: 20000000,
+      );
+
+      final card = await repository.getById(id);
+      expect(card?.creditLimitPaise, 20000000);
+    });
+
     test('creates billing cycles retroactively when bill date is configured', () async {
       final id = await repository.create(
         const NewCreditCard(

@@ -4,4 +4,9 @@ abstract class ReportShareGateway {
     required String mimeType,
     required String subject,
   });
+
+  Future<void> openFile({
+    required String filePath,
+    required String mimeType,
+  });
 }

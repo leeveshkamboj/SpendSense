@@ -41,6 +41,12 @@ class RecentTransactionsWidget : HomeWidgetProvider() {
                         R.id.empty_text,
                         "No recent transactions",
                     )
+                    WidgetLaunchUtils.bindLaunch(
+                        context,
+                        views,
+                        R.id.empty_text,
+                        "spendsense://widget/transactions",
+                    )
                     for (ids in rowIds) {
                         views.setViewVisibility(ids[0], View.GONE)
                     }
@@ -50,6 +56,7 @@ class RecentTransactionsWidget : HomeWidgetProvider() {
                         val ids = rowIds[index]
                         if (index < rows.length()) {
                             val item = rows.getJSONObject(index)
+                            val transactionId = item.optInt("transaction_id", 0)
                             val merchant = item.optString("merchant", "Unknown")
                             val amountPaise = item.optInt("amount_paise", 0)
                             val kind = item.optString("kind", "expense")
@@ -79,11 +86,24 @@ class RecentTransactionsWidget : HomeWidgetProvider() {
                                 signedAmount,
                                 kind,
                             )
+                            val rowUri = if (transactionId > 0) {
+                                "spendsense://widget/transaction/$transactionId"
+                            } else {
+                                "spendsense://widget/transactions"
+                            }
+                            WidgetLaunchUtils.bindLaunch(context, views, ids[0], rowUri)
                         } else {
                             views.setViewVisibility(ids[0], View.GONE)
                         }
                     }
                 }
+
+                WidgetLaunchUtils.bindLaunch(
+                    context,
+                    views,
+                    R.id.widget_root,
+                    "spendsense://widget/transactions",
+                )
             }
         }
     }

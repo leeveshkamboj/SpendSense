@@ -61,6 +61,13 @@ class BudgetWidget : HomeWidgetProvider() {
                         "${WidgetFormatUtils.formatPaise(remaining)} remaining this cycle",
                     )
                 }
+
+                val launchUri = if (needsPrompt || limit.isEmpty()) {
+                    "spendsense://widget/budget?setup=1"
+                } else {
+                    "spendsense://widget/budget"
+                }
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.widget_root, launchUri)
             }
         }
     }

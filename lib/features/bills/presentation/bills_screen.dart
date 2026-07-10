@@ -4,7 +4,9 @@ import 'package:spendsense/core/formatting/amount_display.dart';
 import 'package:spendsense/features/billing_cycles/domain/billing_cycle_status.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/bills/domain/bill_summary.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/bills/presentation/record_bill_payment_sheet.dart';
+import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
 class BillsScreen extends ConsumerWidget {
   const BillsScreen({super.key});
@@ -14,7 +16,10 @@ class BillsScreen extends ConsumerWidget {
     final bills = ref.watch(unpaidBillsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bills')),
+      appBar: AppBar(
+        title: const AppBrandTitle(title: 'Bills'),
+        actions: spendSenseAppBarActions(context),
+      ),
       body: bills.when(
         data: (rows) {
           if (rows.isEmpty) {

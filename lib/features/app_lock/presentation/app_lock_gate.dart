@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/app_lock/app_lock_providers.dart';
 import 'package:spendsense/features/app_lock/presentation/pin_input_field.dart';
 import 'package:spendsense/features/settings/data/app_preferences_providers.dart';
@@ -132,6 +133,8 @@ class _LockScreenState extends ConsumerState<_LockScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
+              const AppLogo(size: 80),
+              const SizedBox(height: 20),
               Icon(
                 Icons.lock_outline,
                 size: 48,

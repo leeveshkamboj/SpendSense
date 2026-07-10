@@ -129,6 +129,45 @@ class CreditCardRepository {
     await _assignBillingCyclesToExistingTransactions(cardId);
   }
 
+  Future<void> updateCreditLimit({
+    required int cardId,
+    int? creditLimitPaise,
+  }) {
+    return (_database.update(_database.creditCards)
+          ..where((card) => card.id.equals(cardId)))
+        .write(
+      CreditCardsCompanion(
+        creditLimitPaise: Value(creditLimitPaise),
+        creditLimitPoolId: const Value(null),
+      ),
+    );
+  }
+
+  Future<void> assignCreditLimitPool({
+    required int cardId,
+    int? creditLimitPoolId,
+  }) {
+    return (_database.update(_database.creditCards)
+          ..where((card) => card.id.equals(cardId)))
+        .write(
+      CreditCardsCompanion(
+        creditLimitPoolId: Value(creditLimitPoolId),
+        creditLimitPaise: const Value(null),
+      ),
+    );
+  }
+
+  Future<void> clearCreditLimitSettings({required int cardId}) {
+    return (_database.update(_database.creditCards)
+          ..where((card) => card.id.equals(cardId)))
+        .write(
+      const CreditCardsCompanion(
+        creditLimitPaise: Value(null),
+        creditLimitPoolId: Value(null),
+      ),
+    );
+  }
+
   Future<void> updateBillingSettings({
     required int cardId,
     required int billDayOfMonth,

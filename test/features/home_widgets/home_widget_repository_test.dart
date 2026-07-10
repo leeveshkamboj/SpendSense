@@ -4,6 +4,7 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/budgets/data/budget_repository.dart';
 import 'package:spendsense/features/bills/data/bills_repository.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pool_repository.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_repository.dart';
 import 'package:spendsense/features/home_widgets/data/home_widget_repository.dart';
 import 'package:spendsense/features/recoverables/data/recoverable_repository.dart';
@@ -30,6 +31,7 @@ void main() {
         ),
         budgets: budgets,
         creditCards: creditCards,
+        creditLimitPools: CreditLimitPoolRepository(database),
         bills: BillsRepository(
           creditCards: creditCards,
           transactions: transactions,

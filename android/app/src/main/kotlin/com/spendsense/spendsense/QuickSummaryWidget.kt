@@ -58,6 +58,13 @@ class QuickSummaryWidget : HomeWidgetProvider() {
                         "${WidgetFormatUtils.formatPaise(remaining)} remaining of ${WidgetFormatUtils.formatPaise(limit)}",
                     )
                 }
+
+                val launchUri = if (limit.isEmpty()) {
+                    "spendsense://widget/budget?setup=1"
+                } else {
+                    "spendsense://widget/dashboard"
+                }
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.widget_root, launchUri)
             }
         }
     }

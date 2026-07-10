@@ -137,6 +137,7 @@ void main() {
             dashboardRecentTransactionsProvider.overrideWith(
               (ref) async => [
                 DashboardRecentTransaction(
+                  id: 1,
                   merchant: 'ZOMATO LTD',
                   amountPaise: 41167,
                   transactionAt: DateTime(2026, 7, 9, 16, 15),

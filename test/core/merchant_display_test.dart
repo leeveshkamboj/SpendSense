@@ -28,4 +28,23 @@ void main() {
       expect(formatMerchantLabel('paytm.s26pdgh@pty'), 'Paytm');
     });
   });
+
+  group('resolveMerchantDisplayLabel', () {
+    test('prefers custom display name when set', () {
+      expect(
+        resolveMerchantDisplayLabel(
+          'ZOMATO LTD',
+          customDisplayName: 'Friday dinner',
+        ),
+        'Friday dinner',
+      );
+    });
+
+    test('falls back to parsed merchant label', () {
+      expect(
+        resolveMerchantDisplayLabel('ZOMATO LTD'),
+        'Zomato Ltd',
+      );
+    });
+  });
 }

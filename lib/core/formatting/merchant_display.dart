@@ -52,6 +52,17 @@ String formatMerchantLabel(String raw) {
   return _titleCase(value);
 }
 
+String resolveMerchantDisplayLabel(
+  String raw, {
+  String? customDisplayName,
+}) {
+  final custom = customDisplayName?.trim();
+  if (custom != null && custom.isNotEmpty) {
+    return custom;
+  }
+  return formatMerchantLabel(raw);
+}
+
 String merchantInitial(String label) {
   final trimmed = label.trim();
   if (trimmed.isEmpty) {

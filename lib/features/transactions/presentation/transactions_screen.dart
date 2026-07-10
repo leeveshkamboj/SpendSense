@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
-import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
-import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
-import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/presentation/card_transaction_list_tile.dart';
+import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
+import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
@@ -159,8 +159,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final segment = ref.watch(transactionSegmentProvider);
     final searchAll = ref.watch(searchAllSegmentsProvider);
+    final recoverableOnly = ref.watch(recoverableFilterProvider);
     final query = ref.watch(transactionSearchQueryProvider);
     final useFullSearch = searchAll || query.trim().isNotEmpty;
 
@@ -170,40 +170,18 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final pendingDeletes = ref.watch(pendingCardTransactionDeletesProvider);
     final pageState = ref.watch(cardTransactionPageProvider);
     final cardsAsync = ref.watch(activeCreditCardsProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: SegmentedButton<TransactionSegment>(
-              segments: const [
-                ButtonSegment(
-                  value: TransactionSegment.cards,
-                  label: Text('Cards'),
-                ),
-                ButtonSegment(
-                  value: TransactionSegment.accounts,
-                  label: Text('Accounts'),
-                ),
-              ],
-              selected: {segment},
-              onSelectionChanged: (selection) {
-                ref.read(transactionSegmentProvider.notifier).state =
-                    selection.first;
-              },
-            ),
-          ),
-        ),
+        title: const AppBrandTitle(title: 'Transactions'),
+        actions: spendSenseAppBarActions(context),
       ),
-      floatingActionButton: segment == TransactionSegment.cards
-          ? FloatingActionButton(
-              onPressed: () => context.push('/transactions/manual'),
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'spendsense-add-transaction',
+        onPressed: () => context.push('/transactions/manual'),
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           if (pageState.valueOrNull?.isCurrentCycleOnly ?? false)
@@ -212,70 +190,68 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Showing current billing cycle and recent imports. Enable Search all for full history.',
+                  'Current billing cycle · tap history for full search',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: scheme.onSurfaceVariant,
                       ),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search transactions',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          ref.read(transactionSearchQueryProvider.notifier).state =
-                              '';
-                        },
-                      ),
-              ),
-              onChanged: (value) {
-                ref.read(transactionSearchQueryProvider.notifier).state =
-                    value;
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Row(
               children: [
-                FilterChip(
-                  label: const Text('Search all'),
-                  selected: searchAll,
-                  onSelected: (selected) {
-                    ref.read(searchAllSegmentsProvider.notifier).state =
-                        selected;
-                  },
-                ),
-                if (segment == TransactionSegment.cards) ...[
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Recoverable'),
-                    selected: ref.watch(recoverableFilterProvider),
-                    onSelected: (selected) {
-                      ref.read(recoverableFilterProvider.notifier).state =
-                          selected;
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search transactions',
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear, size: 20),
+                              onPressed: () {
+                                _searchController.clear();
+                                ref
+                                    .read(transactionSearchQueryProvider.notifier)
+                                    .state = '';
+                              },
+                            ),
+                    ),
+                    onChanged: (value) {
+                      ref.read(transactionSearchQueryProvider.notifier).state =
+                          value;
                     },
                   ),
-                ],
+                ),
+                const SizedBox(width: 4),
+                _CompactFilterButton(
+                  tooltip: 'Search all history',
+                  icon: Icons.history,
+                  selected: searchAll,
+                  onPressed: () {
+                    ref.read(searchAllSegmentsProvider.notifier).state =
+                        !searchAll;
+                  },
+                ),
+                _CompactFilterButton(
+                  tooltip: 'Recoverable only',
+                  icon: Icons.people_outline,
+                  selected: recoverableOnly,
+                  onPressed: () {
+                    ref.read(recoverableFilterProvider.notifier).state =
+                        !recoverableOnly;
+                  },
+                ),
               ],
             ),
           ),
-          if (segment == TransactionSegment.cards)
-            _CardFilterBar(cardsAsync: cardsAsync),
+          _CardFilterBar(cardsAsync: cardsAsync),
           Expanded(
-            child: segment == TransactionSegment.accounts
-                ? _AccountsSegmentBody(searchAll: searchAll, query: query)
-                : cardGroups.when(
-                    data: (cycleGroups) {
+            child: cardGroups.when(
+              data: (cycleGroups) {
                       final cards = cardsAsync.valueOrNull ?? [];
                       final nicknameById = {
                         for (final card in cards) card.id: card.nickname,
@@ -372,11 +348,46 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (error, _) =>
-                        Center(child: Text('Error: $error')),
-                  ),
+                    error: (error, _) => Center(child: Text('Error: $error')),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CompactFilterButton extends StatelessWidget {
+  const _CompactFilterButton({
+    required this.tooltip,
+    required this.icon,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Tooltip(
+      message: tooltip,
+      child: IconButton(
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+        style: IconButton.styleFrom(
+          backgroundColor:
+              selected ? scheme.primaryContainer : Colors.transparent,
+          foregroundColor:
+              selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+        ),
+        onPressed: onPressed,
+        icon: Icon(icon, size: 20),
       ),
     );
   }
@@ -398,13 +409,15 @@ class _CardFilterBar extends ConsumerWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
       child: Row(
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 6),
             child: FilterChip(
-              label: const Text('All cards'),
+              label: const Text('All'),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               selected: selectedCardId == null,
               onSelected: (_) {
                 ref.read(transactionCardFilterProvider.notifier).state = null;
@@ -413,15 +426,17 @@ class _CardFilterBar extends ConsumerWidget {
           ),
           for (final card in cards)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: FilterChip(
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 avatar: CircleAvatar(
-                  radius: 10,
+                  radius: 8,
                   backgroundColor:
                       Color(card.colorValue).withValues(alpha: 0.2),
                   child: Icon(
                     Icons.credit_card,
-                    size: 12,
+                    size: 10,
                     color: Color(card.colorValue),
                   ),
                 ),
@@ -488,146 +503,5 @@ class _CardTransactionTile extends StatelessWidget {
         onLongPress: onLongPress,
       ),
     );
-  }
-}
-
-class _AccountsSegmentBody extends ConsumerWidget {
-  const _AccountsSegmentBody({
-    required this.searchAll,
-    required this.query,
-  });
-
-  final bool searchAll;
-  final String query;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groups = (searchAll || query.trim().isNotEmpty)
-        ? ref.watch(filteredGroupedBankTransactionsProvider)
-        : ref.watch(groupedBankTransactionsProvider);
-
-    return groups.when(
-      data: (monthGroups) {
-        if (monthGroups.isEmpty) {
-          return const Center(child: Text('No bank account transactions yet'));
-        }
-
-        return CustomScrollView(
-          slivers: [
-            for (final group in monthGroups) ...[
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _StickyHeaderDelegate(
-                  title: group.header,
-                  subtitle: '${group.transactions.length} transactions',
-                ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final transaction = group.transactions[index];
-                    final scheme = Theme.of(context).colorScheme;
-                    final direction =
-                        bankTransactionDirection(transaction.kind);
-                    final amountColor =
-                        transactionDirectionColor(scheme, direction);
-                    final title = transaction.beneficiary ??
-                        transaction.merchant ??
-                        transaction.category ??
-                        'Transaction';
-
-                    return ListTile(
-                      title: Text(title),
-                      subtitle: Text(
-                        transactionDirectionLabel(direction),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: amountColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      trailing: Text(
-                        formatSignedPaise(transaction.amountPaise, direction),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: amountColor,
-                            ),
-                      ),
-                    );
-                  },
-                  childCount: group.transactions.length,
-                ),
-              ),
-            ],
-          ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
-    );
-  }
-}
-
-class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _StickyHeaderDelegate({
-    required this.title,
-    required this.subtitle,
-    this.badge,
-  });
-
-  final String title;
-  final String subtitle;
-  final String? badge;
-
-  @override
-  double get minExtent => 56;
-
-  @override
-  double get maxExtent => 56;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-            if (badge != null)
-              Chip(
-                label: Text(badge!),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyHeaderDelegate oldDelegate) {
-    return oldDelegate.title != title ||
-        oldDelegate.subtitle != subtitle ||
-        oldDelegate.badge != badge;
   }
 }

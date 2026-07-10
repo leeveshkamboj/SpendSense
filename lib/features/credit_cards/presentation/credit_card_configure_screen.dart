@@ -5,7 +5,9 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pool_providers.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
@@ -22,12 +24,16 @@ class CreditCardConfigureScreen extends ConsumerStatefulWidget {
 class _CreditCardConfigureScreenState
     extends ConsumerState<CreditCardConfigureScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _creditLimitController = TextEditingController();
   final _billDayController = TextEditingController();
   final _dueOffsetController = TextEditingController(text: '18');
   var _initialized = false;
+  _CreditLimitMode _limitMode = _CreditLimitMode.none;
+  int? _selectedPoolId;
 
   @override
   void dispose() {
+    _creditLimitController.dispose();
     _billDayController.dispose();
     _dueOffsetController.dispose();
     super.dispose();
@@ -43,6 +49,15 @@ class _CreditCardConfigureScreenState
     }
     if (card.dueDateOffsetDays != null) {
       _dueOffsetController.text = card.dueDateOffsetDays.toString();
+    }
+    if (card.creditLimitPoolId != null) {
+      _limitMode = _CreditLimitMode.shared;
+      _selectedPoolId = card.creditLimitPoolId;
+    } else if (card.creditLimitPaise != null) {
+      _limitMode = _CreditLimitMode.individual;
+      _creditLimitController.text = (card.creditLimitPaise! / 100).toString();
+    } else {
+      _limitMode = _CreditLimitMode.none;
     }
   }
 
@@ -64,7 +79,31 @@ class _CreditCardConfigureScreenState
       historyTo: now,
     );
 
+    switch (_limitMode) {
+      case _CreditLimitMode.individual:
+        await repository.updateCreditLimit(
+          cardId: widget.cardId,
+          creditLimitPaise: _parseOptionalRupees(_creditLimitController.text),
+        );
+      case _CreditLimitMode.shared:
+        if (_selectedPoolId == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Select a shared limit pool')),
+            );
+          }
+          return;
+        }
+        await repository.assignCreditLimitPool(
+          cardId: widget.cardId,
+          creditLimitPoolId: _selectedPoolId,
+        );
+      case _CreditLimitMode.none:
+        await repository.clearCreditLimitSettings(cardId: widget.cardId);
+    }
+
     ref.invalidate(creditCardsProvider);
+    ref.invalidate(creditLimitPoolsProvider);
     ref.invalidate(creditCardProvider(widget.cardId));
     ref.invalidate(billingCyclesProvider(widget.cardId));
     ref.invalidate(billingCycleSummariesProvider(widget.cardId));
@@ -72,8 +111,17 @@ class _CreditCardConfigureScreenState
     ref.invalidate(filteredGroupedCardTransactionsProvider);
     ref.invalidate(filteredGroupedCardTransactionsWhenSearchingProvider);
     ref.invalidate(unpaidBillsProvider);
+    invalidateDashboardAndWidgets(ref);
     if (!mounted) return;
     context.pop();
+  }
+
+  int? _parseOptionalRupees(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    final rupees = double.tryParse(trimmed);
+    if (rupees == null) return null;
+    return (rupees * 100).round();
   }
 
   String? _validateBillDay(String? value) {
@@ -95,9 +143,10 @@ class _CreditCardConfigureScreenState
   @override
   Widget build(BuildContext context) {
     final cardAsync = ref.watch(creditCardProvider(widget.cardId));
+    final poolsAsync = ref.watch(creditLimitPoolsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Billing settings')),
+      appBar: AppBar(title: const Text('Card settings')),
       body: cardAsync.when(
         data: (card) {
           if (card == null) {
@@ -119,6 +168,87 @@ class _CreditCardConfigureScreenState
                 Text(
                   '${card.bank} ••${card.lastFourDigits}',
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Credit limit',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                RadioListTile<_CreditLimitMode>(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Individual limit'),
+                  subtitle: const Text('This card has its own credit limit'),
+                  value: _CreditLimitMode.individual,
+                  groupValue: _limitMode,
+                  onChanged: (value) => setState(() => _limitMode = value!),
+                ),
+                if (_limitMode == _CreditLimitMode.individual)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, bottom: 8),
+                    child: TextFormField(
+                      controller: _creditLimitController,
+                      decoration: const InputDecoration(
+                        labelText: 'Credit limit (₹)',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                RadioListTile<_CreditLimitMode>(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Shared limit'),
+                  subtitle: const Text('Use a pool shared with other cards'),
+                  value: _CreditLimitMode.shared,
+                  groupValue: _limitMode,
+                  onChanged: (value) => setState(() => _limitMode = value!),
+                ),
+                if (_limitMode == _CreditLimitMode.shared)
+                  poolsAsync.when(
+                    data: (pools) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: DropdownButtonFormField<int>(
+                            initialValue: _selectedPoolId,
+                            decoration: const InputDecoration(
+                              labelText: 'Shared limit pool',
+                            ),
+                            items: [
+                              for (final pool in pools)
+                                DropdownMenuItem(
+                                  value: pool.id,
+                                  child: Text(pool.name),
+                                ),
+                            ],
+                            onChanged: (value) =>
+                                setState(() => _selectedPoolId = value),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: () =>
+                                context.push('/accounts/shared-limits'),
+                            child: const Text('Manage shared limits'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: LinearProgressIndicator(),
+                    ),
+                    error: (error, _) => Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('Error loading pools: $error'),
+                    ),
+                  ),
+                RadioListTile<_CreditLimitMode>(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Not set'),
+                  value: _CreditLimitMode.none,
+                  groupValue: _limitMode,
+                  onChanged: (value) => setState(() => _limitMode = value!),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -149,7 +279,7 @@ class _CreditCardConfigureScreenState
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _save,
-                  child: const Text('Save billing settings'),
+                  child: const Text('Save card settings'),
                 ),
               ],
             ),
@@ -160,4 +290,10 @@ class _CreditCardConfigureScreenState
       ),
     );
   }
+}
+
+enum _CreditLimitMode {
+  individual,
+  shared,
+  none,
 }

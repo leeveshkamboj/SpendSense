@@ -7,6 +7,7 @@ import 'package:spendsense/features/billing_cycles/data/billing_cycles_table.dar
 import 'package:spendsense/features/budgets/data/budget_tables.dart';
 import 'package:spendsense/features/categories/data/categories_table.dart';
 import 'package:spendsense/features/credit_cards/data/credit_cards_table.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pools_table.dart';
 import 'package:spendsense/features/linking/data/linking_tables.dart';
 import 'package:spendsense/features/merchants/data/merchants_table.dart';
 import 'package:spendsense/features/recoverables/data/recoverables_tables.dart';
@@ -19,6 +20,7 @@ part 'database.g.dart';
 
 @DriftDatabase(
   tables: [
+    CreditLimitPools,
     CreditCards,
     BillingCycles,
     BankAccounts,
@@ -45,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'spendsense'));
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -127,6 +129,13 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(
               budgetSettings,
               budgetSettings.alertThreshold100,
+            );
+          }
+          if (from < 13) {
+            await m.createTable(creditLimitPools);
+            await m.addColumn(
+              creditCards,
+              creditCards.creditLimitPoolId,
             );
           }
         },

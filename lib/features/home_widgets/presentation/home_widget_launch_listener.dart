@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:spendsense/app/router.dart';
-import 'package:spendsense/features/home_widgets/domain/quick_add_widget_launch.dart';
+import 'package:spendsense/features/home_widgets/domain/home_widget_launch.dart';
 
 class HomeWidgetLaunchListener extends ConsumerStatefulWidget {
   const HomeWidgetLaunchListener({required this.child, super.key});
@@ -43,7 +43,7 @@ class _HomeWidgetLaunchListenerState
       return;
     }
 
-    final route = QuickAddWidgetLaunch.routeFor(uri);
+    final route = HomeWidgetLaunch.routeFor(uri);
     if (route == null) {
       return;
     }

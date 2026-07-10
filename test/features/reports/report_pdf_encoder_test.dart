@@ -8,7 +8,6 @@ void main() {
       final snapshot = ReportSnapshot(
         exportedAt: DateTime(2026, 7, 10),
         cardTransactions: const [],
-        bankTransactions: const [],
         billingCycles: const [],
         categories: const ['Food'],
         accounts: const [],

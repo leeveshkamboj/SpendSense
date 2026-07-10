@@ -1,5 +1,4 @@
 import 'package:spendsense/features/accounts/data/bank_account_repository.dart';
-import 'package:spendsense/features/accounts/data/bank_account_transaction_repository.dart';
 import 'package:spendsense/features/analytics/data/analytics_repository.dart';
 import 'package:spendsense/features/bills/data/bills_repository.dart';
 import 'package:spendsense/features/budgets/data/budget_repository.dart';
@@ -13,7 +12,6 @@ import 'package:spendsense/features/transactions/data/card_transaction_repositor
 class ReportRepository {
   ReportRepository({
     required CardTransactionRepository cardTransactions,
-    required BankAccountTransactionRepository bankTransactions,
     required CreditCardRepository creditCards,
     required BankAccountRepository bankAccounts,
     required CategoryRepository categories,
@@ -22,7 +20,6 @@ class ReportRepository {
     required AnalyticsRepository analytics,
     required RecoverableRepository recoverables,
   })  : _cardTransactions = cardTransactions,
-        _bankTransactions = bankTransactions,
         _creditCards = creditCards,
         _bankAccounts = bankAccounts,
         _categories = categories,
@@ -32,7 +29,6 @@ class ReportRepository {
         _recoverables = recoverables;
 
   final CardTransactionRepository _cardTransactions;
-  final BankAccountTransactionRepository _bankTransactions;
   final CreditCardRepository _creditCards;
   final BankAccountRepository _bankAccounts;
   final CategoryRepository _categories;
@@ -46,12 +42,8 @@ class ReportRepository {
     final cards = await _creditCards.listActive();
     final cardNicknameById = {for (final card in cards) card.id: card.nickname};
     final bankAccountRows = await _bankAccounts.listActive();
-    final bankNicknameById = {
-      for (final account in bankAccountRows) account.id: account.nickname,
-    };
 
     final cardTxRows = await _cardTransactions.listAll();
-    final bankTxRows = await _bankTransactions.listAll();
     final categoryNames = await _categories.listNames();
     final monthlyProgress = await _budgets.monthlyProgress(asOf: asOf);
     final categoryBudgets = await _budgets.listCategoryBudgets();
@@ -96,27 +88,6 @@ class ReportRepository {
             category: tx.category,
             isRecoverable: tx.isRecoverable,
             recoverablePerson: tx.recoverablePerson,
-            isReviewed: tx.isReviewed,
-            notes: tx.notes,
-            location: tx.location,
-            createdAt: tx.createdAt,
-          ),
-      ],
-      bankTransactions: [
-        for (final tx in bankTxRows)
-          ReportBankTransactionRow(
-            id: tx.id,
-            bankAccountId: tx.bankAccountId,
-            accountNickname:
-                bankNicknameById[tx.bankAccountId] ?? 'Unknown account',
-            kind: tx.kind,
-            amountPaise: tx.amountPaise,
-            merchant: tx.merchant,
-            beneficiary: tx.beneficiary,
-            category: tx.category,
-            transactionAt: tx.transactionAt,
-            source: tx.source,
-            referenceNumber: tx.referenceNumber,
             isReviewed: tx.isReviewed,
             notes: tx.notes,
             location: tx.location,

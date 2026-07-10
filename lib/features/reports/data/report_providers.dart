@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/accounts/data/bank_account_providers.dart';
-import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
 import 'package:spendsense/features/analytics/data/analytics_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
@@ -21,7 +20,6 @@ final reportShareGatewayProvider = Provider<ReportShareGateway>(
 final reportRepositoryProvider = Provider<ReportRepository>((ref) {
   return ReportRepository(
     cardTransactions: ref.watch(cardTransactionRepositoryProvider),
-    bankTransactions: ref.watch(bankAccountTransactionRepositoryProvider),
     creditCards: ref.watch(creditCardRepositoryProvider),
     bankAccounts: ref.watch(bankAccountRepositoryProvider),
     categories: ref.watch(categoryRepositoryProvider),

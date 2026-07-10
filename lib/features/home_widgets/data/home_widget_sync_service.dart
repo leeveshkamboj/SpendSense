@@ -47,6 +47,7 @@ List<Map<String, Object?>> _encodeCardUtilization(
   return [
     for (final segment in segments)
       {
+        'card_id': segment.cardId,
         'nickname': segment.nickname,
         'spent_paise': segment.spentPaise,
         'credit_limit_paise': segment.creditLimitPaise,
@@ -108,6 +109,7 @@ class HomeWidgetSyncService {
     final payload = [
       for (final item in snapshot.transactions)
         {
+          'transaction_id': item.transactionId,
           'merchant': item.merchant,
           'amount_paise': item.amountPaise,
           'transaction_at_ms': item.transactionAt.millisecondsSinceEpoch,
@@ -126,6 +128,8 @@ class HomeWidgetSyncService {
     final payload = [
       for (final bill in snapshot.bills)
         {
+          'credit_card_id': bill.creditCardId,
+          'cycle_id': bill.cycleId,
           'card_nickname': bill.cardNickname,
           'due_date_ms': bill.dueDate?.millisecondsSinceEpoch,
           'net_outstanding_paise': bill.netOutstandingPaise,

@@ -1,17 +1,20 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/formatting/merchant_display.dart';
 import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/core/formatting/transaction_date_display.dart';
-import 'package:spendsense/core/database/database.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/merchants/data/merchant_providers.dart';
 
-class CardTransactionListTile extends StatelessWidget {
+class CardTransactionListTile extends ConsumerWidget {
   const CardTransactionListTile({
     required this.transaction,
     required this.cardNickname,
     required this.colorValue,
     this.onTap,
     this.onLongPress,
+    super.key,
   });
 
   final CardTransaction transaction;
@@ -21,8 +24,12 @@ class CardTransactionListTile extends StatelessWidget {
   final VoidCallback? onLongPress;
 
   @override
-  Widget build(BuildContext context) {
-    final label = formatMerchantLabel(transaction.merchant);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final displayNames = ref.watch(merchantDisplayNamesProvider).valueOrNull;
+    final label = resolveMerchantDisplayLabel(
+      transaction.merchant,
+      customDisplayName: displayNames?[transaction.merchant],
+    );
     final color = Color(colorValue);
     final scheme = Theme.of(context).colorScheme;
     final direction = cardTransactionDirection(transaction.kind);

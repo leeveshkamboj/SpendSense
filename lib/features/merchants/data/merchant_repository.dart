@@ -46,6 +46,25 @@ class MerchantRepository {
     return lookupMerchantCategory(rawName);
   }
 
+  Future<MerchantRecord?> getByRawName(String rawName) async {
+    if (rawName.isEmpty) {
+      return null;
+    }
+
+    final row = await _findByRawName(rawName);
+    if (row == null) {
+      return null;
+    }
+
+    return MerchantRecord(
+      id: row.id,
+      rawName: row.rawName,
+      displayName: row.displayName,
+      defaultCategory: row.defaultCategory,
+      isUserCustomized: row.isUserCustomized,
+    );
+  }
+
   Future<void> updateDefaults({
     required String rawName,
     String? displayName,

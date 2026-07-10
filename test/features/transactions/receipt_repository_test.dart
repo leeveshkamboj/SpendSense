@@ -42,10 +42,12 @@ void main() {
         filePath: '/data/receipt2.jpg',
       );
 
-      expect(
-        await receipts.listForTransaction(transactionId),
-        ['/data/receipt1.jpg', '/data/receipt2.jpg'],
-      );
+      final stored = await receipts.listReceiptsForTransaction(transactionId);
+      expect(stored, hasLength(2));
+      expect(stored.map((receipt) => receipt.filePath), [
+        '/data/receipt1.jpg',
+        '/data/receipt2.jpg',
+      ]);
     });
   });
 }

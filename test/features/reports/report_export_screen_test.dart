@@ -13,6 +13,7 @@ import 'package:spendsense/features/reports/presentation/report_export_screen.da
 
 class _RecordingShareGateway implements ReportShareGateway {
   var shareCount = 0;
+  var openCount = 0;
 
   @override
   Future<void> shareFile({
@@ -21,6 +22,14 @@ class _RecordingShareGateway implements ReportShareGateway {
     required String subject,
   }) async {
     shareCount++;
+  }
+
+  @override
+  Future<void> openFile({
+    required String filePath,
+    required String mimeType,
+  }) async {
+    openCount++;
   }
 }
 

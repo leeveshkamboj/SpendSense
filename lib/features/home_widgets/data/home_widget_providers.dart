@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pool_providers.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_providers.dart';
 import 'package:spendsense/features/home_widgets/data/home_widget_repository.dart';
 import 'package:spendsense/features/home_widgets/data/home_widget_sync_service.dart';
@@ -17,6 +18,7 @@ final homeWidgetRepositoryProvider = Provider<HomeWidgetRepository>((ref) {
     dashboard: ref.watch(dashboardRepositoryProvider),
     budgets: ref.watch(budgetRepositoryProvider),
     creditCards: ref.watch(creditCardRepositoryProvider),
+    creditLimitPools: ref.watch(creditLimitPoolRepositoryProvider),
     bills: ref.watch(billsRepositoryProvider),
   );
 });

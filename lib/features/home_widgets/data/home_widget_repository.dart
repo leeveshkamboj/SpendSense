@@ -3,10 +3,11 @@ import 'package:spendsense/features/bills/data/bills_repository.dart';
 import 'package:spendsense/features/budgets/data/budget_repository.dart';
 import 'package:spendsense/features/budgets/engine/budget_spend.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/credit_cards/data/credit_limit_pool_repository.dart';
+import 'package:spendsense/features/credit_cards/engine/credit_limit_utilization.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_repository.dart';
 import 'package:spendsense/features/dashboard/domain/dashboard_spend_summary.dart';
 import 'package:spendsense/features/home_widgets/domain/card_spend_chart_segment.dart';
-import 'package:spendsense/features/home_widgets/domain/card_utilization_segment.dart';
 import 'package:spendsense/features/home_widgets/domain/bills_widget_snapshot.dart';
 import 'package:spendsense/features/home_widgets/domain/budget_widget_snapshot.dart';
 import 'package:spendsense/features/home_widgets/domain/credit_utilization_widget_snapshot.dart';
@@ -18,15 +19,18 @@ class HomeWidgetRepository {
     required DashboardRepository dashboard,
     required BudgetRepository budgets,
     required CreditCardRepository creditCards,
+    required CreditLimitPoolRepository creditLimitPools,
     required BillsRepository bills,
   })  : _dashboard = dashboard,
         _budgets = budgets,
         _creditCards = creditCards,
+        _creditLimitPools = creditLimitPools,
         _bills = bills;
 
   final DashboardRepository _dashboard;
   final BudgetRepository _budgets;
   final CreditCardRepository _creditCards;
+  final CreditLimitPoolRepository _creditLimitPools;
   final BillsRepository _bills;
 
   Future<QuickSummaryWidgetSnapshot> quickSummary({
@@ -68,34 +72,22 @@ class HomeWidgetRepository {
     required DateTime asOf,
   }) async {
     final spend = await _dashboard.cardSpendSummary(asOf: asOf);
+    final spendByCardId = await _dashboard.cardSpendByCardId(asOf: asOf);
     final cards = await _creditCards.listActive();
-    final needsLimitPrompt = cards.isNotEmpty &&
-        cards.any((card) => card.creditLimitPaise == null);
-    final creditLimitPaise = needsLimitPrompt
-        ? null
-        : cards.fold<int>(
-            0,
-            (total, card) => total + (card.creditLimitPaise ?? 0),
-          );
-    final spendByNickname = {
-      for (final row in spend.cards) row.nickname: row.spentPaise,
-    };
-    final cardSegments = [
-      for (final card in cards)
-        if (card.creditLimitPaise != null)
-          CardUtilizationSegment(
-            nickname: card.nickname,
-            spentPaise: spendByNickname[card.nickname] ?? 0,
-            creditLimitPaise: card.creditLimitPaise!,
-            colorValue: card.colorValue,
-          ),
-    ];
+    final pools = await _creditLimitPools.listAll();
+    final poolsById = {for (final pool in pools) pool.id: pool};
+    final utilization = buildCreditUtilization(
+      cards: cards,
+      poolsById: poolsById,
+      spendByCardId: spendByCardId,
+      totalSpentPaise: spend.totalPaise,
+    );
 
     return CreditUtilizationWidgetSnapshot(
-      spentPaise: spend.totalPaise,
-      creditLimitPaise: creditLimitPaise,
-      needsLimitPrompt: needsLimitPrompt,
-      cardSegments: cardSegments,
+      spentPaise: utilization.spentPaise,
+      creditLimitPaise: utilization.creditLimitPaise,
+      needsLimitPrompt: utilization.needsLimitPrompt,
+      cardSegments: utilization.cardSegments,
     );
   }
 
@@ -108,6 +100,7 @@ class HomeWidgetRepository {
       transactions: [
         for (final row in rows)
           RecentTransactionWidgetItem(
+            transactionId: row.id,
             merchant: row.merchant,
             amountPaise: row.amountPaise,
             transactionAt: row.transactionAt,
@@ -130,6 +123,8 @@ class HomeWidgetRepository {
       bills: [
         for (final bill in rows.take(limit))
           BillWidgetItem(
+            creditCardId: bill.creditCardId,
+            cycleId: bill.cycleId,
             cardNickname: bill.cardNickname,
             dueDate: bill.dueDate,
             netOutstandingPaise: bill.netOutstandingPaise,
