@@ -40,13 +40,12 @@ void main() {
       expect(find.text('Merchants'), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.text('SMS senders'),
+        find.text('Theme'),
         120,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('SMS senders'), findsOneWidget);
       expect(find.text('Theme'), findsOneWidget);
 
       await tester.scrollUntilVisible(

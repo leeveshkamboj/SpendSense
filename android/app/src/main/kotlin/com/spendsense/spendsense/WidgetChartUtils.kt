@@ -27,16 +27,14 @@ object WidgetChartUtils {
         }
 
         views.setViewVisibility(containerId, View.VISIBLE)
+        val visibleCount = minOf(rows.length(), segmentIds.size)
         for (index in segmentIds.indices) {
             val segmentId = segmentIds[index]
-            if (index < rows.length()) {
+            if (index < visibleCount) {
                 val item = rows.getJSONObject(index)
-                val weight =
-                    item.optInt("spent_paise", 0).toFloat() / total.toFloat()
                 val color = item.optInt("color_value", 0xFF9E9E9E.toInt())
                 views.setViewVisibility(segmentId, View.VISIBLE)
                 views.setInt(segmentId, "setBackgroundColor", color)
-                views.setFloat(segmentId, "setLayoutWeight", weight.coerceAtLeast(0.01f))
             } else {
                 views.setViewVisibility(segmentId, View.GONE)
             }

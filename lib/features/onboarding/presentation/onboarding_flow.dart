@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_restore_screen.dart';
+import 'package:spendsense/features/onboarding/presentation/permissions_setup_screen.dart';
 import 'package:spendsense/features/onboarding/presentation/setup_wizard_screen.dart';
 import 'package:spendsense/features/onboarding/presentation/sms_import_screen.dart';
 import 'package:spendsense/features/onboarding/presentation/welcome_screen.dart';
 
-enum OnboardingStep { welcome, restore, import, wizard }
+enum OnboardingStep { welcome, restore, permissions, import, wizard }
 
 final onboardingStepProvider = StateProvider<OnboardingStep>(
   (ref) => OnboardingStep.welcome,
@@ -27,7 +28,7 @@ class OnboardingFlow extends ConsumerWidget {
       OnboardingStep.welcome => WelcomeScreen(
           onFreshStart: () =>
               ref.read(onboardingStepProvider.notifier).state =
-                  OnboardingStep.import,
+                  OnboardingStep.permissions,
           onRestore: () =>
               ref.read(onboardingStepProvider.notifier).state =
                   OnboardingStep.restore,
@@ -37,8 +38,13 @@ class OnboardingFlow extends ConsumerWidget {
             ref.read(onboardingRestoreDateProvider.notifier).state =
                 summary.backupDate;
             ref.read(onboardingStepProvider.notifier).state =
-                OnboardingStep.import;
+                OnboardingStep.permissions;
           },
+        ),
+      OnboardingStep.permissions => PermissionsSetupScreen(
+          onComplete: () =>
+              ref.read(onboardingStepProvider.notifier).state =
+                  OnboardingStep.import,
         ),
       OnboardingStep.import => SmsImportScreen(
           since: ref.watch(onboardingRestoreDateProvider),

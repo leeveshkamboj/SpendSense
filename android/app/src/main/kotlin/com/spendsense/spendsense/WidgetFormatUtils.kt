@@ -1,16 +1,24 @@
 package com.spendsense.spendsense
 
+import java.text.NumberFormat
 import java.util.Calendar
+import java.util.Locale
 
 object WidgetFormatUtils {
+    private val indianLocale = Locale.forLanguageTag("en-IN")
+
     fun formatPaise(paise: String): String {
         val value = paise.toLongOrNull() ?: return "₹0"
         val rupees = value / 100.0
-        return if (rupees == rupees.toLong().toDouble()) {
-            "₹${rupees.toLong()}"
+        val formatter = NumberFormat.getCurrencyInstance(indianLocale)
+        if (rupees == rupees.toLong().toDouble()) {
+            formatter.minimumFractionDigits = 0
+            formatter.maximumFractionDigits = 0
         } else {
-            "₹$rupees"
+            formatter.minimumFractionDigits = 2
+            formatter.maximumFractionDigits = 2
         }
+        return formatter.format(rupees)
     }
 
     fun formatTime(ms: Long): String {

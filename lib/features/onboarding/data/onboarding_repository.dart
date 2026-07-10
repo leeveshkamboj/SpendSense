@@ -42,4 +42,8 @@ class OnboardingRepository {
       ),
     );
   }
+
+  Future<void> resetSmsImport() async {
+    await saveImportProgress(lastIndex: 0, completed: false);
+  }
 }

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/features/analytics/engine/analytics_period.dart';
+import 'package:spendsense/features/billing_cycles/domain/card_transaction_kind_codec.dart';
+import 'package:spendsense/features/billing_cycles/engine/bill_amount.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverable_summary_card.dart';
+import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 
 final creditCardProvider = FutureProvider.family<CreditCard?, int>((ref, id) {
   return ref.watch(creditCardRepositoryProvider).getById(id);
@@ -17,6 +21,48 @@ final billingCyclesProvider = FutureProvider.family<List<BillingCycle>, int>((
   return ref.watch(creditCardRepositoryProvider).listCycles(cardId);
 });
 
+final billingCycleSummariesProvider =
+    FutureProvider.family<List<BillingCycleSummary>, int>((ref, cardId) async {
+  final creditCards = ref.watch(creditCardRepositoryProvider);
+  final transactions = ref.watch(cardTransactionRepositoryProvider);
+  final cycles = await creditCards.listCycles(cardId);
+  final now = DateTime.now();
+
+  final summaries = <BillingCycleSummary>[];
+  for (final cycle in cycles) {
+    final cycleTransactions =
+        await transactions.listForBillingCycleInclusive(
+      cardId: cardId,
+      cycle: cycle,
+    );
+    final billAmountPaise = calculateBillAmount(
+      cycleTransactions.map(cardTransactionLineFrom),
+    );
+    summaries.add(
+      summarizeBillingCycle(
+        cycle: cycle,
+        billAmountPaise: billAmountPaise,
+        asOf: now,
+      ),
+    );
+  }
+
+  summaries.sort(
+    (a, b) => b.cycle.endDate.compareTo(a.cycle.endDate),
+  );
+
+  return summaries;
+});
+
+final currentCycleIdsForCardProvider =
+    FutureProvider.family<Set<int>, int>((ref, cardId) async {
+  final cycles = await ref.watch(creditCardRepositoryProvider).listCurrentCycles();
+  return cycles
+      .where((cycle) => cycle.creditCardId == cardId)
+      .map((cycle) => cycle.id)
+      .toSet();
+});
+
 class CreditCardDetailScreen extends ConsumerWidget {
   const CreditCardDetailScreen({required this.cardId, super.key});
 
@@ -25,7 +71,8 @@ class CreditCardDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final card = ref.watch(creditCardProvider(cardId));
-    final cycles = ref.watch(billingCyclesProvider(cardId));
+    final summaries = ref.watch(billingCycleSummariesProvider(cardId));
+    final currentCycleIds = ref.watch(currentCycleIdsForCardProvider(cardId));
 
     return Scaffold(
       appBar: AppBar(
@@ -52,41 +99,67 @@ class CreditCardDetailScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                creditCard.nickname,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              Text('${creditCard.bank} ••${creditCard.lastFourDigits}'),
-              if (creditCard.billDayOfMonth == null) ...[
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () =>
-                      context.push('/accounts/cards/$cardId/configure'),
-                  child: const Text('Configure billing'),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        creditCard.nickname,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      Text('${creditCard.bank} ••${creditCard.lastFourDigits}'),
+                      if (creditCard.billDayOfMonth != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Bill date: day ${creditCard.billDayOfMonth}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (creditCard.dueDateOffsetDays != null)
+                          Text(
+                            'Due date: ${creditCard.dueDateOffsetDays} days after bill',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ],
+                  ),
                 ),
-              ],
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    context.push('/accounts/cards/$cardId/configure'),
+                icon: const Icon(Icons.edit_calendar_outlined),
+                label: Text(
+                  creditCard.billDayOfMonth == null
+                      ? 'Configure billing'
+                      : 'Edit bill date & due offset',
+                ),
+              ),
+              if (creditCard.billDayOfMonth == null) const SizedBox(height: 4),
               const SizedBox(height: 24),
               Text(
                 'Billing Cycles',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              cycles.when(
-                data: (billingCycles) {
-                  if (billingCycles.isEmpty) {
+              summaries.when(
+                data: (rows) {
+                  if (rows.isEmpty) {
                     return const Text('No billing cycles yet');
                   }
 
-                  final now = DateTime.now();
+                  final currentIds =
+                      currentCycleIds.valueOrNull ?? const <int>{};
+
                   return Column(
                     children: [
-                      for (final cycle in billingCycles)
+                      for (final summary in rows)
                         _CycleTile(
-                          summary: summarizeBillingCycle(
-                            cycle: cycle,
-                            billAmountPaise: 0,
-                            asOf: now,
-                          ),
+                          cardId: cardId,
+                          summary: summary,
+                          isCurrent: currentIds.contains(summary.cycle.id),
                         ),
                     ],
                   );
@@ -150,40 +223,72 @@ class CreditCardDetailScreen extends ConsumerWidget {
 }
 
 class _CycleTile extends StatelessWidget {
-  const _CycleTile({required this.summary});
+  const _CycleTile({
+    required this.cardId,
+    required this.summary,
+    required this.isCurrent,
+  });
 
+  final int cardId;
   final BillingCycleSummary summary;
+  final bool isCurrent;
 
   @override
   Widget build(BuildContext context) {
     final cycle = summary.cycle;
-    final periodLabel =
-        '${_formatDate(cycle.startDate)} – ${_formatDate(cycle.endDate)}';
+    final periodLabel = formatBillingCycleLabel(
+      cycle.startDate,
+      cycle.endDate,
+    );
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(periodLabel),
-              subtitle: Text(
-                'Bill Amount: ${formatPaise(summary.billAmountPaise)}',
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () => context.push(
+          '/accounts/cards/$cardId/cycles/${cycle.id}',
+        ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          periodLabel,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Spend ${formatPaise(summary.billAmountPaise)} · '
+                          '${billingCycleStatusLabel(summary.status)}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isCurrent)
+                    Chip(
+                      label: const Text('Current'),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  const Icon(Icons.chevron_right),
+                ],
               ),
-              trailing: Text(billingCycleStatusLabel(summary.status)),
-            ),
-            RecoverableSummaryCard(billingCycleId: cycle.id),
-          ],
+              if (isCurrent) ...[
+                const SizedBox(height: 8),
+                RecoverableSummaryCard(billingCycleId: cycle.id),
+              ],
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
   }
 }

@@ -14,6 +14,8 @@ void main() {
         creditCardId: 1,
         cardNickname: 'HDFC ••5534',
         dueDate: dueDate,
+        billAmountPaise: 50000,
+        paymentsAppliedPaise: 0,
         totalOutstandingPaise: 50000,
         netOutstandingPaise: 50000,
         status: status,

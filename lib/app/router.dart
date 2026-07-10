@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/analytics/analytics_screen.dart';
 import 'package:spendsense/features/bills/bills_screen.dart';
+import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_detail_screen.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_configure_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_screen.dart';
 import 'package:spendsense/features/dashboard/dashboard_screen.dart';
@@ -14,7 +16,7 @@ import 'package:spendsense/features/settings/presentation/alert_thresholds_setti
 import 'package:spendsense/features/settings/presentation/app_lock_settings_screen.dart';
 import 'package:spendsense/features/settings/presentation/archive_settings_screen.dart';
 import 'package:spendsense/features/settings/presentation/budget_settings_route_screen.dart';
-import 'package:spendsense/features/settings/presentation/sms_senders_settings_screen.dart';
+import 'package:spendsense/features/settings/presentation/sms_reimport_screen.dart';
 import 'package:spendsense/features/settings/presentation/theme_settings_screen.dart';
 import 'package:spendsense/features/settings/settings_screen.dart';
 import 'package:spendsense/features/shell/app_shell.dart';
@@ -129,6 +131,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                           cardId: int.parse(state.pathParameters['id']!),
                         ),
                       ),
+                      GoRoute(
+                        path: 'cycles/:cycleId',
+                        builder: (context, state) => BillingCycleDetailScreen(
+                          cardId: int.parse(state.pathParameters['id']!),
+                          cycleId: int.parse(state.pathParameters['cycleId']!),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -174,11 +183,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const AppLockSettingsScreen(),
                   ),
                   GoRoute(
-                    path: 'sms-senders',
-                    builder: (context, state) =>
-                        const SmsSendersSettingsScreen(),
-                  ),
-                  GoRoute(
                     path: 'archive',
                     builder: (context, state) => const ArchiveSettingsScreen(),
                   ),
@@ -195,6 +199,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'theme',
                     builder: (context, state) => const ThemeSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'sms-reimport',
+                    builder: (context, state) => const SmsReimportScreen(),
                   ),
                 ],
               ),

@@ -2,15 +2,12 @@ import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:spendsense/core/formatting/amount_display.dart';
 import 'package:spendsense/features/reports/domain/report_snapshot.dart';
 import 'package:spendsense/features/reports/engine/report_date_format.dart';
 
 String reportPdfAmount(int paise) {
-  final rupees = paise / 100.0;
-  if (rupees == rupees.roundToDouble()) {
-    return 'Rs ${rupees.round()}';
-  }
-  return 'Rs $rupees';
+  return formatPaise(paise).replaceFirst('₹', 'Rs ');
 }
 
 class ReportPdfEncoder {

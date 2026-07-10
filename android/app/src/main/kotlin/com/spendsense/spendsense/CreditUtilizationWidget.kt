@@ -3,7 +3,6 @@ package com.spendsense.spendsense
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.view.View
-import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class CreditUtilizationWidget : HomeWidgetProvider() {
@@ -19,35 +18,39 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
         val cardsJson = widgetData.getString("credit_utilization_cards_json", "[]") ?: "[]"
 
         for (widgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.credit_utilization_widget)
-            views.setTextViewText(R.id.spent_text, WidgetFormatUtils.formatPaise(spent))
+            WidgetUpdateUtils.updateSafely(
+                context,
+                appWidgetManager,
+                widgetId,
+                R.layout.credit_utilization_widget,
+            ) { views ->
+                views.setTextViewText(R.id.spent_text, WidgetFormatUtils.formatPaise(spent))
 
-            if (needsLimit || limit.isEmpty()) {
-                views.setViewVisibility(R.id.utilization_progress, View.GONE)
-                views.setTextViewText(R.id.limit_text, "Set credit limits on your cards")
-            } else {
-                views.setViewVisibility(R.id.utilization_progress, View.VISIBLE)
-                val spentValue = spent.toLongOrNull() ?: 0L
-                val limitValue = limit.toLongOrNull() ?: 1L
-                val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
-                views.setProgressBar(R.id.utilization_progress, 100, progress, false)
-                views.setTextViewText(
-                    R.id.limit_text,
-                    "${WidgetFormatUtils.formatPaise(spent)} of ${WidgetFormatUtils.formatPaise(limit)} used",
+                if (needsLimit || limit.isEmpty()) {
+                    views.setViewVisibility(R.id.utilization_progress, View.GONE)
+                    views.setTextViewText(R.id.limit_text, "Set credit limits on your cards")
+                } else {
+                    views.setViewVisibility(R.id.utilization_progress, View.VISIBLE)
+                    val spentValue = spent.toLongOrNull() ?: 0L
+                    val limitValue = limit.toLongOrNull() ?: 1L
+                    val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
+                    views.setProgressBar(R.id.utilization_progress, 100, progress, false)
+                    views.setTextViewText(
+                        R.id.limit_text,
+                        "${WidgetFormatUtils.formatPaise(spent)} of ${WidgetFormatUtils.formatPaise(limit)} used",
+                    )
+                }
+
+                WidgetChartUtils.bindUtilizationRows(
+                    views,
+                    cardsJson,
+                    listOf(
+                        Triple(R.id.card_row_1, R.id.card_row_1_color, R.id.card_row_1_progress),
+                        Triple(R.id.card_row_2, R.id.card_row_2_color, R.id.card_row_2_progress),
+                        Triple(R.id.card_row_3, R.id.card_row_3_color, R.id.card_row_3_progress),
+                    ),
                 )
             }
-
-            WidgetChartUtils.bindUtilizationRows(
-                views,
-                cardsJson,
-                listOf(
-                    Triple(R.id.card_row_1, R.id.card_row_1_color, R.id.card_row_1_progress),
-                    Triple(R.id.card_row_2, R.id.card_row_2_color, R.id.card_row_2_progress),
-                    Triple(R.id.card_row_3, R.id.card_row_3_color, R.id.card_row_3_progress),
-                ),
-            )
-
-            appWidgetManager.updateAppWidget(widgetId, views)
         }
     }
 }

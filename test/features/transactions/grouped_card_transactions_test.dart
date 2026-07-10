@@ -36,6 +36,8 @@ void main() {
             paymentsAppliedPaise: 0,
           ),
         },
+        nicknameByCardId: const {1: 'HDFC ••5534'},
+        currentCycleIds: const {10},
       );
 
       expect(groups.length, 1);

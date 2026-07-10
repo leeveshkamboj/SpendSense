@@ -1,6 +1,7 @@
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/bills/data/bills_repository.dart';
 import 'package:spendsense/features/budgets/data/budget_repository.dart';
+import 'package:spendsense/features/budgets/engine/budget_spend.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_repository.dart';
 import 'package:spendsense/features/dashboard/domain/dashboard_spend_summary.dart';
@@ -141,6 +142,17 @@ class HomeWidgetRepository {
     final daysRemaining = periodEnd.difference(asOfDay).inDays + 1;
     final remaining = progress.remainingPaise;
     final dailyBudget = daysRemaining > 0 ? remaining ~/ daysRemaining : remaining;
+    final periodTransactions =
+        await _budgets.listBudgetPeriodTransactions(asOf: asOf);
+    final budgetCardSpend = calculateCardSpendPaise(periodTransactions);
+    final cardSpendSegments = [
+      for (final card in cards)
+        CardSpendChartSegment(
+          nickname: card.nickname,
+          spentPaise: budgetCardSpend[card.id] ?? 0,
+          colorValue: card.colorValue,
+        ),
+    ]..sort((a, b) => b.spentPaise.compareTo(a.spentPaise));
 
     return BudgetWidgetSnapshot(
       spentPaise: progress.spentPaise,
@@ -148,7 +160,7 @@ class HomeWidgetRepository {
       remainingPaise: remaining,
       dailyBudgetPaise: dailyBudget,
       needsBudgetPrompt: false,
-      cardSpendSegments: _cardSpendSegments(spend, cards),
+      cardSpendSegments: cardSpendSegments,
     );
   }
 

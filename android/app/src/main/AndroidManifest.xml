@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -28,7 +30,17 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+            </intent-filter>
         </activity>
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -36,7 +48,8 @@
             android:value="2" />
         <receiver
             android:name=".QuickSummaryWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/quick_summary_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -46,7 +59,8 @@
         </receiver>
         <receiver
             android:name=".CreditUtilizationWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/credit_utilization_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -56,7 +70,8 @@
         </receiver>
         <receiver
             android:name=".RecentTransactionsWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/recent_transactions_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -66,7 +81,8 @@
         </receiver>
         <receiver
             android:name=".BillsWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/bills_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -76,7 +92,8 @@
         </receiver>
         <receiver
             android:name=".BudgetWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/budget_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -86,7 +103,8 @@
         </receiver>
         <receiver
             android:name=".QuickAddWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/quick_add_widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

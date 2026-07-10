@@ -5,8 +5,10 @@ import 'package:spendsense/features/analytics/domain/billing_cycle_comparison.da
 import 'package:spendsense/features/analytics/engine/analytics_breakdown.dart';
 import 'package:spendsense/features/analytics/engine/analytics_period.dart';
 import 'package:spendsense/features/billing_cycles/engine/cycle_assignment.dart';
+import 'package:spendsense/features/billing_cycles/engine/cycle_spend.dart';
 import 'package:spendsense/features/budgets/data/budget_repository.dart';
 import 'package:spendsense/features/budgets/domain/budget_transaction.dart';
+import 'package:spendsense/features/budgets/domain/budget_transaction_kind_codec.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
@@ -174,16 +176,11 @@ class AnalyticsRepository {
   Future<int> _cycleExpenseSpend(int billingCycleId) async {
     final transactions =
         await _cardTransactions.listForBillingCycle(billingCycleId);
-    return transactions
-        .where((tx) => tx.kind == 'expense')
-        .fold<int>(0, (sum, tx) => sum + tx.amountPaise);
+    return calculateCycleNetSpendPaise(transactions);
   }
 
   BudgetTransactionKind _kindFromString(String kind) {
-    return BudgetTransactionKind.values.firstWhere(
-      (value) => value.name == kind,
-      orElse: () => BudgetTransactionKind.expense,
-    );
+    return budgetTransactionKindFromString(kind);
   }
 
   bool _sameDay(DateTime a, DateTime b) {

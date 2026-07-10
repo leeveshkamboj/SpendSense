@@ -27,30 +27,27 @@ class AccountsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Accounts')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           Text(
             'Credit Cards',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           creditCards.when(
             data: (cards) {
               if (cards.isEmpty) {
-                return const Text('No credit cards yet');
+                return const _EmptyAccountsCard(
+                  icon: Icons.credit_card_outlined,
+                  message: 'No credit cards yet',
+                );
               }
 
               return Column(
                 children: [
-                  for (final card in cards)
-                    ListTile(
-                      title: Text(card.nickname),
-                      subtitle: Text('${card.bank} ••${card.lastFourDigits}'),
-                      trailing: card.billDayOfMonth == null
-                          ? const Text('Setup required')
-                          : null,
-                      onTap: () => context.push('/accounts/cards/${card.id}'),
-                    ),
+                  for (final card in cards) _CreditCardTile(card: card),
                 ],
               );
             },
@@ -60,13 +57,18 @@ class AccountsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Text(
             'Bank Accounts',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           bankAccounts.when(
             data: (accounts) {
               if (accounts.isEmpty) {
-                return const Text('No bank accounts yet');
+                return const _EmptyAccountsCard(
+                  icon: Icons.account_balance_outlined,
+                  message: 'No bank accounts yet',
+                );
               }
 
               return Column(
@@ -85,6 +87,78 @@ class AccountsScreen extends ConsumerWidget {
         onPressed: () => context.push('/accounts/cards/new'),
         icon: const Icon(Icons.add),
         label: const Text('Add card'),
+      ),
+    );
+  }
+}
+
+class _EmptyAccountsCard extends StatelessWidget {
+  const _EmptyAccountsCard({
+    required this.icon,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+        child: Row(
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(width: 16),
+            Expanded(child: Text(message)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CreditCardTile extends StatelessWidget {
+  const _CreditCardTile({required this.card});
+
+  final CreditCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    final needsBilling = card.billDayOfMonth == null;
+    final color = Color(card.colorValue);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.15),
+          child: Icon(Icons.credit_card, color: color, size: 20),
+        ),
+        title: Text(card.nickname),
+        subtitle: Text('${card.bank} ••${card.lastFourDigits}'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (needsBilling)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Chip(
+                  label: const Text('Set up billing'),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+        onTap: () {
+          if (needsBilling) {
+            context.push('/accounts/cards/${card.id}/configure');
+            return;
+          }
+          context.push('/accounts/cards/${card.id}');
+        },
       ),
     );
   }
@@ -109,10 +183,22 @@ class _BankAccountTile extends ConsumerWidget {
           transactions: accountTransactions,
         );
 
-        return ListTile(
-          title: Text(account.nickname),
-          subtitle: Text('${account.bank} ••${account.lastFourDigits}'),
-          trailing: Text(formatPaise(balance)),
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              child: Icon(
+                Icons.account_balance_wallet_outlined,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            title: Text(account.nickname),
+            subtitle: Text('${account.bank} ••${account.lastFourDigits}'),
+            trailing: Text(
+              formatPaise(balance),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
         );
       },
       loading: () => ListTile(title: Text(account.nickname)),

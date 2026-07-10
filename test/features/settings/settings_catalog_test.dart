@@ -18,19 +18,12 @@ void main() {
           subtitle: 'Restore',
           keywords: const [],
         ),
-        SettingsEntry(
-          group: SettingsGroup.capture,
-          title: 'SMS senders',
-          subtitle: 'Whitelist',
-          keywords: const [],
-        ),
       ];
 
       final grouped = groupSettingsEntries(entries);
 
       expect(grouped[SettingsGroup.security], hasLength(1));
       expect(grouped[SettingsGroup.data], hasLength(1));
-      expect(grouped[SettingsGroup.capture], hasLength(1));
     });
 
     test('filters entries by search query', () {

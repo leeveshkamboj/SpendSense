@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/budgets/domain/budget_progress.dart';
 import 'package:spendsense/features/budgets/domain/budget_transaction.dart';
+import 'package:spendsense/features/budgets/domain/budget_transaction_kind_codec.dart';
 import 'package:spendsense/features/budgets/engine/budget_alerts.dart';
 import 'package:spendsense/features/budgets/engine/budget_assignment.dart';
 import 'package:spendsense/features/budgets/engine/budget_projection.dart';
@@ -113,8 +114,16 @@ class BudgetRepository {
     final targetStart =
         periodStart ?? _currentPeriodStart(asOf: asOf, cards: cards);
     final transactions = await _budgetTransactions();
+    final currentCycleIds = (await _creditCards.listCurrentCycles(asOf: asOf))
+        .map((cycle) => cycle.id)
+        .toSet();
 
     return transactions.where((transaction) {
+      if (transaction.billingCycleId != null &&
+          currentCycleIds.contains(transaction.billingCycleId)) {
+        return true;
+      }
+
       final card = cards.firstWhere(
         (row) => row.cardId == transaction.cardId,
         orElse: () => const CardBillingState(
@@ -274,6 +283,7 @@ class BudgetRepository {
             transactionAt: tx.transactionAt,
             cardBillDayOfMonth: null,
             cardId: tx.creditCardId,
+            billingCycleId: tx.billingCycleId,
           ),
         )
         .toList();
@@ -322,10 +332,7 @@ class BudgetRepository {
   }
 
   BudgetTransactionKind _kindFromString(String kind) {
-    return BudgetTransactionKind.values.firstWhere(
-      (value) => value.name == kind,
-      orElse: () => BudgetTransactionKind.expense,
-    );
+    return budgetTransactionKindFromString(kind);
   }
 }
 

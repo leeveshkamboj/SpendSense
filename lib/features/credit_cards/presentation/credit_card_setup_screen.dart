@@ -5,6 +5,8 @@ import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
+import 'package:spendsense/features/onboarding/sms_import_loader.dart';
+import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
 class CreditCardSetupScreen extends ConsumerStatefulWidget {
   const CreditCardSetupScreen({super.key});
@@ -50,38 +52,51 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
         ? '$bank ••$lastFour'
         : _nicknameController.text.trim();
 
-    final id = await repository.create(
-      NewCreditCard(
-        bank: bank,
-        lastFourDigits: lastFour,
-        nickname: nickname,
-        network: _networkController.text.trim().isEmpty
-            ? null
-            : _networkController.text.trim(),
-        creditLimitPaise: _parseOptionalRupees(_creditLimitController.text),
-        colorValue: 0xFF00695C,
-        iconName: 'credit_card',
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      ),
+    final existing = await repository.findByBankAndLastFour(
+      bank: bank,
+      lastFourDigits: lastFour,
     );
+    final id = existing?.id ??
+        await repository.create(
+          NewCreditCard(
+            bank: bank,
+            lastFourDigits: lastFour,
+            nickname: nickname,
+            network: _networkController.text.trim().isEmpty
+                ? null
+                : _networkController.text.trim(),
+            creditLimitPaise: _parseOptionalRupees(_creditLimitController.text),
+            colorValue: 0xFF00695C,
+            iconName: 'credit_card',
+            notes: _notesController.text.trim().isEmpty
+                ? null
+                : _notesController.text.trim(),
+          ),
+        );
 
     final billDay = int.tryParse(_billDayController.text.trim());
     final dueOffset = int.tryParse(_dueOffsetController.text.trim());
-    if (billDay != null && dueOffset != null) {
+    if (billDay != null &&
+        dueOffset != null &&
+        (existing == null || existing.billDayOfMonth == null)) {
       final now = DateTime.now();
-      await repository.configureBilling(
+      await repository.updateBillingSettings(
         cardId: id,
         billDayOfMonth: billDay,
         dueDateOffsetDays: dueOffset,
-        historyFrom: DateTime(now.year - 1, now.month, now.day),
+        historyFrom: billingHistoryStart(now: now),
         historyTo: now,
       );
     }
 
     ref.invalidate(creditCardsProvider);
+    ref.invalidate(billingCyclesProvider(id));
+    ref.invalidate(cardTransactionPageProvider);
     if (!mounted) return;
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
     context.go('/accounts/cards/$id');
   }
 
@@ -156,83 +171,6 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
             FilledButton(
               onPressed: _save,
               child: const Text('Save card'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CreditCardConfigureScreen extends ConsumerStatefulWidget {
-  const CreditCardConfigureScreen({required this.cardId, super.key});
-
-  final int cardId;
-
-  @override
-  ConsumerState<CreditCardConfigureScreen> createState() =>
-      _CreditCardConfigureScreenState();
-}
-
-class _CreditCardConfigureScreenState
-    extends ConsumerState<CreditCardConfigureScreen> {
-  final _billDayController = TextEditingController();
-  final _dueOffsetController = TextEditingController(text: '18');
-
-  @override
-  void dispose() {
-    _billDayController.dispose();
-    _dueOffsetController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    final billDay = int.tryParse(_billDayController.text.trim());
-    final dueOffset = int.tryParse(_dueOffsetController.text.trim());
-    if (billDay == null || dueOffset == null) return;
-
-    final repository = ref.read(creditCardRepositoryProvider);
-    final now = DateTime.now();
-    await repository.configureBilling(
-      cardId: widget.cardId,
-      billDayOfMonth: billDay,
-      dueDateOffsetDays: dueOffset,
-      historyFrom: DateTime(now.year - 1, now.month, now.day),
-      historyTo: now,
-    );
-
-    ref.invalidate(creditCardProvider(widget.cardId));
-    ref.invalidate(billingCyclesProvider(widget.cardId));
-    if (!mounted) return;
-    context.pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Configure billing')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _billDayController,
-              decoration: const InputDecoration(
-                labelText: 'Bill date (day of month)',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextFormField(
-              controller: _dueOffsetController,
-              decoration: const InputDecoration(
-                labelText: 'Due date offset (days after bill)',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _save,
-              child: const Text('Save billing settings'),
             ),
           ],
         ),

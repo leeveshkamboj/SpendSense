@@ -9,6 +9,8 @@ import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
+import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/transactions/presentation/card_transaction_list_tile.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
@@ -165,6 +167,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         : ref.watch(filteredGroupedCardTransactionsProvider);
     final pendingDeletes = ref.watch(pendingCardTransactionDeletesProvider);
     final pageState = ref.watch(cardTransactionPageProvider);
+    final cardsAsync = ref.watch(activeCreditCardsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -201,6 +204,19 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           : null,
       body: Column(
         children: [
+          if (pageState.valueOrNull?.isCurrentCycleOnly ?? false)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Showing current billing cycle and recent imports. Enable Search all for full history.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: TextField(
@@ -251,68 +267,105 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               ],
             ),
           ),
+          if (segment == TransactionSegment.cards)
+            _CardFilterBar(cardsAsync: cardsAsync),
           Expanded(
             child: segment == TransactionSegment.accounts
                 ? _AccountsSegmentBody(searchAll: searchAll, query: query)
                 : cardGroups.when(
                     data: (cycleGroups) {
-                      if (cycleGroups.isEmpty) {
-                        return const Center(
-                          child: Text('No card transactions yet'),
-                        );
-                      }
+                      final cards = cardsAsync.valueOrNull ?? [];
+                      final nicknameById = {
+                        for (final card in cards) card.id: card.nickname,
+                      };
+                      final colorById = {
+                        for (final card in cards) card.id: card.colorValue,
+                      };
 
-                      final slivers = <Widget>[];
-                      for (final group in cycleGroups) {
-                        slivers.add(
-                          SliverPersistentHeader(
-                            pinned: true,
-                            delegate: _StickyHeaderDelegate(group.cycleLabel),
-                          ),
+                      final transactions = [
+                        for (final group in cycleGroups) ...group.transactions,
+                      ]..sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
+
+                      if (transactions.isEmpty) {
+                        final cardFilter = ref.watch(transactionCardFilterProvider);
+                        final hasConfiguredCards = cards.any(
+                          (card) => card.billDayOfMonth != null,
                         );
-                        slivers.add(
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final transaction = group.transactions[index];
-                                if (pendingDeletes.contains(transaction.id)) {
-                                  return const SizedBox.shrink();
-                                }
-                                return _CardTransactionTile(
-                                  transaction: transaction,
-                                  onDelete: () => _scheduleDelete(transaction),
-                                  onEdit: () => context.push(
-                                    '/transactions/${transaction.id}/edit',
-                                  ),
-                                  onLongPress: () =>
-                                      _showCardTransactionActions(
-                                    context,
-                                    transaction,
-                                  ),
-                                );
-                              },
-                              childCount: group.transactions.length,
+                        final message = cardFilter != null
+                            ? 'No transactions for this card'
+                            : hasConfiguredCards
+                                ? 'No transactions in the current billing cycle'
+                                : 'Configure billing on your cards in Accounts';
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              message,
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         );
                       }
 
-                      if (pageState.valueOrNull?.isLoadingMore ?? false) {
-                        slivers.add(
-                          const SliverToBoxAdapter(
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                          ),
-                        );
-                      }
+                      final visibleTransactions = transactions
+                          .where((tx) => !pendingDeletes.contains(tx.id))
+                          .toList();
 
                       return CustomScrollView(
                         controller: _scrollController,
-                        slivers: slivers,
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Card(
+                              margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
+                                children: [
+                                  for (var index = 0;
+                                      index < visibleTransactions.length;
+                                      index++) ...[
+                                    if (index > 0)
+                                      const Divider(
+                                        height: 1,
+                                        indent: 72,
+                                        endIndent: 16,
+                                      ),
+                                    _CardTransactionTile(
+                                      transaction: visibleTransactions[index],
+                                      cardNickname: nicknameById[
+                                              visibleTransactions[index]
+                                                  .creditCardId] ??
+                                          'Card ${visibleTransactions[index].creditCardId}',
+                                      colorValue: colorById[
+                                              visibleTransactions[index]
+                                                  .creditCardId] ??
+                                          0xFF9E9E9E,
+                                      onDelete: () => _scheduleDelete(
+                                        visibleTransactions[index],
+                                      ),
+                                      onEdit: () => context.push(
+                                        '/transactions/${visibleTransactions[index].id}/edit',
+                                      ),
+                                      onLongPress: () =>
+                                          _showCardTransactionActions(
+                                        context,
+                                        visibleTransactions[index],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (pageState.valueOrNull?.isLoadingMore ?? false)
+                            const SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     },
                     loading: () =>
@@ -327,15 +380,76 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 }
 
+class _CardFilterBar extends ConsumerWidget {
+  const _CardFilterBar({required this.cardsAsync});
+
+  final AsyncValue<List<CreditCard>> cardsAsync;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cards = cardsAsync.valueOrNull ?? [];
+    if (cards.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedCardId = ref.watch(transactionCardFilterProvider);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: const Text('All cards'),
+              selected: selectedCardId == null,
+              onSelected: (_) {
+                ref.read(transactionCardFilterProvider.notifier).state = null;
+              },
+            ),
+          ),
+          for (final card in cards)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                avatar: CircleAvatar(
+                  radius: 10,
+                  backgroundColor:
+                      Color(card.colorValue).withValues(alpha: 0.2),
+                  child: Icon(
+                    Icons.credit_card,
+                    size: 12,
+                    color: Color(card.colorValue),
+                  ),
+                ),
+                label: Text(card.nickname),
+                selected: selectedCardId == card.id,
+                onSelected: (selected) {
+                  ref.read(transactionCardFilterProvider.notifier).state =
+                      selected ? card.id : null;
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CardTransactionTile extends StatelessWidget {
   const _CardTransactionTile({
     required this.transaction,
+    required this.cardNickname,
+    required this.colorValue,
     required this.onDelete,
     required this.onEdit,
     required this.onLongPress,
   });
 
   final CardTransaction transaction;
+  final String cardNickname;
+  final int colorValue;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
   final VoidCallback onLongPress;
@@ -365,15 +479,10 @@ class _CardTransactionTile extends StatelessWidget {
         onDelete();
         return true;
       },
-      child: ListTile(
-        title: Text(transaction.merchant),
-        subtitle: Text(formatPaise(transaction.amountPaise)),
-        trailing: transaction.isRecoverable
-            ? const Icon(Icons.people_outline, size: 18)
-            : transaction.isReviewed
-                ? null
-                : const Icon(Icons.fiber_new, size: 16),
-        onTap: () => context.push('/transactions/${transaction.id}'),
+      child: CardTransactionListTile(
+        transaction: transaction,
+        cardNickname: cardNickname,
+        colorValue: colorValue,
         onLongPress: onLongPress,
       ),
     );
@@ -406,7 +515,10 @@ class _AccountsSegmentBody extends ConsumerWidget {
             for (final group in monthGroups) ...[
               SliverPersistentHeader(
                 pinned: true,
-                delegate: _StickyHeaderDelegate(group.header),
+                delegate: _StickyHeaderDelegate(
+                  title: group.header,
+                  subtitle: '${group.transactions.length} transactions',
+                ),
               ),
               SliverList(
                 delegate: SliverChildBuilderDelegate(
@@ -436,15 +548,21 @@ class _AccountsSegmentBody extends ConsumerWidget {
 }
 
 class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _StickyHeaderDelegate(this.label);
+  _StickyHeaderDelegate({
+    required this.title,
+    required this.subtitle,
+    this.badge,
+  });
 
-  final String label;
+  final String title;
+  final String subtitle;
+  final String? badge;
 
   @override
-  double get minExtent => 44;
+  double get minExtent => 56;
 
   @override
-  double get maxExtent => 44;
+  double get maxExtent => 56;
 
   @override
   Widget build(
@@ -454,14 +572,33 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            if (badge != null)
+              Chip(
+                label: Text(badge!),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+          ],
         ),
       ),
     );
@@ -469,6 +606,8 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _StickyHeaderDelegate oldDelegate) {
-    return oldDelegate.label != label;
+    return oldDelegate.title != title ||
+        oldDelegate.subtitle != subtitle ||
+        oldDelegate.badge != badge;
   }
 }

@@ -1,18 +1,27 @@
 import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/features/analytics/engine/analytics_period.dart';
 
 class TransactionCycleGroup {
   const TransactionCycleGroup({
     required this.cycleLabel,
+    required this.cardNickname,
+    required this.billingCycleId,
+    required this.isCurrentCycle,
     required this.transactions,
   });
 
   final String cycleLabel;
+  final String cardNickname;
+  final int? billingCycleId;
+  final bool isCurrentCycle;
   final List<CardTransaction> transactions;
 }
 
 List<TransactionCycleGroup> groupCardTransactionsByCycle({
   required List<CardTransaction> transactions,
   required Map<int, BillingCycle> cyclesById,
+  required Map<int, String> nicknameByCardId,
+  required Set<int> currentCycleIds,
 }) {
   final grouped = <int?, List<CardTransaction>>{};
 
@@ -29,35 +38,52 @@ List<TransactionCycleGroup> groupCardTransactionsByCycle({
 
   for (final cycleId in cycleIds) {
     final cycle = cyclesById[cycleId]!;
-    final label =
-        '${_formatDate(cycle.startDate)} – ${_formatDate(cycle.endDate)}';
+    final cardNickname =
+        nicknameByCardId[cycle.creditCardId] ?? 'Card ${cycle.creditCardId}';
+    final label = formatBillingCycleLabel(cycle.startDate, cycle.endDate);
     final cycleTransactions = grouped[cycleId]!
       ..sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
 
     groups.add(
       TransactionCycleGroup(
         cycleLabel: label,
+        cardNickname: cardNickname,
+        billingCycleId: cycleId,
+        isCurrentCycle: currentCycleIds.contains(cycleId),
         transactions: cycleTransactions,
       ),
     );
   }
 
-  final unassigned = grouped[null];
+  final unassigned = grouped.remove(null);
   if (unassigned != null && unassigned.isNotEmpty) {
-    unassigned.sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
-    groups.add(
-      TransactionCycleGroup(
-        cycleLabel: 'Unassigned',
-        transactions: unassigned,
-      ),
-    );
+    final byCardId = <int, List<CardTransaction>>{};
+    for (final transaction in unassigned) {
+      byCardId
+          .putIfAbsent(transaction.creditCardId, () => [])
+          .add(transaction);
+    }
+
+    final cardIds = byCardId.keys.toList()
+      ..sort(
+        (a, b) => (nicknameByCardId[a] ?? 'Card $a')
+            .compareTo(nicknameByCardId[b] ?? 'Card $b'),
+      );
+
+    for (final cardId in cardIds) {
+      final cardTransactions = byCardId[cardId]!
+        ..sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
+      groups.add(
+        TransactionCycleGroup(
+          cycleLabel: 'Needs billing setup',
+          cardNickname: nicknameByCardId[cardId] ?? 'Card $cardId',
+          billingCycleId: null,
+          isCurrentCycle: false,
+          transactions: cardTransactions,
+        ),
+      );
+    }
   }
 
   return groups;
-}
-
-String _formatDate(DateTime date) {
-  return '${date.day.toString().padLeft(2, '0')}/'
-      '${date.month.toString().padLeft(2, '0')}/'
-      '${date.year}';
 }

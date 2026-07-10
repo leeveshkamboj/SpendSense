@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/billing_cycles/domain/billing_cycle_status.dart';
-import 'package:spendsense/features/billing_cycles/domain/card_transaction_line.dart';
+import 'package:spendsense/features/billing_cycles/domain/card_transaction_kind_codec.dart';
 import 'package:spendsense/features/billing_cycles/engine/bill_amount.dart';
 import 'package:spendsense/features/billing_cycles/engine/cycle_status.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
@@ -393,14 +393,7 @@ class LinkingRepository {
 
       final transactions = await _cardTransactions.listForBillingCycle(cycle.id);
       final billAmountPaise = calculateBillAmount(
-        transactions.map(
-          (tx) => CardTransactionLine(
-            kind: CardTransactionKind.values.firstWhere(
-              (kind) => kind.name == tx.kind,
-            ),
-            amountPaise: tx.amountPaise,
-          ),
-        ),
+        transactions.map(cardTransactionLineFrom),
       );
       final summary = summarizeBillingCycle(
         cycle: cycle,

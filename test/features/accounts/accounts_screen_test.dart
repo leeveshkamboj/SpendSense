@@ -68,8 +68,9 @@ void main() {
 
       expect(find.text('HDFC ••5534'), findsWidgets);
       expect(find.text('Billing Cycles'), findsOneWidget);
-      expect(find.textContaining('Bill Amount:'), findsWidgets);
-      expect(find.text('Paid'), findsWidgets);
+      expect(find.textContaining('Bill Amount:'), findsNothing);
+      expect(find.textContaining('Spend'), findsWidgets);
+      expect(find.byIcon(Icons.chevron_right), findsWidgets);
 
       await database.close();
     });

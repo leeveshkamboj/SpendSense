@@ -34,6 +34,13 @@ List<SettingsEntry> buildSettingsCatalog(BuildContext context) {
     ),
     SettingsEntry(
       group: SettingsGroup.data,
+      title: 'Re-import SMS',
+      subtitle: 'Scan inbox again for missed transactions',
+      keywords: ['sms', 'import', 'inbox', 'reimport'],
+      onTap: () => context.push('/settings/sms-reimport'),
+    ),
+    SettingsEntry(
+      group: SettingsGroup.data,
       title: 'Export report',
       subtitle: 'PDF, CSV, or Excel summary',
       keywords: ['export', 'report', 'pdf', 'csv', 'excel'],
@@ -45,13 +52,6 @@ List<SettingsEntry> buildSettingsCatalog(BuildContext context) {
       subtitle: 'Encrypted .ssb export and restore',
       keywords: ['backup', 'restore', 'ssb'],
       onTap: () => context.push('/settings/backup'),
-    ),
-    SettingsEntry(
-      group: SettingsGroup.capture,
-      title: 'SMS senders',
-      subtitle: 'Bank sender whitelist for capture',
-      keywords: ['sms', 'sender', 'whitelist', 'bank'],
-      onTap: () => context.push('/settings/sms-senders'),
     ),
     SettingsEntry(
       group: SettingsGroup.budgets,

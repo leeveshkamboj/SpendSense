@@ -2,6 +2,8 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/billing_cycles/domain/billing_cycle_status.dart';
 import 'package:spendsense/features/billing_cycles/engine/cycle_status.dart';
 
+export 'package:spendsense/core/formatting/amount_display.dart' show formatPaise;
+
 class BillingCycleSummary {
   const BillingCycleSummary({
     required this.cycle,
@@ -42,7 +44,3 @@ String billingCycleStatusLabel(BillingCycleStatus status) {
   };
 }
 
-String formatPaise(int paise) {
-  final rupees = paise / 100;
-  return '₹${rupees.toStringAsFixed(rupees.truncateToDouble() == rupees ? 0 : 2)}';
-}

@@ -12,15 +12,6 @@ class AppShell extends ConsumerWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  static const tabLabels = [
-    'Dashboard',
-    'Transactions',
-    'Accounts',
-    'Analytics',
-    'Bills',
-    'Settings',
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(spendingAlertSyncProvider);
@@ -37,6 +28,7 @@ class AppShell extends ConsumerWidget {
         ],
       ),
       bottomNavigationBar: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: navigationShell.goBranch,
         destinations: const [
@@ -74,11 +66,42 @@ class AppShell extends ConsumerWidget {
       ),
       floatingActionButton: showFab
           ? FloatingActionButton(
-              onPressed: () {},
+              onPressed: () => showQuickAddSheet(context),
               tooltip: 'Quick Add',
               child: const Icon(Icons.add),
             )
           : null,
     );
   }
+}
+
+void showQuickAddSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    builder: (sheetContext) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.remove_circle_outline),
+              title: const Text('Expense'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push('/transactions/manual?kind=expense');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_circle_outline),
+              title: const Text('Income'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push('/transactions/manual?kind=refund');
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }

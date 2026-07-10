@@ -44,7 +44,10 @@ class InMemoryLocationPermissionGateway implements LocationPermissionGateway {
   Future<LocationPermissionState> check() async => _state;
 
   @override
-  Future<LocationPermissionState> request() async => _state;
+  Future<LocationPermissionState> request() async {
+    _state = LocationPermissionState.granted;
+    return _state;
+  }
 
   void setState(LocationPermissionState state) => _state = state;
 }

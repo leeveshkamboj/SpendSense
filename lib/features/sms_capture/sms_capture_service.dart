@@ -8,6 +8,8 @@ import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/domain/captured_transaction_snapshot.dart';
 import 'package:spendsense/features/sms_capture/duplicate_detection.dart';
 import 'package:spendsense/features/sms_capture/parsers/sms_parser.dart';
+import 'package:spendsense/features/sms_capture/sms_capture_log.dart';
+import 'package:spendsense/features/sms_capture/sms_parse_diagnostics.dart';
 import 'package:spendsense/features/sms_capture/unparsed_sms_notifier.dart';
 import 'package:spendsense/features/linking/data/linking_repository.dart';
 import 'package:spendsense/features/merchants/data/merchant_repository.dart';
@@ -50,11 +52,19 @@ class SmsCaptureService {
   Future<SmsCaptureResult> processSms(String sms) async {
     final parsed = parseBankSms(sms);
     if (parsed == null) {
+      if (looksBankRelatedSms(sms)) {
+        final diagnostic = diagnoseSmsParse(sms);
+        smsCaptureLog(
+          'Ignored bank-like SMS: $diagnostic preview="${smsPreview(sms)}"',
+        );
+      }
       if (shouldNotifyManualAdd(sms)) {
         onManualAddSuggested?.call(sms);
       }
       return SmsCaptureResult.ignored;
     }
+
+    smsCaptureLog('Parsed SMS: ${describeParsedSms(parsed)}');
 
     return switch (parsed) {
       ParsedCardExpenseMessage(:final expense) => _captureCardExpense(expense),
@@ -67,12 +77,21 @@ class SmsCaptureService {
   Future<SmsCaptureResult> _captureCardExpense(ParsedCardExpense parsed) async {
     final cardId = await _resolveCardId(parsed);
     if (await _isCardDuplicate(parsed, cardId)) {
+      smsCaptureLog(
+        'Duplicate card expense: cardId=$cardId '
+        'amountPaise=${parsed.amountPaise} merchant=${parsed.merchant} '
+        'ref=${parsed.referenceNumber ?? 'none'}',
+      );
       return SmsCaptureResult.duplicate;
     }
 
     final billingCycleId = await _creditCards.findBillingCycleIdForTransaction(
       cardId: cardId,
       transactionAt: parsed.transactionAt,
+    );
+    smsCaptureLog(
+      'Capturing card expense: cardId=$cardId billingCycleId=$billingCycleId '
+      'at=${parsed.transactionAt.toIso8601String()}',
     );
 
     final category = await _merchants.resolveDefaultCategory(parsed.merchant);

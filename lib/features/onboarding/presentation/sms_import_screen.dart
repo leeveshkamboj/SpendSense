@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
-import 'package:spendsense/features/onboarding/sms_import_filter.dart';
+import 'package:spendsense/features/onboarding/sms_import_loader.dart';
+import 'package:spendsense/features/onboarding/sms_import_log.dart';
 import 'package:spendsense/features/onboarding/sms_import_service.dart';
+import 'package:spendsense/features/sms_capture/data/sms_inbox_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_providers.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_providers.dart';
-import 'package:spendsense/features/location/location_providers.dart';
-import 'package:spendsense/features/location/location_permission_gateway.dart';
+
+final smsInboxGatewayProvider = Provider<SmsInboxGateway>((ref) {
+  return PlatformSmsInboxGateway();
+});
 
 final smsImportServiceProvider = Provider<SmsImportService>((ref) {
   return SmsImportService(ref.watch(smsCaptureServiceProvider));
@@ -31,6 +35,9 @@ class SmsImportScreen extends ConsumerStatefulWidget {
 class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
   double _progress = 0;
   bool _started = false;
+  late final DateTime _importSince = smsImportWindowStart(
+    restoreSince: widget.since,
+  );
 
   @override
   void initState() {
@@ -42,23 +49,52 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
     if (_started) return;
     _started = true;
 
-    final permission = await ref.read(smsPermissionGatewayProvider).request();
-    await _maybeExplainLocation(context);
+    smsImportLog(
+      'SMS import screen started '
+      '(restoreSince=${widget.since?.toIso8601String() ?? 'none'}, '
+      'windowSince=${_importSince.toIso8601String()})',
+    );
+
     final repository = ref.read(onboardingRepositoryProvider);
     final startIndex = await repository.importLastIndex();
     final completed = await repository.importCompleted();
+    smsImportLog(
+      'Saved import state: completed=$completed lastIndex=$startIndex',
+    );
+
     if (completed) {
+      smsImportLog(
+        'Skipping import because it was already marked complete. '
+        'New SMS parsers will not re-run until import is reset.',
+      );
       widget.onComplete();
       return;
     }
 
-    final sampleMessages = permission == SmsPermissionState.granted
-        ? _messagesToImport()
-        : <String>[];
+    final permission = await ref.read(smsPermissionGatewayProvider).check();
+    smsImportLog('SMS permission state: $permission');
+
+    List<String> messages;
+    if (permission == SmsPermissionState.granted) {
+      try {
+        messages = await loadSmsMessagesForImport(
+          inbox: ref.read(smsInboxGatewayProvider),
+          since: _importSince,
+        );
+      } catch (error, stackTrace) {
+        smsImportLogError('Failed to load inbox messages', error, stackTrace);
+        messages = const [];
+      }
+    } else {
+      messages = const [];
+      smsImportLog('SMS permission denied; continuing with manual entry only');
+    }
+
+    smsImportLog('Prepared ${messages.length} messages for processing');
 
     final importService = ref.read(smsImportServiceProvider);
-    await importService.importMessages(
-      sampleMessages,
+    final result = await importService.importMessages(
+      messages,
       startIndex: startIndex,
       onProgress: (processed, total) async {
         if (!mounted) return;
@@ -70,63 +106,14 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
       },
     );
 
-    if (mounted) widget.onComplete();
-  }
-
-  Future<void> _maybeExplainLocation(BuildContext context) async {
-    final service = ref.read(locationCaptureServiceProvider);
-    final decision = await service.requestForCapture();
-    if (!mounted || decision != LocationCaptureDecision.showExplanation) {
-      return;
-    }
-
-    final proceed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add transaction location?'),
-        content: const Text(
-          'SpendSense can attach your location when a bank SMS is captured. '
-          'This helps you remember where a purchase happened.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Not now'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
+    smsImportLog(
+      'SMS import screen finished: '
+      'captured=${result.capturedCount} '
+      'duplicates=${result.duplicateCount} '
+      'ignored=${result.ignoredCount}',
     );
 
-    await service.completeExplanationFlow();
-    if (!mounted) {
-      return;
-    }
-    if (proceed == false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location capture skipped')),
-      );
-    }
-  }
-
-  List<String> _messagesToImport() {
-    final messages = _sampleHistoricalMessages();
-    final since = widget.since;
-    if (since == null) {
-      return messages;
-    }
-    return filterSmsSince(messages, since: since);
-  }
-
-  List<String> _sampleHistoricalMessages() {
-    return [
-      'Spent Rs.411.67 On HDFC Bank Card 5534 At ZOMATO LTD On 2026-07-09:16:15:20.',
-      'Dear UPI user A/C X0428 debited by 25000.00 on 09-07-26 to MERCHANT Ref 987654',
-      'Rs.199.15 spent on your SBI Credit Card ending with 8401 at ZOMATO on 09-07-26 Ref 123456',
-    ];
+    if (mounted) widget.onComplete();
   }
 
   @override
@@ -140,8 +127,8 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
           children: [
             Text(
               widget.since == null
-                  ? 'Importing the last 12 months of bank SMS…'
-                  : 'Importing bank SMS received since ${_formatDate(widget.since!)}…',
+                  ? 'Importing the last $smsImportWindowMonths months of bank SMS…'
+                  : 'Importing bank SMS since ${_formatDate(_importSince)}…',
             ),
             const SizedBox(height: 24),
             LinearProgressIndicator(value: _progress),

@@ -1,10 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spendsense/core/database/database.dart';
-import 'package:spendsense/features/budgets/data/budget_repository.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_repository.dart';
-import 'package:spendsense/features/recoverables/data/recoverable_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
 
 void main() {
@@ -12,26 +10,15 @@ void main() {
     late AppDatabase database;
     late CreditCardRepository creditCards;
     late CardTransactionRepository transactions;
-    late RecoverableRepository recoverables;
     late DashboardRepository dashboard;
 
     setUp(() {
       database = AppDatabase(NativeDatabase.memory());
       creditCards = CreditCardRepository(database);
       transactions = CardTransactionRepository(database);
-      recoverables = RecoverableRepository(
-        database: database,
-        transactions: transactions,
-      );
       dashboard = DashboardRepository(
-        database: database,
         creditCards: creditCards,
         cardTransactions: transactions,
-        budgets: BudgetRepository(
-          database: database,
-          creditCards: creditCards,
-          cardTransactions: transactions,
-        ),
       );
     });
 
@@ -39,7 +26,7 @@ void main() {
       await database.close();
     });
 
-    test('returns aggregate and per-card spend for current budget period', () async {
+    test('returns aggregate and per-card spend for current billing cycle', () async {
       final hdfcId = await creditCards.create(
         const NewCreditCard(
           bank: 'HDFC',
@@ -90,7 +77,7 @@ void main() {
           source: 'SMS',
         ),
       );
-      final sbiTransactionId = await transactions.insert(
+      await transactions.insert(
         NewCardTransaction(
           creditCardId: sbiId,
           billingCycleId: sbiCycle.id,
@@ -100,11 +87,6 @@ void main() {
           transactionAt: DateTime(2026, 7, 8),
           source: 'SMS',
         ),
-      );
-      await recoverables.markRecoverable(
-        transactionId: sbiTransactionId,
-        isRecoverable: true,
-        person: 'Alex',
       );
 
       final summary = await dashboard.cardSpendSummary(asOf: DateTime(2026, 7, 10));
@@ -123,6 +105,126 @@ void main() {
         summary.cards.firstWhere((row) => row.nickname == 'SBI ••1234').spentPaise,
         30000,
       );
+    });
+
+    test('includes cards with zero spend in current cycle', () async {
+      final configuredId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: configuredId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2026, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      await creditCards.create(
+        const NewCreditCard(
+          bank: 'SBI',
+          lastFourDigits: '9999',
+          nickname: 'SBI ••9999',
+          colorValue: 0xFF1565C0,
+          iconName: 'credit_card',
+        ),
+      );
+
+      final summary = await dashboard.cardSpendSummary(asOf: DateTime(2026, 7, 10));
+
+      expect(summary.cards, hasLength(2));
+      expect(
+        summary.cards.firstWhere((row) => row.nickname == 'SBI ••9999').spentPaise,
+        0,
+      );
+    });
+
+    test('subtracts refunds from current cycle spend', () async {
+      final cardId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: cardId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2026, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      final cycle = (await creditCards.listCycles(cardId))
+          .firstWhere((row) => row.startDate == DateTime(2026, 6, 16));
+
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: cycle.id,
+          kind: 'expense',
+          amountPaise: 100000,
+          merchant: 'STORE',
+          transactionAt: DateTime(2026, 7, 9),
+          source: 'SMS',
+        ),
+      );
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: cycle.id,
+          kind: 'refund',
+          amountPaise: 20000,
+          merchant: 'STORE',
+          transactionAt: DateTime(2026, 7, 9, 12),
+          source: 'SMS',
+        ),
+      );
+
+      final summary = await dashboard.cardSpendSummary(asOf: DateTime(2026, 7, 10));
+
+      expect(summary.totalPaise, 80000);
+    });
+
+    test('includes unassigned transactions in current cycle', () async {
+      final cardId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'SBI',
+          lastFourDigits: '8401',
+          nickname: 'SBI ••8401',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: cardId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2026, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          kind: 'expense',
+          amountPaise: 45000,
+          merchant: 'MAMTARANI',
+          transactionAt: DateTime(2026, 7, 9),
+          source: 'SMS',
+        ),
+      );
+
+      final summary = await dashboard.cardSpendSummary(asOf: DateTime(2026, 7, 10));
+
+      expect(summary.totalPaise, 45000);
     });
 
     test('returns recent card transactions newest first', () async {
@@ -161,6 +263,7 @@ void main() {
 
       expect(recent, hasLength(2));
       expect(recent.first.merchant, 'NEWER');
+      expect(recent.first.cardNickname, 'HDFC ••5534');
       expect(recent.first.amountPaise, 20000);
       expect(recent.last.merchant, 'OLDER');
     });

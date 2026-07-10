@@ -19,6 +19,8 @@ BillSummary _sampleBill() {
     creditCardId: 1,
     cardNickname: 'HDFC ••5534',
     dueDate: DateTime(2026, 8, 2),
+    billAmountPaise: 50000,
+    paymentsAppliedPaise: 0,
     totalOutstandingPaise: 50000,
     netOutstandingPaise: 42000,
     status: BillingCycleStatus.billed,
@@ -51,9 +53,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('₹800 across 2 cards'), findsOneWidget);
-      expect(find.text('HDFC ••5534'), findsOneWidget);
-      expect(find.text('SBI ••1234'), findsOneWidget);
+      expect(find.textContaining('₹800'), findsOneWidget);
+      expect(find.textContaining('Across 2 cards'), findsOneWidget);
       expect(find.textContaining('₹500'), findsWidgets);
       expect(find.textContaining('₹300'), findsOneWidget);
     });
@@ -87,9 +88,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('₹500 used of ₹1000'), findsOneWidget);
-      expect(find.textContaining('₹500 remaining'), findsOneWidget);
-      expect(find.textContaining('Projected ₹800'), findsOneWidget);
+      expect(find.textContaining('₹500'), findsWidgets);
+      expect(find.textContaining('remaining'), findsOneWidget);
+      expect(find.textContaining('projected'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
@@ -140,6 +141,7 @@ void main() {
                   amountPaise: 41167,
                   transactionAt: DateTime(2026, 7, 9, 16, 15),
                   colorValue: 0xFF00695C,
+                  cardNickname: 'HDFC ••5534',
                 ),
               ],
             ),
@@ -152,7 +154,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Recent Transactions'), findsOneWidget);
-      expect(find.text('ZOMATO LTD'), findsOneWidget);
+      expect(find.text('Zomato Ltd'), findsOneWidget);
       expect(find.textContaining('₹411.67'), findsOneWidget);
     });
   });

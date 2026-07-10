@@ -22,11 +22,26 @@ class OnboardingGate extends ConsumerWidget {
     final onboarding = ref.watch(onboardingCompleteProvider);
 
     return onboarding.when(
-      data: (complete) =>
-          complete ? child : const OnboardingFlow(),
+      data: (complete) => complete ? child : const OnboardingNavigator(),
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(body: Center(child: Text('Error: $error'))),
+    );
+  }
+}
+
+class OnboardingNavigator extends StatelessWidget {
+  const OnboardingNavigator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (context) => const OnboardingFlow(),
+        );
+      },
     );
   }
 }

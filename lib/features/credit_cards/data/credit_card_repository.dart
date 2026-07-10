@@ -86,8 +86,22 @@ class CreditCardRepository {
     );
 
     final now = DateTime.now();
+    await _deduplicateBillingCyclesForCard(cardId);
+
+    final existingCycles = await listCycles(cardId);
+    final existingPeriods = {
+      for (final cycle in existingCycles)
+        _cyclePeriodKey(cycle.startDate, cycle.endDate): cycle,
+    };
+
     await _database.batch((batch) {
       for (final period in periods) {
+        if (existingPeriods.containsKey(
+          _cyclePeriodKey(period.startDate, period.endDate),
+        )) {
+          continue;
+        }
+
         final billGenerated = shouldGenerateBill(
           cycleEndDate: period.endDate,
           asOf: now,
@@ -111,6 +125,295 @@ class CreditCardRepository {
         );
       }
     });
+
+    await _assignBillingCyclesToExistingTransactions(cardId);
+  }
+
+  Future<void> updateBillingSettings({
+    required int cardId,
+    required int billDayOfMonth,
+    required int dueDateOffsetDays,
+    required DateTime historyFrom,
+    required DateTime historyTo,
+  }) async {
+    final card = await getById(cardId);
+    if (card == null) {
+      return;
+    }
+
+    if (card.billDayOfMonth == null) {
+      await configureBilling(
+        cardId: cardId,
+        billDayOfMonth: billDayOfMonth,
+        dueDateOffsetDays: dueDateOffsetDays,
+        historyFrom: historyFrom,
+        historyTo: historyTo,
+      );
+      return;
+    }
+
+    final billDayChanged = card.billDayOfMonth != billDayOfMonth;
+    final offsetChanged = card.dueDateOffsetDays != dueDateOffsetDays;
+
+    if (!billDayChanged && !offsetChanged) {
+      return;
+    }
+
+    if (billDayChanged) {
+      await configureBilling(
+        cardId: cardId,
+        billDayOfMonth: billDayOfMonth,
+        dueDateOffsetDays: dueDateOffsetDays,
+        historyFrom: historyFrom,
+        historyTo: historyTo,
+      );
+      await _reassignAllTransactions(cardId);
+      await _pruneEmptyCycles(cardId);
+      return;
+    }
+
+    await (_database.update(_database.creditCards)
+          ..where((row) => row.id.equals(cardId)))
+        .write(
+      CreditCardsCompanion(
+        dueDateOffsetDays: Value(dueDateOffsetDays),
+      ),
+    );
+    await _refreshDueDates(cardId, dueDateOffsetDays);
+  }
+
+  Future<void> _reassignAllTransactions(int cardId) async {
+    final transactions = await (_database.select(_database.cardTransactions)
+          ..where((tx) => tx.creditCardId.equals(cardId)))
+        .get();
+
+    for (final transaction in transactions) {
+      final cycleId = await findBillingCycleIdForTransaction(
+        cardId: cardId,
+        transactionAt: transaction.transactionAt,
+      );
+
+      await (_database.update(_database.cardTransactions)
+            ..where((tx) => tx.id.equals(transaction.id)))
+          .write(CardTransactionsCompanion(billingCycleId: Value(cycleId)));
+    }
+  }
+
+  Future<void> _refreshDueDates(int cardId, int dueDateOffsetDays) async {
+    final cycles = await listCycles(cardId);
+    for (final cycle in cycles) {
+      if (!cycle.billGenerated) {
+        continue;
+      }
+
+      final dueDate = calculateDueDate(
+        billDate: cycle.endDate,
+        dueDateOffsetDays: dueDateOffsetDays,
+      );
+
+      await (_database.update(_database.billingCycles)
+            ..where((row) => row.id.equals(cycle.id)))
+          .write(BillingCyclesCompanion(dueDate: Value(dueDate)));
+    }
+  }
+
+  Future<void> _pruneEmptyCycles(int cardId) async {
+    final cycles = await listCycles(cardId);
+
+    for (final cycle in cycles) {
+      if (cycle.paymentsAppliedPaise > 0) {
+        continue;
+      }
+
+      final transactionCount = await (_database.selectOnly(
+        _database.cardTransactions,
+      )
+            ..addColumns([_database.cardTransactions.id.count()])
+            ..where(_database.cardTransactions.billingCycleId.equals(cycle.id)))
+          .map((row) => row.read(_database.cardTransactions.id.count()) ?? 0)
+          .getSingle();
+
+      if (transactionCount == 0) {
+        await (_database.delete(_database.billingCycles)
+              ..where((row) => row.id.equals(cycle.id)))
+            .go();
+      }
+    }
+  }
+
+  String _cyclePeriodKey(DateTime startDate, DateTime endDate) {
+    return '${startDate.toIso8601String()}|${endDate.toIso8601String()}';
+  }
+
+  Future<void> _deduplicateBillingCyclesForCard(int cardId) async {
+    final cycles = await listCycles(cardId);
+    final grouped = <String, List<BillingCycle>>{};
+
+    for (final cycle in cycles) {
+      final key = _cyclePeriodKey(cycle.startDate, cycle.endDate);
+      grouped.putIfAbsent(key, () => []).add(cycle);
+    }
+
+    for (final duplicates in grouped.values) {
+      if (duplicates.length <= 1) {
+        continue;
+      }
+      await _consolidateDuplicateCycles(duplicates);
+    }
+  }
+
+  Future<BillingCycle> _consolidateDuplicateCycles(
+    List<BillingCycle> duplicates,
+  ) async {
+    final sorted = List<BillingCycle>.from(duplicates)
+      ..sort((a, b) {
+        final paymentCompare =
+            b.paymentsAppliedPaise.compareTo(a.paymentsAppliedPaise);
+        if (paymentCompare != 0) {
+          return paymentCompare;
+        }
+        return a.id.compareTo(b.id);
+      });
+
+    final keeper = sorted.first;
+    for (final duplicate in sorted.skip(1)) {
+      await (_database.update(_database.cardTransactions)
+            ..where((tx) => tx.billingCycleId.equals(duplicate.id)))
+          .write(CardTransactionsCompanion(billingCycleId: Value(keeper.id)));
+
+      await (_database.delete(_database.billingCycles)
+            ..where((row) => row.id.equals(duplicate.id)))
+          .go();
+    }
+
+    return keeper;
+  }
+
+  Future<BillingCycle?> _findCycleForPeriod({
+    required int cardId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final cycles = await (_database.select(_database.billingCycles)
+          ..where(
+            (row) =>
+                row.creditCardId.equals(cardId) &
+                row.startDate.equals(startDate) &
+                row.endDate.equals(endDate),
+          )
+          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
+        .get();
+
+    if (cycles.isEmpty) {
+      return null;
+    }
+    if (cycles.length == 1) {
+      return cycles.first;
+    }
+
+    return _consolidateDuplicateCycles(cycles);
+  }
+
+  Future<void> _assignBillingCyclesToExistingTransactions(int cardId) async {
+    final transactions = await (_database.select(_database.cardTransactions)
+          ..where((tx) => tx.creditCardId.equals(cardId)))
+        .get();
+
+    for (final transaction in transactions) {
+      if (transaction.billingCycleId != null) {
+        continue;
+      }
+
+      final cycleId = await findBillingCycleIdForTransaction(
+        cardId: cardId,
+        transactionAt: transaction.transactionAt,
+      );
+      if (cycleId == null) {
+        continue;
+      }
+
+      await (_database.update(_database.cardTransactions)
+            ..where((tx) => tx.id.equals(transaction.id)))
+          .write(CardTransactionsCompanion(billingCycleId: Value(cycleId)));
+    }
+  }
+
+  Future<List<BillingCycle>> listCurrentCycles({DateTime? asOf}) async {
+    final clock = asOf ?? DateTime.now();
+    final cards = await listActive();
+    final cycles = <BillingCycle>[];
+
+    for (final card in cards) {
+      final billDay = card.billDayOfMonth;
+      if (billDay == null) {
+        continue;
+      }
+
+      final cycle = await ensureCurrentCycle(cardId: card.id, asOf: clock);
+      if (cycle != null) {
+        cycles.add(cycle);
+      }
+    }
+
+    return cycles;
+  }
+
+  Future<BillingCycle?> ensureCurrentCycle({
+    required int cardId,
+    DateTime? asOf,
+  }) async {
+    final card = await getById(cardId);
+    final billDay = card?.billDayOfMonth;
+    if (billDay == null) {
+      return null;
+    }
+
+    final clock = asOf ?? DateTime.now();
+    final period = billingCycleContaining(
+      transactionDate: clock,
+      billDayOfMonth: billDay,
+    );
+
+    final existing = await _findCycleForPeriod(
+      cardId: cardId,
+      startDate: period.startDate,
+      endDate: period.endDate,
+    );
+    if (existing != null) {
+      await _assignBillingCyclesToExistingTransactions(cardId);
+      return existing;
+    }
+
+    final dueDateOffsetDays = card!.dueDateOffsetDays;
+    final billGenerated = shouldGenerateBill(
+      cycleEndDate: period.endDate,
+      asOf: clock,
+    );
+    final dueDate = billGenerated
+        ? calculateDueDate(
+            billDate: period.endDate,
+            dueDateOffsetDays: dueDateOffsetDays ?? 18,
+          )
+        : null;
+
+    final cycleId = await _database.into(_database.billingCycles).insert(
+          BillingCyclesCompanion.insert(
+            creditCardId: cardId,
+            startDate: period.startDate,
+            endDate: period.endDate,
+            billGenerated: Value(billGenerated),
+            dueDate: Value(dueDate),
+          ),
+        );
+
+    await _assignBillingCyclesToExistingTransactions(cardId);
+    return findCycleById(cycleId);
+  }
+
+  Future<BillingCycle?> findCycleById(int cycleId) {
+    return (_database.select(_database.billingCycles)
+          ..where((cycle) => cycle.id.equals(cycleId)))
+        .getSingleOrNull();
   }
 
   Future<List<BillingCycle>> listCycles(int cardId) {
@@ -226,15 +529,25 @@ class CreditCardRepository {
       billDayOfMonth: billDay,
     );
 
-    final cycle = await (_database.select(_database.billingCycles)
-          ..where(
-            (row) =>
-                row.creditCardId.equals(cardId) &
-                row.startDate.equals(period.startDate) &
-                row.endDate.equals(period.endDate),
-          ))
-        .getSingleOrNull();
+    final cycle = await _findCycleForPeriod(
+      cardId: cardId,
+      startDate: period.startDate,
+      endDate: period.endDate,
+    );
 
     return cycle?.id;
+  }
+
+  Future<void> setCyclePaymentsApplied({
+    required int cycleId,
+    required int paymentsAppliedPaise,
+  }) {
+    return (_database.update(_database.billingCycles)
+          ..where((row) => row.id.equals(cycleId)))
+        .write(
+      BillingCyclesCompanion(
+        paymentsAppliedPaise: Value(paymentsAppliedPaise),
+      ),
+    );
   }
 }

@@ -6,10 +6,12 @@ import 'package:spendsense/features/recoverables/data/recoverable_providers.dart
 class RecoverableSummaryCard extends ConsumerWidget {
   const RecoverableSummaryCard({
     this.billingCycleId,
+    this.embedded = false,
     super.key,
   });
 
   final int? billingCycleId;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,33 +22,67 @@ class RecoverableSummaryCard extends ConsumerWidget {
     return summary.when(
       data: (rows) {
         if (rows.isEmpty) {
-          return const Text('No outstanding recoverables');
+          final message = 'No outstanding recoverables';
+          if (embedded) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            );
+          }
+          return Text(message);
+        }
+
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final entry in rows.entries)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(entry.key)),
+                    Text(
+                      formatPaise(entry.value),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+
+        if (embedded) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: content,
+          );
         }
 
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final entry in rows.entries)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(entry.key),
-                        Text(formatPaise(entry.value)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
+            child: content,
           ),
         );
       },
-      loading: () => const LinearProgressIndicator(),
-      error: (error, _) => Text('Error: $error'),
+      loading: () => embedded
+          ? const Padding(
+              padding: EdgeInsets.all(16),
+              child: LinearProgressIndicator(),
+            )
+          : const LinearProgressIndicator(),
+      error: (error, _) => embedded
+          ? Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Error: $error'),
+            )
+          : Text('Error: $error'),
     );
   }
 }

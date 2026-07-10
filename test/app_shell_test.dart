@@ -48,42 +48,53 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('shows bottom navigation with six tabs', (tester) async {
-      await pumpApp(tester);
-
-      expect(find.byType(NavigationDestination), findsNWidgets(6));
-      expect(find.text('Dashboard'), findsWidgets);
-      expect(find.text('Transactions'), findsOneWidget);
-      expect(find.text('Accounts'), findsOneWidget);
-      expect(find.text('Analytics'), findsOneWidget);
-      expect(find.text('Bills'), findsOneWidget);
-      expect(find.text('Settings'), findsOneWidget);
-    });
-
-    testWidgets('navigates to placeholder screen when tab is tapped', (
+    testWidgets('shows bottom navigation with six icon-only tabs', (
       tester,
     ) async {
       await pumpApp(tester);
 
-      expect(find.text('Dashboard'), findsWidgets);
+      expect(find.byType(NavigationDestination), findsNWidgets(6));
+      expect(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.dashboard),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('navigates when a tab icon is tapped', (tester) async {
+      await pumpApp(tester);
+
+      expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
 
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Transactions'),
+          matching: find.byIcon(Icons.receipt_long_outlined),
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('No card transactions yet'), findsOneWidget);
+      expect(find.widgetWithText(AppBar, 'Transactions'), findsOneWidget);
 
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Settings'),
+          matching: find.byIcon(Icons.settings_outlined),
         ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Settings'), findsWidgets);
+    });
+
+    testWidgets('opens quick add sheet from FAB', (tester) async {
+      await pumpApp(tester);
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Expense'), findsOneWidget);
+      expect(find.text('Income'), findsOneWidget);
     });
 
     testWidgets('shows Quick Add FAB on all tabs except Settings', (
@@ -96,7 +107,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Settings'),
+          matching: find.byIcon(Icons.settings_outlined),
         ),
       );
       await tester.pumpAndSettle();
@@ -105,7 +116,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Bills'),
+          matching: find.byIcon(Icons.request_page_outlined),
         ),
       );
       await tester.pumpAndSettle();

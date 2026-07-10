@@ -19,7 +19,7 @@ import 'package:spendsense/features/transactions/presentation/transactions_scree
 
 void main() {
   group('Transactions screen', () {
-    testWidgets('shows card transactions grouped by billing cycle', (
+    testWidgets('shows card transactions in a flat list', (
       tester,
     ) async {
       final database = AppDatabase(NativeDatabase.memory());
@@ -69,8 +69,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Cards'), findsOneWidget);
-      expect(find.text('ZOMATO LTD'), findsOneWidget);
-      expect(find.textContaining('16/06/2026'), findsOneWidget);
+      expect(find.text('All cards'), findsOneWidget);
+      expect(find.text('Zomato Ltd'), findsOneWidget);
 
       await database.close();
     });
@@ -165,16 +165,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.drag(find.text('ZOMATO LTD'), const Offset(-500, 0));
+      await tester.drag(find.text('Zomato Ltd'), const Offset(-500, 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('ZOMATO LTD'), findsNothing);
+      expect(find.text('Zomato Ltd'), findsNothing);
       expect(find.text('Undo'), findsOneWidget);
 
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle();
 
-      expect(find.text('ZOMATO LTD'), findsOneWidget);
+      expect(find.text('Zomato Ltd'), findsOneWidget);
 
       await database.close();
     });
@@ -246,7 +246,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.text('ZOMATO LTD'));
+      await tester.longPress(find.text('Zomato Ltd'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Copy'));
       await tester.pumpAndSettle();
@@ -332,7 +332,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.drag(find.text('ZOMATO LTD'), const Offset(500, 0));
+      await tester.drag(find.text('Zomato Ltd'), const Offset(500, 0));
       await tester.pumpAndSettle();
 
       expect(find.text('Edit transaction'), findsOneWidget);

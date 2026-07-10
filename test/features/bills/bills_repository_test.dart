@@ -137,5 +137,171 @@ void main() {
 
       expect(rows, isEmpty);
     });
+
+    test('recordManualPayment applies partial payment', () async {
+      final cardId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: cardId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2026, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      final billedCycle = (await creditCards.listCycles(cardId))
+          .firstWhere((cycle) => cycle.billGenerated);
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: billedCycle.id,
+          kind: 'expense',
+          amountPaise: 50000,
+          merchant: 'TEST',
+          transactionAt: billedCycle.startDate.add(const Duration(days: 1)),
+          source: 'Manual',
+        ),
+      );
+
+      await bills.recordManualPayment(
+        cycleId: billedCycle.id,
+        paymentPaise: 20000,
+      );
+
+      final rows = await bills.listUnpaidBills(asOf: DateTime(2026, 7, 20));
+      final updated = rows.firstWhere((row) => row.cycleId == billedCycle.id);
+
+      expect(updated.paymentsAppliedPaise, 20000);
+      expect(updated.totalOutstandingPaise, 30000);
+      expect(updated.status, isNot(BillingCycleStatus.paid));
+    });
+
+    test('markBillPaidInFull removes bill from unpaid list', () async {
+      final cardId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: cardId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2026, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      final billedCycle = (await creditCards.listCycles(cardId))
+          .firstWhere((cycle) => cycle.billGenerated);
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: billedCycle.id,
+          kind: 'expense',
+          amountPaise: 50000,
+          merchant: 'TEST',
+          transactionAt: billedCycle.startDate.add(const Duration(days: 1)),
+          source: 'Manual',
+        ),
+      );
+
+      await bills.markBillPaidInFull(cycleId: billedCycle.id);
+
+      final rows = await bills.listUnpaidBills(asOf: DateTime(2026, 7, 20));
+
+      expect(rows, isEmpty);
+    });
+
+    test('subtracts refunds and ignores card payments in bill amount', () async {
+      final cardId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: cardId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2026, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      final billedCycle = (await creditCards.listCycles(cardId))
+          .firstWhere((cycle) => cycle.billGenerated);
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: billedCycle.id,
+          kind: 'expense',
+          amountPaise: 100000,
+          merchant: 'STORE',
+          transactionAt: billedCycle.startDate.add(const Duration(days: 1)),
+          source: 'SMS',
+        ),
+      );
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: billedCycle.id,
+          kind: 'refund',
+          amountPaise: 25000,
+          merchant: 'STORE',
+          transactionAt: billedCycle.startDate.add(const Duration(days: 2)),
+          source: 'SMS',
+        ),
+      );
+      await transactions.insert(
+        NewCardTransaction(
+          creditCardId: cardId,
+          billingCycleId: billedCycle.id,
+          kind: 'card_payment',
+          amountPaise: 10000,
+          merchant: 'PAYMENT',
+          transactionAt: billedCycle.startDate.add(const Duration(days: 3)),
+          source: 'SMS',
+        ),
+      );
+
+      final rows = await bills.listUnpaidBills(asOf: DateTime(2026, 7, 20));
+
+      expect(rows.single.totalOutstandingPaise, 75000);
+    });
+
+    test('excludes billed cycles older than billing history window', () async {
+      final cardId = await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
+        ),
+      );
+      await creditCards.configureBilling(
+        cardId: cardId,
+        billDayOfMonth: 15,
+        dueDateOffsetDays: 18,
+        historyFrom: DateTime(2025, 1, 1),
+        historyTo: DateTime(2026, 12, 31),
+      );
+
+      final rows = await bills.listUnpaidBills(asOf: DateTime(2026, 7, 20));
+
+      expect(rows.every((bill) => bill.dueDate!.year >= 2026), isTrue);
+    });
   });
 }

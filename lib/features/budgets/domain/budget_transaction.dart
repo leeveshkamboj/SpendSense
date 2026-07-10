@@ -19,6 +19,7 @@ class BudgetTransaction {
     this.transactionAt,
     this.cardBillDayOfMonth,
     this.cardId,
+    this.billingCycleId,
   });
 
   final BudgetTransactionSource source;
@@ -29,4 +30,5 @@ class BudgetTransaction {
   final DateTime? transactionAt;
   final int? cardBillDayOfMonth;
   final int? cardId;
+  final int? billingCycleId;
 }

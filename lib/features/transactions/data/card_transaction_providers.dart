@@ -19,7 +19,13 @@ final groupedCardTransactionsProvider =
     FutureProvider<List<TransactionCycleGroup>>((ref) async {
   final transactions = await ref.watch(cardTransactionsProvider.future);
   final creditCards = ref.watch(creditCardRepositoryProvider);
-  final cyclesById = <int, BillingCycle>{};
+  final cards = await creditCards.listActive();
+  final nicknameByCardId = {for (final card in cards) card.id: card.nickname};
+  final currentCycles = await creditCards.listCurrentCycles();
+  final currentCycleIds = currentCycles.map((cycle) => cycle.id).toSet();
+  final cyclesById = <int, BillingCycle>{
+    for (final cycle in currentCycles) cycle.id: cycle,
+  };
 
   for (final transaction in transactions) {
     final cycleId = transaction.billingCycleId;
@@ -27,14 +33,16 @@ final groupedCardTransactionsProvider =
       continue;
     }
 
-    final cardCycles = await creditCards.listCycles(transaction.creditCardId);
-    for (final cycle in cardCycles) {
-      cyclesById[cycle.id] = cycle;
+    final cycle = await creditCards.findCycleById(cycleId);
+    if (cycle != null) {
+      cyclesById[cycleId] = cycle;
     }
   }
 
   return groupCardTransactionsByCycle(
     transactions: transactions,
     cyclesById: cyclesById,
+    nicknameByCardId: nicknameByCardId,
+    currentCycleIds: currentCycleIds,
   );
 });

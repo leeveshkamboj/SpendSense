@@ -72,8 +72,95 @@ class CardTransactionRepository {
 
   Future<List<CardTransaction>> listForBillingCycle(int billingCycleId) {
     return (_database.select(_database.cardTransactions)
-          ..where((tx) => tx.billingCycleId.equals(billingCycleId)))
+          ..where((tx) => tx.billingCycleId.equals(billingCycleId))
+          ..orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)]))
         .get();
+  }
+
+  /// Transactions assigned to [cycle], plus unassigned rows whose dates fall in
+  /// the cycle period (common after SMS import before billing is configured).
+  Future<List<CardTransaction>> listForBillingCycleInclusive({
+    required int cardId,
+    required BillingCycle cycle,
+  }) async {
+    final assigned = await listForBillingCycle(cycle.id);
+    final periodEnd = DateTime(
+      cycle.endDate.year,
+      cycle.endDate.month,
+      cycle.endDate.day,
+      23,
+      59,
+      59,
+      999,
+    );
+    final unassigned = await (_database.select(_database.cardTransactions)
+          ..where((tx) => tx.creditCardId.equals(cardId))
+          ..where((tx) => tx.billingCycleId.isNull())
+          ..where((tx) => tx.transactionAt.isBiggerOrEqualValue(cycle.startDate))
+          ..where((tx) => tx.transactionAt.isSmallerOrEqualValue(periodEnd))
+          ..orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)]))
+        .get();
+
+    if (unassigned.isEmpty) {
+      return assigned;
+    }
+
+    final seen = assigned.map((tx) => tx.id).toSet();
+    return [
+      ...assigned,
+      for (final tx in unassigned)
+        if (!seen.contains(tx.id)) tx,
+    ];
+  }
+
+  Future<List<CardTransaction>> listForBillingCycleIds(
+    List<int> billingCycleIds, {
+    bool recoverableOnly = false,
+  }) {
+    if (billingCycleIds.isEmpty) {
+      return Future.value([]);
+    }
+
+    final query = _database.select(_database.cardTransactions)
+      ..where((tx) => tx.billingCycleId.isIn(billingCycleIds));
+    if (recoverableOnly) {
+      query.where((tx) => tx.isRecoverable.equals(true));
+    }
+    query.orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)]);
+    return query.get();
+  }
+
+  Future<List<CardTransaction>> listUnassignedSince({
+    required DateTime since,
+    bool recoverableOnly = false,
+  }) {
+    final query = _database.select(_database.cardTransactions)
+      ..where((tx) => tx.billingCycleId.isNull())
+      ..where((tx) => tx.transactionAt.isBiggerOrEqualValue(since));
+    if (recoverableOnly) {
+      query.where((tx) => tx.isRecoverable.equals(true));
+    }
+    query.orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)]);
+    return query.get();
+  }
+
+  Future<int> countForBillingCycleIds(
+    List<int> billingCycleIds, {
+    bool recoverableOnly = false,
+  }) async {
+    if (billingCycleIds.isEmpty) {
+      return 0;
+    }
+
+    final expression = _database.cardTransactions.id.count();
+    final query = _database.selectOnly(_database.cardTransactions)
+      ..addColumns([expression])
+      ..where(_database.cardTransactions.billingCycleId.isIn(billingCycleIds));
+    if (recoverableOnly) {
+      query.where(_database.cardTransactions.isRecoverable.equals(true));
+    }
+    final row = await query.getSingle();
+    return row.read(expression) ?? 0;
   }
 
   Future<List<CardTransaction>> listAll({
@@ -106,6 +193,51 @@ class CardTransactionRepository {
     final expression = _database.cardTransactions.id.count();
     final query = _database.selectOnly(_database.cardTransactions)
       ..addColumns([expression]);
+    if (recoverableOnly) {
+      query.where(_database.cardTransactions.isRecoverable.equals(true));
+    }
+    final row = await query.getSingle();
+    return row.read(expression) ?? 0;
+  }
+
+  Future<List<CardTransaction>> listSince(
+    DateTime since, {
+    bool recoverableOnly = false,
+  }) {
+    final query = _database.select(_database.cardTransactions)
+      ..where((tx) => tx.transactionAt.isBiggerOrEqualValue(since));
+    if (recoverableOnly) {
+      query.where((tx) => tx.isRecoverable.equals(true));
+    }
+    query.orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)]);
+    return query.get();
+  }
+
+  Future<List<CardTransaction>> listPageSince(
+    DateTime since, {
+    required int offset,
+    required int limit,
+    bool recoverableOnly = false,
+  }) {
+    final query = _database.select(_database.cardTransactions)
+      ..where((tx) => tx.transactionAt.isBiggerOrEqualValue(since));
+    if (recoverableOnly) {
+      query.where((tx) => tx.isRecoverable.equals(true));
+    }
+    query
+      ..orderBy([(tx) => OrderingTerm.desc(tx.transactionAt)])
+      ..limit(limit, offset: offset);
+    return query.get();
+  }
+
+  Future<int> countSince(
+    DateTime since, {
+    bool recoverableOnly = false,
+  }) async {
+    final expression = _database.cardTransactions.id.count();
+    final query = _database.selectOnly(_database.cardTransactions)
+      ..addColumns([expression])
+      ..where(_database.cardTransactions.transactionAt.isBiggerOrEqualValue(since));
     if (recoverableOnly) {
       query.where(_database.cardTransactions.isRecoverable.equals(true));
     }
