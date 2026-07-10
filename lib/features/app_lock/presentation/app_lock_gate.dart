@@ -150,11 +150,6 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => _resetPin(context),
-                      child: const Text('Forgot PIN?'),
-                    ),
-                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -183,28 +178,5 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
       _errorText = 'Incorrect PIN';
       _pinController.clear();
     });
-  }
-
-  Future<void> _resetPin(BuildContext context) async {
-    final reset = await ref
-        .read(appLockRepositoryProvider)
-        .resetPinWithDeviceCredential('0000');
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          reset
-              ? 'PIN reset via device credential. Set a new PIN in Settings.'
-              : 'Device verification failed',
-        ),
-      ),
-    );
-    if (reset) {
-      await ref.read(appLockRepositoryProvider).disable();
-      ref.invalidate(appLockEnabledProvider);
-      widget.onUnlock();
-    }
   }
 }
