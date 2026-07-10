@@ -18,9 +18,34 @@ void main() {
       ),
     );
 
-    await tester.enterText(find.byType(TextField), '1234');
-    await tester.pump();
+    for (final digit in '1234'.split('')) {
+      await tester.tap(find.text(digit).last);
+      await tester.pump();
+    }
 
     expect(completed, '1234');
+  });
+
+  testWidgets('PinInputField backspace removes last digit', (tester) async {
+    final controller = TextEditingController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PinInputField(controller: controller),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('1').last);
+    await tester.tap(find.text('2').last);
+    await tester.pump();
+
+    expect(controller.text, '12');
+
+    await tester.tap(find.byIcon(Icons.backspace_outlined));
+    await tester.pump();
+
+    expect(controller.text, '1');
   });
 }

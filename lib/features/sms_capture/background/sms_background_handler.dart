@@ -4,7 +4,6 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 import 'package:spendsense/features/sms_capture/background/sms_capture_runtime.dart';
 import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
-import 'package:spendsense/features/sms_capture/sms_capture_log.dart';
 
 const _backgroundChannelName = 'com.spendsense.spendsense/sms_background';
 const _readyChannelName = 'com.spendsense.spendsense/sms_background_ready';
@@ -47,12 +46,10 @@ class SmsBackgroundHandler {
     try {
       final settings = OnboardingRepository(probeDatabase);
       if (!await settings.isOnboardingComplete()) {
-        smsCaptureLog('Background SMS ignored because onboarding is incomplete');
         return _resultMap(SmsCaptureResult.ignored);
       }
 
       if (!await settings.importCompleted()) {
-        smsCaptureLog('Background SMS ignored because import is incomplete');
         return _resultMap(SmsCaptureResult.ignored);
       }
     } finally {
@@ -79,3 +76,4 @@ class SmsBackgroundHandler {
     return {'result': result.name};
   }
 }
+

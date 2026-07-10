@@ -22,6 +22,7 @@ void main() {
             isRecoverable: false,
             recoverablePerson: null,
             isReviewed: false,
+    isRecurring: false,
             createdAt: DateTime(2026, 7, 9, 16, 16),
           ),
         ],

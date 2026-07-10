@@ -7,6 +7,7 @@ import 'package:spendsense/features/credit_cards/data/credit_card_repository.dar
 import 'package:spendsense/features/credit_cards/domain/card_network.dart';
 import 'package:spendsense/features/credit_cards/presentation/card_network_picker.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
+import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
@@ -79,11 +80,13 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
         dueOffset != null &&
         (existing == null || existing.billDayOfMonth == null)) {
       final now = DateTime.now();
+      final historyMonths =
+          await ref.read(onboardingRepositoryProvider).smsImportWindowMonths();
       await repository.updateBillingSettings(
         cardId: id,
         billDayOfMonth: billDay,
         dueDateOffsetDays: dueOffset,
-        historyFrom: billingHistoryStart(now: now),
+        historyFrom: billingHistoryStart(now: now, months: historyMonths),
         historyTo: now,
       );
     }

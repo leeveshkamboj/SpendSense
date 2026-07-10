@@ -13,6 +13,10 @@ final onboardingCompleteProvider = FutureProvider<bool>((ref) {
   return ref.watch(onboardingRepositoryProvider).isOnboardingComplete();
 });
 
+final smsImportWindowMonthsProvider = FutureProvider<int>((ref) {
+  return ref.watch(onboardingRepositoryProvider).smsImportWindowMonths();
+});
+
 class OnboardingGate extends ConsumerWidget {
   const OnboardingGate({required this.child, super.key});
 

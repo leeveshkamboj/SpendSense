@@ -1,5 +1,4 @@
 import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
-import 'package:spendsense/features/onboarding/sms_import_log.dart';
 import 'package:spendsense/features/sms_capture/data/sms_inbox_gateway.dart';
 import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
@@ -37,13 +36,11 @@ class SmsSyncService {
     final clock = now ?? DateTime.now();
 
     if (!await _settings.isOnboardingComplete()) {
-      smsImportLog('Skipping SMS sync because onboarding is not complete');
       return const SmsSyncResult.skipped(SmsSyncSkipReason.onboardingIncomplete);
     }
 
     final permission = await _permissionGateway.check();
     if (permission != SmsPermissionState.granted) {
-      smsImportLog('Skipping SMS sync because permission is $permission');
       return const SmsSyncResult.skipped(SmsSyncSkipReason.permissionDenied);
     }
 
@@ -51,21 +48,14 @@ class SmsSyncService {
     if (lastSync == null) {
       final importCompleted = await _settings.importCompleted();
       if (importCompleted) {
-        smsImportLog(
-          'Establishing SMS sync baseline for existing install at '
-          '${clock.toIso8601String()}',
-        );
         await _settings.saveLastSmsSyncAt(clock);
         return const SmsSyncResult.skipped(SmsSyncSkipReason.baselineEstablished);
       }
 
-      smsImportLog('Skipping SMS sync because historical import is not complete');
       return const SmsSyncResult.skipped(SmsSyncSkipReason.importIncomplete);
     }
 
     final since = lastSync.subtract(const Duration(seconds: 1));
-    smsImportLog('Syncing inbox messages since ${since.toIso8601String()}');
-
     final messages = await _inbox.readInbox(since: since);
     final newMessages = messages
         .where((message) => message.receivedAt.isAfter(lastSync))
@@ -73,7 +63,6 @@ class SmsSyncService {
       ..sort((a, b) => a.receivedAt.compareTo(b.receivedAt));
 
     if (newMessages.isEmpty) {
-      smsImportLog('No new inbox messages to process');
       return const SmsSyncResult.processed(
         messageCount: 0,
         capturedCount: 0,
@@ -81,8 +70,6 @@ class SmsSyncService {
         ignoredCount: 0,
       );
     }
-
-    smsImportLog('Processing ${newMessages.length} new inbox messages');
 
     var captured = 0;
     var duplicates = 0;
@@ -106,12 +93,6 @@ class SmsSyncService {
     }
 
     await _settings.saveLastSmsSyncAt(latestReceivedAt);
-
-    smsImportLog(
-      'SMS sync finished: messages=${newMessages.length} '
-      'captured=$captured duplicates=$duplicates ignored=$ignored '
-      'lastSync=${latestReceivedAt.toIso8601String()}',
-    );
 
     return SmsSyncResult.processed(
       messageCount: newMessages.length,

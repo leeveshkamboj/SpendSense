@@ -7,6 +7,7 @@ import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/budgets/presentation/budget_settings_screen.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_configure_screen.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_screen.dart';
 import 'package:spendsense/features/onboarding/presentation/setup_wizard_screen.dart';
 
 void main() {
@@ -82,7 +83,7 @@ void main() {
     await tester.tap(find.text('Configure'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Configure billing'), findsOneWidget);
+    expect(find.text('Card settings'), findsOneWidget);
 
     await database.close();
   });

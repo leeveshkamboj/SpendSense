@@ -10,6 +10,7 @@ import 'package:spendsense/features/credit_cards/domain/card_network.dart';
 import 'package:spendsense/features/credit_cards/presentation/card_network_picker.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
+import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
@@ -75,11 +76,13 @@ class _CreditCardConfigureScreenState
 
     final repository = ref.read(creditCardRepositoryProvider);
     final now = DateTime.now();
+    final historyMonths =
+        await ref.read(onboardingRepositoryProvider).smsImportWindowMonths();
     await repository.updateBillingSettings(
       cardId: widget.cardId,
       billDayOfMonth: billDay,
       dueDateOffsetDays: dueOffset,
-      historyFrom: billingHistoryStart(now: now),
+      historyFrom: billingHistoryStart(now: now, months: historyMonths),
       historyTo: now,
     );
 
@@ -153,6 +156,9 @@ class _CreditCardConfigureScreenState
   Widget build(BuildContext context) {
     final cardAsync = ref.watch(creditCardProvider(widget.cardId));
     final poolsAsync = ref.watch(creditLimitPoolsProvider);
+    final historyMonths =
+        ref.watch(smsImportWindowMonthsProvider).valueOrNull ??
+            defaultSmsImportWindowMonths;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Card settings')),
@@ -267,7 +273,7 @@ class _CreditCardConfigureScreenState
                 const SizedBox(height: 16),
                 Text(
                   'Changing the bill date will reassign transactions to the '
-                  'matching billing cycles for the last $billingHistoryMonths months.',
+                  'matching billing cycles for the last $historyMonths months.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 16),

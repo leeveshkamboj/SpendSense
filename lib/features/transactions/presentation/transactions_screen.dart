@@ -13,7 +13,9 @@ import 'package:spendsense/features/transactions/data/card_transaction_providers
 import 'package:spendsense/features/transactions/presentation/card_transaction_list_tile.dart';
 import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
+import 'package:spendsense/features/categories/data/category_providers.dart';
 import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
+import 'package:spendsense/features/transactions/presentation/transaction_filter_sheet.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
@@ -162,8 +164,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget build(BuildContext context) {
     final searchAll = ref.watch(searchAllSegmentsProvider);
     final recoverableOnly = ref.watch(recoverableFilterProvider);
+    final recurringOnly = ref.watch(recurringFilterProvider);
+    final filters = ref.watch(transactionFiltersProvider);
+    final categoriesAsync = ref.watch(categoryNamesProvider);
     final query = ref.watch(transactionSearchQueryProvider);
-    final useFullSearch = searchAll || query.trim().isNotEmpty;
+    final useFullSearch = searchAll || query.trim().isNotEmpty || !filters.isEmpty;
 
     final cardGroups = useFullSearch
         ? ref.watch(filteredGroupedCardTransactionsWhenSearchingProvider)
@@ -235,6 +240,33 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   onPressed: () {
                     ref.read(searchAllSegmentsProvider.notifier).state =
                         !searchAll;
+                  },
+                ),
+                _CompactFilterButton(
+                  tooltip: 'Advanced filters',
+                  icon: Icons.tune,
+                  selected: !filters.isEmpty,
+                  badgeCount: filters.activeCount,
+                  onPressed: () async {
+                    final categories = categoriesAsync.valueOrNull ?? const <String>[];
+                    final result = await showTransactionFilterSheet(
+                      context: context,
+                      initial: filters,
+                      categories: categories,
+                    );
+                    if (result == null) {
+                      return;
+                    }
+                    ref.read(transactionFiltersProvider.notifier).state = result;
+                  },
+                ),
+                _CompactFilterButton(
+                  tooltip: 'Recurring only',
+                  icon: Icons.repeat,
+                  selected: recurringOnly,
+                  onPressed: () {
+                    ref.read(recurringFilterProvider.notifier).state =
+                        !recurringOnly;
                   },
                 ),
                 _CompactFilterButton(
@@ -370,12 +402,14 @@ class _CompactFilterButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onPressed,
+    this.badgeCount = 0,
   });
 
   final String tooltip;
   final IconData icon;
   final bool selected;
   final VoidCallback onPressed;
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -394,7 +428,11 @@ class _CompactFilterButton extends StatelessWidget {
               selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
         ),
         onPressed: onPressed,
-        icon: Icon(icon, size: 20),
+        icon: Badge(
+          isLabelVisible: badgeCount > 0,
+          label: Text('$badgeCount'),
+          child: Icon(icon, size: 20),
+        ),
       ),
     );
   }

@@ -21,7 +21,7 @@ void main() {
       }
     });
 
-    test('export and restore preserves credit card data', () async {
+    test('export and restore preserves credit card data and receipts', () async {
       final sourcePath = '${tempDir.path}/source.db';
       final sourceDb = AppDatabase(NativeDatabase(File(sourcePath)));
       final creditCards = CreditCardRepository(sourceDb);
@@ -35,10 +35,16 @@ void main() {
         ),
       );
 
+      final receiptsDir = '${tempDir.path}/receipts';
+      final receiptFile = File('$receiptsDir/1/test_receipt.jpg');
+      await receiptFile.parent.create(recursive: true);
+      await receiptFile.writeAsBytes([1, 2, 3, 4]);
+
       final backupPath = '${tempDir.path}/SpendSense_Backup_2026-07-10.ssb';
       final backup = BackupRepository(
         database: sourceDb,
         databaseFilePath: sourcePath,
+        receiptsDirectoryPath: receiptsDir,
       );
       final exportedAt = await backup.exportEncrypted(
         password: 'strong-password',
@@ -53,9 +59,11 @@ void main() {
       final targetDb = AppDatabase(NativeDatabase(File(targetPath)));
       await targetDb.close();
 
+      final restoredReceiptsDir = '${tempDir.path}/restored_receipts';
       final restore = BackupRepository(
         database: AppDatabase(NativeDatabase(File(targetPath))),
         databaseFilePath: targetPath,
+        receiptsDirectoryPath: restoredReceiptsDir,
       );
       final metadata = await restore.restoreEncrypted(
         backupFilePath: backupPath,
@@ -71,6 +79,7 @@ void main() {
       expect(restoredCards, hasLength(1));
       expect(restoredCards.first.nickname, 'HDFC ••5534');
       expect(restoredCards.first.bank, 'HDFC');
+      expect(await File('$restoredReceiptsDir/1/test_receipt.jpg').exists(), isTrue);
     });
 
     test('restore rejects wrong password with filename', () async {

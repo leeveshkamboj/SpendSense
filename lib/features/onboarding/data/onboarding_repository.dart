@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 
 class OnboardingRepository {
   OnboardingRepository(this._database);
@@ -62,5 +63,16 @@ class OnboardingRepository {
   Future<void> resetSmsImport() async {
     await saveImportProgress(lastIndex: 0, completed: false);
     await saveLastSmsSyncAt(DateTime.fromMillisecondsSinceEpoch(0));
+  }
+
+  Future<int> smsImportWindowMonths() async {
+    final months = (await _settings()).smsImportWindowMonths;
+    return months > 0 ? months : defaultSmsImportWindowMonths;
+  }
+
+  Future<void> saveSmsImportWindowMonths(int months) async {
+    await _database.update(_database.appSettings).write(
+      AppSettingsCompanion(smsImportWindowMonths: Value(months)),
+    );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-import 'package:spendsense/features/onboarding/sms_import_log.dart';
 
 enum InboxMessageChannel { sms, rcsMms }
 
@@ -31,39 +30,16 @@ class PlatformSmsInboxGateway implements SmsInboxGateway {
 
   @override
   Future<List<SmsInboxMessage>> readInbox({required DateTime since}) async {
-    smsImportLog(
-      'Querying Android inbox since ${since.toIso8601String()} '
-      '(${since.millisecondsSinceEpoch} ms)',
+    final response = await _channel.invokeMethod<List<Object?>>(
+      'readInboxSince',
+      {'sinceMs': since.millisecondsSinceEpoch},
     );
 
-    try {
-      final response = await _channel.invokeMethod<List<Object?>>(
-        'readInboxSince',
-        {'sinceMs': since.millisecondsSinceEpoch},
-      );
-
-      if (response == null) {
-        smsImportLog('Android inbox query returned null');
-        return const [];
-      }
-
-      final messages = parseInboxMessages(response);
-      final smsCount =
-          messages.where((message) => message.channel == InboxMessageChannel.sms).length;
-      final rcsCount = messages.length - smsCount;
-      smsImportLog(
-        'Android inbox query returned ${messages.length} messages '
-        '(sms=$smsCount rcs_mms=$rcsCount)',
-      );
-      return messages;
-    } on PlatformException catch (error, stackTrace) {
-      smsImportLogError(
-        'Android inbox query failed: ${error.code} ${error.message}',
-        error,
-        stackTrace,
-      );
-      rethrow;
+    if (response == null) {
+      return const [];
     }
+
+    return parseInboxMessages(response);
   }
 }
 

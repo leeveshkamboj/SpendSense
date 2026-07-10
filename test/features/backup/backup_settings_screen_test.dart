@@ -1,7 +1,10 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/backup/data/backup_providers.dart';
 import 'package:spendsense/features/backup/data/backup_service.dart';
@@ -52,6 +55,9 @@ class _FakeBackupService implements BackupService {
 void main() {
   group('Backup settings', () {
     testWidgets('settings screen links to backup and restore', (tester) async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(() => database.close());
+
       final router = GoRouter(
         initialLocation: '/settings',
         routes: [
@@ -71,6 +77,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            databaseProvider.overrideWithValue(database),
             categoryBudgetsProvider.overrideWith((ref) async => []),
           ],
           child: MaterialApp.router(routerConfig: router),
@@ -78,13 +85,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Backup & Restore'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Backup & Restore'),
-        120,
+        200,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      expect(find.text('Backup & Restore'), findsOneWidget);
       await tester.tap(find.text('Backup & Restore'));
       await tester.pumpAndSettle();
 

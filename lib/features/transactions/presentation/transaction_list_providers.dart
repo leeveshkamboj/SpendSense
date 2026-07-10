@@ -2,12 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
+import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
+import 'package:spendsense/features/transactions/data/receipt_providers.dart';
 import 'package:spendsense/features/transactions/data/transaction_cycle_move_repository.dart';
 import 'package:spendsense/features/transactions/data/transaction_merge_repository.dart';
 import 'package:spendsense/features/transactions/domain/grouped_card_transactions.dart';
+import 'package:spendsense/features/transactions/domain/transaction_filters.dart';
 import 'package:spendsense/features/transactions/engine/transaction_search.dart';
 
 const cardTransactionPageSize = 20;
@@ -15,7 +19,14 @@ const cardTransactionPageSize = 20;
 final transactionSearchQueryProvider = StateProvider<String>((ref) => '');
 final searchAllSegmentsProvider = StateProvider<bool>((ref) => false);
 final recoverableFilterProvider = StateProvider<bool>((ref) => false);
+final recurringFilterProvider = StateProvider<bool>((ref) => false);
 final transactionCardFilterProvider = StateProvider<int?>((ref) => null);
+final transactionFiltersProvider =
+    StateProvider<TransactionFilters>((ref) => const TransactionFilters());
+
+final transactionIdsWithReceiptsProvider = FutureProvider<Set<int>>((ref) {
+  return ref.watch(receiptRepositoryProvider).listTransactionIdsWithReceipts();
+});
 
 final pendingCardTransactionDeletesProvider = StateProvider<Set<int>>(
   (ref) => {},
@@ -77,7 +88,8 @@ class CardTransactionPageNotifier
   bool get _usesExpandedHistory {
     final searchAll = _ref.read(searchAllSegmentsProvider);
     final query = _ref.read(transactionSearchQueryProvider);
-    return searchAll || query.trim().isNotEmpty;
+    final filters = _ref.read(transactionFiltersProvider);
+    return searchAll || query.trim().isNotEmpty || !filters.isEmpty;
   }
 
   Future<void> refresh() async {
@@ -85,6 +97,8 @@ class CardTransactionPageNotifier
     try {
       final recoverableOnly = _ref.read(recoverableFilterProvider);
       final repository = _ref.read(cardTransactionRepositoryProvider);
+      final historyMonths =
+          await _ref.read(onboardingRepositoryProvider).smsImportWindowMonths();
 
       if (_usesExpandedHistory) {
         final page = await repository.listPage(
@@ -112,7 +126,7 @@ class CardTransactionPageNotifier
         recoverableOnly: recoverableOnly,
       );
       final unassigned = await repository.listUnassignedSince(
-        since: billingHistoryStart(),
+        since: billingHistoryStart(months: historyMonths),
         recoverableOnly: recoverableOnly,
       );
       final transactions = _mergeTransactions(cycleTransactions, unassigned);
@@ -179,6 +193,12 @@ final cardTransactionPageProvider = StateNotifierProvider<
   ref.listen(transactionSearchQueryProvider, (_, __) {
     notifier.refresh();
   });
+  ref.listen(transactionFiltersProvider, (_, __) {
+    notifier.refresh();
+  });
+  ref.listen(recurringFilterProvider, (_, __) {
+    notifier.refresh();
+  });
   return notifier;
 });
 
@@ -200,6 +220,9 @@ List<CardTransaction> filterCardTransactions({
   int? cardId,
   bool currentCycleOnly = false,
   Set<int>? currentCycleIds,
+  TransactionFilters filters = const TransactionFilters(),
+  Set<int> transactionIdsWithReceipts = const {},
+  bool recurringOnly = false,
 }) {
   var filtered = transactions
       .where(
@@ -212,6 +235,22 @@ List<CardTransaction> filterCardTransactions({
         ),
       )
       .toList();
+
+  if (recurringOnly) {
+    filtered = filtered.where((tx) => tx.isRecurring).toList();
+  }
+
+  if (!filters.isEmpty) {
+    filtered = filtered
+        .where(
+          (tx) => matchesTransactionFilters(
+            transaction: tx,
+            filters: filters,
+            transactionIdsWithReceipts: transactionIdsWithReceipts,
+          ),
+        )
+        .toList();
+  }
 
   if (cardId != null) {
     filtered = filtered.where((tx) => tx.creditCardId == cardId).toList();
@@ -276,6 +315,9 @@ final filteredGroupedCardTransactionsProvider =
 
   final query = ref.watch(transactionSearchQueryProvider);
   final cardId = ref.watch(transactionCardFilterProvider);
+  final filters = ref.watch(transactionFiltersProvider);
+  final recurringOnly = ref.watch(recurringFilterProvider);
+  final receiptIds = await ref.watch(transactionIdsWithReceiptsProvider.future);
   final currentCycleIds = pageState.isCurrentCycleOnly
       ? (await ref.read(creditCardRepositoryProvider).listCurrentCycles())
           .map((cycle) => cycle.id)
@@ -287,6 +329,9 @@ final filteredGroupedCardTransactionsProvider =
     cardId: cardId,
     currentCycleOnly: pageState.isCurrentCycleOnly,
     currentCycleIds: currentCycleIds,
+    filters: filters,
+    transactionIdsWithReceipts: receiptIds,
+    recurringOnly: recurringOnly,
   );
 
   return _buildCycleGroups(ref: ref, transactions: filtered);
@@ -301,12 +346,18 @@ final filteredGroupedCardTransactionsWhenSearchingProvider =
 
   final repository = ref.watch(cardTransactionRepositoryProvider);
   final recoverableOnly = ref.watch(recoverableFilterProvider);
+  final recurringOnly = ref.watch(recurringFilterProvider);
   final cardId = ref.watch(transactionCardFilterProvider);
+  final filters = ref.watch(transactionFiltersProvider);
+  final receiptIds = await ref.watch(transactionIdsWithReceiptsProvider.future);
   final all = await repository.listAll(recoverableOnly: recoverableOnly);
   final filtered = filterCardTransactions(
     transactions: all,
     query: query,
     cardId: cardId,
+    filters: filters,
+    transactionIdsWithReceipts: receiptIds,
+    recurringOnly: recurringOnly,
   );
 
   return _buildCycleGroups(ref: ref, transactions: filtered);

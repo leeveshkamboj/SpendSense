@@ -55,6 +55,7 @@ class _TransactionDetailScreenState
   final _notesController = TextEditingController();
   final _referenceController = TextEditingController();
   bool _isRecoverable = false;
+  bool _isRecurring = false;
   bool _isAddingReceipt = false;
   bool _isSaving = false;
   int? _loadedId;
@@ -78,6 +79,7 @@ class _TransactionDetailScreenState
     _notesController.text = tx.notes ?? '';
     _referenceController.text = tx.referenceNumber ?? '';
     _isRecoverable = tx.isRecoverable;
+    _isRecurring = tx.isRecurring;
     _loadLocation(tx.location);
   }
 
@@ -136,6 +138,7 @@ class _TransactionDetailScreenState
             referenceNumber: _referenceController.text.trim().isEmpty
                 ? null
                 : _referenceController.text.trim(),
+            isRecurring: _isRecurring,
           );
       _invalidateAll();
       if (mounted) {
@@ -395,6 +398,18 @@ class _TransactionDetailScreenState
                   controller: _personController,
                   decoration: const InputDecoration(labelText: 'Person'),
                 ),
+              const SizedBox(height: 16),
+              Text(
+                'Recurring',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Mark as recurring'),
+                subtitle: const Text('Label and filter only'),
+                value: _isRecurring,
+                onChanged: (value) => setState(() => _isRecurring = value),
+              ),
               const SizedBox(height: 16),
               Text(
                 'Receipts',

@@ -1,7 +1,6 @@
 package com.spendsense.spendsense
 
 import android.content.Context
-import android.util.Log
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -12,7 +11,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 object SmsBackgroundEngine {
-    private const val TAG = "SpendSense.SmsBackground"
     private const val ENGINE_ID = "sms_capture_engine"
     private const val BACKGROUND_CHANNEL = "com.spendsense.spendsense/sms_background"
     private const val READY_CHANNEL = "com.spendsense.spendsense/sms_background_ready"
@@ -51,21 +49,16 @@ object SmsBackgroundEngine {
                     errorMessage: String?,
                     errorDetails: Any?,
                 ) {
-                    Log.e(TAG, "Background SMS processing failed: $errorCode $errorMessage")
                     latch.countDown()
                 }
 
                 override fun notImplemented() {
-                    Log.e(TAG, "Background SMS processing not implemented")
                     latch.countDown()
                 }
             },
         )
 
-        val completed = latch.await(30, TimeUnit.SECONDS)
-        if (!completed) {
-            Log.e(TAG, "Background SMS processing timed out")
-        }
+        latch.await(30, TimeUnit.SECONDS)
         return resultRef.get()
     }
 
@@ -94,10 +87,7 @@ object SmsBackgroundEngine {
             ),
         )
 
-        val ready = readyLatch?.await(15, TimeUnit.SECONDS) == true
-        if (!ready) {
-            Log.e(TAG, "Background Dart entrypoint did not become ready in time")
-        }
+        readyLatch?.await(15, TimeUnit.SECONDS)
 
         FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
         return engine

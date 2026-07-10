@@ -4,16 +4,25 @@ import 'package:spendsense/features/sms_capture/data/sms_inbox_gateway.dart';
 
 void main() {
   group('SMS import loader', () {
-    test('limits fresh import to the last two months', () {
+    test('defaults fresh import to the last twelve months', () {
       final since = smsImportWindowStart(now: DateTime(2026, 7, 10));
 
-      expect(since, DateTime(2026, 5, 10));
+      expect(since, DateTime(2025, 7, 10));
     });
 
-    test('billing history starts two months back', () {
+    test('billing history defaults to twelve months back', () {
       final since = billingHistoryStart(now: DateTime(2026, 7, 10));
 
-      expect(since, DateTime(2026, 5, 10));
+      expect(since, DateTime(2025, 7, 10));
+    });
+
+    test('honors a custom import window length', () {
+      final since = smsImportWindowStart(
+        now: DateTime(2026, 7, 10),
+        months: 3,
+      );
+
+      expect(since, DateTime(2026, 4, 10));
     });
 
     test('uses restore date when it is more recent than the window', () {

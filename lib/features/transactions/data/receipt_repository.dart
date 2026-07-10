@@ -55,4 +55,9 @@ class ReceiptRepository {
           ..where((row) => row.id.equals(receiptId)))
         .go();
   }
+
+  Future<Set<int>> listTransactionIdsWithReceipts() async {
+    final rows = await _database.select(_database.cardTransactionReceipts).get();
+    return rows.map((row) => row.cardTransactionId).toSet();
+  }
 }

@@ -118,8 +118,12 @@ class BudgetRepository {
         .map((cycle) => cycle.id)
         .toSet();
 
+    final currentPeriodStart = _currentPeriodStart(asOf: asOf, cards: cards);
+    final queryingCurrentPeriod = _sameDay(targetStart, currentPeriodStart);
+
     return transactions.where((transaction) {
-      if (transaction.billingCycleId != null &&
+      if (queryingCurrentPeriod &&
+          transaction.billingCycleId != null &&
           currentCycleIds.contains(transaction.billingCycleId)) {
         return true;
       }

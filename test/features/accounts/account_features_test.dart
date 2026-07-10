@@ -22,6 +22,9 @@ void main() {
             rawSms: null,
             referenceNumber: null,
             isReviewed: true,
+            isRecurring: false,
+            notes: null,
+            location: null,
             createdAt: DateTime(2026, 7, 1),
           ),
           BankAccountTransaction(
@@ -37,6 +40,9 @@ void main() {
             rawSms: null,
             referenceNumber: null,
             isReviewed: true,
+            isRecurring: false,
+            notes: null,
+            location: null,
             createdAt: DateTime(2026, 7, 2),
           ),
         ],
@@ -81,6 +87,9 @@ BankAccountTransaction _tx({required int id, required DateTime at}) {
     rawSms: null,
     referenceNumber: null,
     isReviewed: false,
+    isRecurring: false,
+    notes: null,
+    location: null,
     createdAt: at,
   );
 }

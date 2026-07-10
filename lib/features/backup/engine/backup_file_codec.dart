@@ -11,19 +11,29 @@ class BackupFileCodec {
     required int schemaVersion,
     required Uint8List databaseBytes,
     required String password,
+    Map<String, String> receiptFiles = const {},
   }) async {
-    final payload = jsonEncode({
+    final payload = <String, dynamic>{
       'exportedAt': exportedAt.toUtc().toIso8601String(),
       'schemaVersion': schemaVersion,
       'databaseBase64': base64Encode(databaseBytes),
-    });
+    };
+    if (receiptFiles.isNotEmpty) {
+      payload['receiptFiles'] = receiptFiles;
+    }
+
     return BackupCrypto.encrypt(
-      Uint8List.fromList(utf8.encode(payload)),
+      Uint8List.fromList(utf8.encode(jsonEncode(payload))),
       password,
     );
   }
 
-  static Future<({BackupMetadata metadata, Uint8List databaseBytes})> decode({
+  static Future<
+      ({
+        BackupMetadata metadata,
+        Uint8List databaseBytes,
+        Map<String, String> receiptFiles,
+      })> decode({
     required Uint8List fileBytes,
     required String password,
     required String fileName,
@@ -63,12 +73,23 @@ class BackupFileCodec {
       throw BackupCorruptFileException(fileName, reason: 'invalid database data');
     }
 
+    final receiptFiles = <String, String>{};
+    final rawReceipts = payload['receiptFiles'];
+    if (rawReceipts is Map) {
+      for (final entry in rawReceipts.entries) {
+        if (entry.key is String && entry.value is String) {
+          receiptFiles[entry.key as String] = entry.value as String;
+        }
+      }
+    }
+
     return (
       metadata: BackupMetadata(
         exportedAt: exportedAt.toLocal(),
         schemaVersion: schemaVersion,
       ),
       databaseBytes: databaseBytes,
+      receiptFiles: receiptFiles,
     );
   }
 }

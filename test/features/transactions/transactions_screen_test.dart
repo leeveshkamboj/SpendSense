@@ -68,33 +68,25 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Cards'), findsOneWidget);
-      expect(find.text('All cards'), findsOneWidget);
+      expect(find.text('All'), findsOneWidget);
       expect(find.text('Zomato Ltd'), findsOneWidget);
 
       await database.close();
     });
 
-    testWidgets('shows bank transactions grouped by month on Accounts segment', (
+    testWidgets('shows empty state when card billing is not configured', (
       tester,
     ) async {
       final database = AppDatabase(NativeDatabase.memory());
       final creditCards = CreditCardRepository(database);
-      final capture = SmsCaptureService(
-        creditCards: creditCards,
-        cardTransactions: CardTransactionRepository(database),
-        bankAccounts: BankAccountRepository(database),
-        bankAccountTransactions: BankAccountTransactionRepository(database),
-        merchants: MerchantRepository(database),
-        tags: TagRepository(database),
-        linking: LinkingRepository(
-          database: database,
-          creditCards: creditCards,
-          cardTransactions: CardTransactionRepository(database),
+      await creditCards.create(
+        const NewCreditCard(
+          bank: 'HDFC',
+          lastFourDigits: '5534',
+          nickname: 'HDFC ••5534',
+          colorValue: 0xFF00695C,
+          iconName: 'credit_card',
         ),
-      );
-      await capture.processSms(
-        'Dear UPI user A/C X0428 debited by 25000.00 on 09-07-26 to MERCHANT Ref 987654',
       );
 
       await tester.pumpWidget(
@@ -107,11 +99,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Accounts'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('MERCHANT'), findsOneWidget);
-      expect(find.text('This Month'), findsOneWidget);
+      expect(
+        find.text('Configure billing on your cards in Accounts'),
+        findsOneWidget,
+      );
 
       await database.close();
     });

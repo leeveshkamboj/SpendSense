@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:spendsense/features/transactions/data/receipt_providers.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/backup/data/auto_backup_service.dart';
 import 'package:spendsense/features/backup/data/backup_file_gateway.dart';
@@ -26,9 +27,11 @@ final databaseFilePathProvider = FutureProvider<String>((ref) async {
 final backupRepositoryProvider = FutureProvider<BackupRepository>((ref) async {
   final database = ref.watch(databaseProvider);
   final databaseFilePath = await ref.watch(databaseFilePathProvider.future);
+  final receiptsDirectory = await ref.watch(receiptsDirectoryProvider.future);
   return BackupRepository(
     database: database,
     databaseFilePath: databaseFilePath,
+    receiptsDirectoryPath: receiptsDirectory,
   );
 });
 

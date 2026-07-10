@@ -5,6 +5,11 @@ import 'package:spendsense/features/app_lock/app_lock_providers.dart';
 import 'package:spendsense/features/app_lock/presentation/pin_input_field.dart';
 import 'package:spendsense/features/settings/data/app_preferences_providers.dart';
 
+/// Gates the app behind PIN/biometric unlock for the current process session.
+///
+/// Once unlocked, stays unlocked until the process is killed (app closed).
+/// Does not re-lock on background/inactive — that fights the system biometric
+/// sheet and made PIN entry unreachable.
 class AppLockGate extends ConsumerStatefulWidget {
   const AppLockGate({required this.child, super.key});
 
@@ -14,29 +19,8 @@ class AppLockGate extends ConsumerStatefulWidget {
   ConsumerState<AppLockGate> createState() => _AppLockGateState();
 }
 
-class _AppLockGateState extends ConsumerState<AppLockGate>
-    with WidgetsBindingObserver {
+class _AppLockGateState extends ConsumerState<AppLockGate> {
   bool _unlocked = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      setState(() => _unlocked = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +48,7 @@ class _LockScreen extends ConsumerStatefulWidget {
   ConsumerState<_LockScreen> createState() => _LockScreenState();
 }
 
-class _LockScreenState extends ConsumerState<_LockScreen>
-    with WidgetsBindingObserver {
+class _LockScreenState extends ConsumerState<_LockScreen> {
   final _pinController = TextEditingController();
   var _biometricAvailable = false;
   var _biometricPromptInFlight = false;
@@ -74,22 +57,13 @@ class _LockScreenState extends ConsumerState<_LockScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _initializeUnlock());
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _pinController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _promptBiometricIfAvailable();
-    }
   }
 
   Future<void> _initializeUnlock() async {
@@ -125,64 +99,82 @@ class _LockScreenState extends ConsumerState<_LockScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              const AppLogo(size: 80),
-              const SizedBox(height: 20),
-              Icon(
-                Icons.lock_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'SpendSense is locked',
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _biometricAvailable
-                    ? 'Use biometric or enter your PIN'
-                    : 'Enter your PIN to continue',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              PinInputField(
-                controller: _pinController,
-                autofocus: !_biometricAvailable,
-                label: 'PIN',
-                onCompleted: (_) => _verify(),
-              ),
-              if (_errorText.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _errorText,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                  textAlign: TextAlign.center,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32),
+                    const AppLogo(size: 56),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Welcome back',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _biometricAvailable
+                          ? 'Enter PIN or use biometric'
+                          : 'Enter your PIN to continue',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 28),
+                    PinInputField(
+                      controller: _pinController,
+                      style: PinInputStyle.unlock,
+                      onCompleted: (_) => _verify(),
+                    ),
+                    if (_errorText.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorText,
+                        style: TextStyle(color: colorScheme.error),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    if (_biometricAvailable) ...[
+                      IconButton.filledTonal(
+                        onPressed: _promptBiometricIfAvailable,
+                        icon: const Icon(Icons.fingerprint, size: 28),
+                        tooltip: 'Unlock with biometric',
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size(56, 56),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Use biometric',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    TextButton(
+                      onPressed: () => _resetPin(context),
+                      child: const Text('Forgot PIN?'),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-              ],
-              const SizedBox(height: 20),
-              if (_biometricAvailable)
-                FilledButton.tonalIcon(
-                  onPressed: _promptBiometricIfAvailable,
-                  icon: const Icon(Icons.fingerprint),
-                  label: const Text('Unlock with biometric'),
-                ),
-              TextButton(
-                onPressed: () => _resetPin(context),
-                child: const Text('Forgot PIN? Use device credential'),
               ),
-              const Spacer(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

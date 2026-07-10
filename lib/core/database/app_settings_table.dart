@@ -18,4 +18,6 @@ class AppSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get appLockBiometricEnabled =>
       boolean().withDefault(const Constant(false))();
+  IntColumn get smsImportWindowMonths =>
+      integer().withDefault(const Constant(12))();
 }

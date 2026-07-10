@@ -96,10 +96,11 @@ class _AppLockPinSetupSheetState extends State<_AppLockPinSetupSheet> {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + bottomInset),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           Text(
             widget.title,
             style: Theme.of(context).textTheme.titleLarge,
@@ -117,15 +118,13 @@ class _AppLockPinSetupSheetState extends State<_AppLockPinSetupSheet> {
           if (_step == _SetupStep.enterPin)
             PinInputField(
               controller: _pinController,
-              autofocus: true,
               label: 'PIN',
-              helperText: 'Use digits only',
+              helperText: 'Tap the numbers below',
               onCompleted: (_) => _goToConfirm(),
             )
           else
             PinInputField(
               controller: _confirmController,
-              autofocus: true,
               label: 'Confirm PIN',
               onCompleted: (_) => _submit(),
             ),
@@ -166,6 +165,7 @@ class _AppLockPinSetupSheetState extends State<_AppLockPinSetupSheet> {
               child: const Text('Back'),
             ),
         ],
+        ),
       ),
     );
   }

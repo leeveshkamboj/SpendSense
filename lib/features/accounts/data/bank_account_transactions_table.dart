@@ -16,6 +16,8 @@ class BankAccountTransactions extends Table {
   TextColumn get referenceNumber => text().nullable()();
   BoolColumn get isReviewed =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get isRecurring =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get notes => text().nullable()();
   TextColumn get location => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();

@@ -47,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'spendsense'));
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -140,6 +140,17 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 14) {
             await m.addColumn(appSettings, appSettings.lastSmsSyncAtMs);
+          }
+          if (from < 15) {
+            await m.addColumn(
+              appSettings,
+              appSettings.smsImportWindowMonths,
+            );
+            await m.addColumn(cardTransactions, cardTransactions.isRecurring);
+            await m.addColumn(
+              bankAccountTransactions,
+              bankAccountTransactions.isRecurring,
+            );
           }
         },
       );

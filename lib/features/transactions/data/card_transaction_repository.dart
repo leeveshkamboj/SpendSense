@@ -306,6 +306,7 @@ class CardTransactionRepository {
     String? notes,
     String? location,
     String? referenceNumber,
+    bool? isRecurring,
   }) {
     return (_database.update(_database.cardTransactions)
           ..where((tx) => tx.id.equals(transactionId)))
@@ -319,7 +320,19 @@ class CardTransactionRepository {
         notes: Value(notes),
         location: Value(location),
         referenceNumber: Value(referenceNumber),
+        isRecurring: isRecurring == null
+            ? const Value.absent()
+            : Value(isRecurring),
       ),
     );
+  }
+
+  Future<void> setRecurring({
+    required int transactionId,
+    required bool isRecurring,
+  }) {
+    return (_database.update(_database.cardTransactions)
+          ..where((tx) => tx.id.equals(transactionId)))
+        .write(CardTransactionsCompanion(isRecurring: Value(isRecurring)));
   }
 }

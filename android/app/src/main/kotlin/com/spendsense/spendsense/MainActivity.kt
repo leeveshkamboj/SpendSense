@@ -2,7 +2,6 @@ package com.spendsense.spendsense
 
 import android.net.Uri
 import android.provider.Telephony
-import android.util.Log
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -25,18 +24,10 @@ class MainActivity : FlutterFragmentActivity() {
 
                         try {
                             val messages = readAllMessagesSince(sinceMs)
-                            Log.i(
-                                TAG,
-                                "readInboxSince returned ${messages.size} messages " +
-                                    "(sms=${messages.count { it["channel"] == CHANNEL_SMS }}, " +
-                                    "rcs_mms=${messages.count { it["channel"] == CHANNEL_RCS_MMS }})",
-                            )
                             result.success(messages)
                         } catch (error: SecurityException) {
-                            Log.e(TAG, "readInboxSince permission denied", error)
                             result.error("permission_denied", error.message, null)
                         } catch (error: Exception) {
-                            Log.e(TAG, "readInboxSince failed", error)
                             result.error("read_failed", error.message, null)
                         }
                     }
@@ -47,7 +38,6 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun readAllMessagesSince(sinceMs: Long): List<Map<String, Any>> {
-        Log.i(TAG, "Querying SMS and RCS/MMS inbox since $sinceMs")
         val smsMessages = readSmsInboxSince(sinceMs)
         val mmsMessages = readMmsInboxSince(sinceMs)
         return dedupeMessages(smsMessages + mmsMessages)
@@ -179,8 +169,7 @@ class MainActivity : FlutterFragmentActivity() {
                     BufferedReader(InputStreamReader(stream)).readText()
                 }
                 .orEmpty()
-        } catch (error: Exception) {
-            Log.w(TAG, "Failed to read MMS part $partId", error)
+        } catch (_: Exception) {
             ""
         }
     }
@@ -237,7 +226,6 @@ class MainActivity : FlutterFragmentActivity() {
 
     companion object {
         private const val CHANNEL = "com.spendsense.spendsense/sms_inbox"
-        private const val TAG = "SpendSense.SmsImport"
         private const val CHANNEL_SMS = "sms"
         private const val CHANNEL_RCS_MMS = "rcs_mms"
         private const val MMS_ADDRESS_FROM = 137

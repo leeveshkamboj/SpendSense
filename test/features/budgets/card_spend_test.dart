@@ -4,7 +4,7 @@ import 'package:spendsense/features/budgets/engine/budget_spend.dart';
 
 void main() {
   group('Card spend', () {
-    test('totals credit card expenses per card including recoverables', () {
+    test('totals credit card expenses per card excluding recoverables', () {
       final totals = calculateCardSpendPaise([
         const BudgetTransaction(
           source: BudgetTransactionSource.creditCard,
@@ -30,7 +30,7 @@ void main() {
       ]);
 
       expect(totals[1], 50000);
-      expect(totals[2], 30000);
+      expect(totals.containsKey(2), isFalse);
       expect(totals.containsKey(3), isFalse);
     });
   });

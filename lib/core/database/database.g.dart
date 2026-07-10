@@ -2391,6 +2391,21 @@ class $CardTransactionsTable extends CardTransactions
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isRecurringMeta = const VerificationMeta(
+    'isRecurring',
+  );
+  @override
+  late final GeneratedColumn<bool> isRecurring = GeneratedColumn<bool>(
+    'is_recurring',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_recurring" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -2438,6 +2453,7 @@ class $CardTransactionsTable extends CardTransactions
     isRecoverable,
     recoverablePerson,
     isReviewed,
+    isRecurring,
     notes,
     location,
     createdAt,
@@ -2568,6 +2584,15 @@ class $CardTransactionsTable extends CardTransactions
         isReviewed.isAcceptableOrUnknown(data['is_reviewed']!, _isReviewedMeta),
       );
     }
+    if (data.containsKey('is_recurring')) {
+      context.handle(
+        _isRecurringMeta,
+        isRecurring.isAcceptableOrUnknown(
+          data['is_recurring']!,
+          _isRecurringMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -2653,6 +2678,10 @@ class $CardTransactionsTable extends CardTransactions
         DriftSqlType.bool,
         data['${effectivePrefix}is_reviewed'],
       )!,
+      isRecurring: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_recurring'],
+      )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -2689,6 +2718,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
   final bool isRecoverable;
   final String? recoverablePerson;
   final bool isReviewed;
+  final bool isRecurring;
   final String? notes;
   final String? location;
   final DateTime createdAt;
@@ -2707,6 +2737,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     required this.isRecoverable,
     this.recoverablePerson,
     required this.isReviewed,
+    required this.isRecurring,
     this.notes,
     this.location,
     required this.createdAt,
@@ -2738,6 +2769,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       map['recoverable_person'] = Variable<String>(recoverablePerson);
     }
     map['is_reviewed'] = Variable<bool>(isReviewed);
+    map['is_recurring'] = Variable<bool>(isRecurring);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -2774,6 +2806,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           ? const Value.absent()
           : Value(recoverablePerson),
       isReviewed: Value(isReviewed),
+      isRecurring: Value(isRecurring),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -2806,6 +2839,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
         json['recoverablePerson'],
       ),
       isReviewed: serializer.fromJson<bool>(json['isReviewed']),
+      isRecurring: serializer.fromJson<bool>(json['isRecurring']),
       notes: serializer.fromJson<String?>(json['notes']),
       location: serializer.fromJson<String?>(json['location']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2829,6 +2863,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       'isRecoverable': serializer.toJson<bool>(isRecoverable),
       'recoverablePerson': serializer.toJson<String?>(recoverablePerson),
       'isReviewed': serializer.toJson<bool>(isReviewed),
+      'isRecurring': serializer.toJson<bool>(isRecurring),
       'notes': serializer.toJson<String?>(notes),
       'location': serializer.toJson<String?>(location),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2850,6 +2885,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     bool? isRecoverable,
     Value<String?> recoverablePerson = const Value.absent(),
     bool? isReviewed,
+    bool? isRecurring,
     Value<String?> notes = const Value.absent(),
     Value<String?> location = const Value.absent(),
     DateTime? createdAt,
@@ -2874,6 +2910,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
         ? recoverablePerson.value
         : this.recoverablePerson,
     isReviewed: isReviewed ?? this.isReviewed,
+    isRecurring: isRecurring ?? this.isRecurring,
     notes: notes.present ? notes.value : this.notes,
     location: location.present ? location.value : this.location,
     createdAt: createdAt ?? this.createdAt,
@@ -2910,6 +2947,9 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
       isReviewed: data.isReviewed.present
           ? data.isReviewed.value
           : this.isReviewed,
+      isRecurring: data.isRecurring.present
+          ? data.isRecurring.value
+          : this.isRecurring,
       notes: data.notes.present ? data.notes.value : this.notes,
       location: data.location.present ? data.location.value : this.location,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -2933,6 +2973,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           ..write('isRecoverable: $isRecoverable, ')
           ..write('recoverablePerson: $recoverablePerson, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('isRecurring: $isRecurring, ')
           ..write('notes: $notes, ')
           ..write('location: $location, ')
           ..write('createdAt: $createdAt')
@@ -2956,6 +2997,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
     isRecoverable,
     recoverablePerson,
     isReviewed,
+    isRecurring,
     notes,
     location,
     createdAt,
@@ -2978,6 +3020,7 @@ class CardTransaction extends DataClass implements Insertable<CardTransaction> {
           other.isRecoverable == this.isRecoverable &&
           other.recoverablePerson == this.recoverablePerson &&
           other.isReviewed == this.isReviewed &&
+          other.isRecurring == this.isRecurring &&
           other.notes == this.notes &&
           other.location == this.location &&
           other.createdAt == this.createdAt);
@@ -2998,6 +3041,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
   final Value<bool> isRecoverable;
   final Value<String?> recoverablePerson;
   final Value<bool> isReviewed;
+  final Value<bool> isRecurring;
   final Value<String?> notes;
   final Value<String?> location;
   final Value<DateTime> createdAt;
@@ -3016,6 +3060,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     this.isRecoverable = const Value.absent(),
     this.recoverablePerson = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.isRecurring = const Value.absent(),
     this.notes = const Value.absent(),
     this.location = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -3035,6 +3080,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     this.isRecoverable = const Value.absent(),
     this.recoverablePerson = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.isRecurring = const Value.absent(),
     this.notes = const Value.absent(),
     this.location = const Value.absent(),
     required DateTime createdAt,
@@ -3060,6 +3106,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     Expression<bool>? isRecoverable,
     Expression<String>? recoverablePerson,
     Expression<bool>? isReviewed,
+    Expression<bool>? isRecurring,
     Expression<String>? notes,
     Expression<String>? location,
     Expression<DateTime>? createdAt,
@@ -3079,6 +3126,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
       if (isRecoverable != null) 'is_recoverable': isRecoverable,
       if (recoverablePerson != null) 'recoverable_person': recoverablePerson,
       if (isReviewed != null) 'is_reviewed': isReviewed,
+      if (isRecurring != null) 'is_recurring': isRecurring,
       if (notes != null) 'notes': notes,
       if (location != null) 'location': location,
       if (createdAt != null) 'created_at': createdAt,
@@ -3100,6 +3148,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     Value<bool>? isRecoverable,
     Value<String?>? recoverablePerson,
     Value<bool>? isReviewed,
+    Value<bool>? isRecurring,
     Value<String?>? notes,
     Value<String?>? location,
     Value<DateTime>? createdAt,
@@ -3119,6 +3168,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
       isRecoverable: isRecoverable ?? this.isRecoverable,
       recoverablePerson: recoverablePerson ?? this.recoverablePerson,
       isReviewed: isReviewed ?? this.isReviewed,
+      isRecurring: isRecurring ?? this.isRecurring,
       notes: notes ?? this.notes,
       location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,
@@ -3170,6 +3220,9 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
     if (isReviewed.present) {
       map['is_reviewed'] = Variable<bool>(isReviewed.value);
     }
+    if (isRecurring.present) {
+      map['is_recurring'] = Variable<bool>(isRecurring.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -3199,6 +3252,7 @@ class CardTransactionsCompanion extends UpdateCompanion<CardTransaction> {
           ..write('isRecoverable: $isRecoverable, ')
           ..write('recoverablePerson: $recoverablePerson, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('isRecurring: $isRecurring, ')
           ..write('notes: $notes, ')
           ..write('location: $location, ')
           ..write('createdAt: $createdAt')
@@ -3660,6 +3714,21 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isRecurringMeta = const VerificationMeta(
+    'isRecurring',
+  );
+  @override
+  late final GeneratedColumn<bool> isRecurring = GeneratedColumn<bool>(
+    'is_recurring',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_recurring" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -3705,6 +3774,7 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
     rawSms,
     referenceNumber,
     isReviewed,
+    isRecurring,
     notes,
     location,
     createdAt,
@@ -3815,6 +3885,15 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
         isReviewed.isAcceptableOrUnknown(data['is_reviewed']!, _isReviewedMeta),
       );
     }
+    if (data.containsKey('is_recurring')) {
+      context.handle(
+        _isRecurringMeta,
+        isRecurring.isAcceptableOrUnknown(
+          data['is_recurring']!,
+          _isRecurringMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -3892,6 +3971,10 @@ class $BankAccountTransactionsTable extends BankAccountTransactions
         DriftSqlType.bool,
         data['${effectivePrefix}is_reviewed'],
       )!,
+      isRecurring: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_recurring'],
+      )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -3927,6 +4010,7 @@ class BankAccountTransaction extends DataClass
   final String? rawSms;
   final String? referenceNumber;
   final bool isReviewed;
+  final bool isRecurring;
   final String? notes;
   final String? location;
   final DateTime createdAt;
@@ -3943,6 +4027,7 @@ class BankAccountTransaction extends DataClass
     this.rawSms,
     this.referenceNumber,
     required this.isReviewed,
+    required this.isRecurring,
     this.notes,
     this.location,
     required this.createdAt,
@@ -3972,6 +4057,7 @@ class BankAccountTransaction extends DataClass
       map['reference_number'] = Variable<String>(referenceNumber);
     }
     map['is_reviewed'] = Variable<bool>(isReviewed);
+    map['is_recurring'] = Variable<bool>(isRecurring);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -4006,6 +4092,7 @@ class BankAccountTransaction extends DataClass
           ? const Value.absent()
           : Value(referenceNumber),
       isReviewed: Value(isReviewed),
+      isRecurring: Value(isRecurring),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -4034,6 +4121,7 @@ class BankAccountTransaction extends DataClass
       rawSms: serializer.fromJson<String?>(json['rawSms']),
       referenceNumber: serializer.fromJson<String?>(json['referenceNumber']),
       isReviewed: serializer.fromJson<bool>(json['isReviewed']),
+      isRecurring: serializer.fromJson<bool>(json['isRecurring']),
       notes: serializer.fromJson<String?>(json['notes']),
       location: serializer.fromJson<String?>(json['location']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -4055,6 +4143,7 @@ class BankAccountTransaction extends DataClass
       'rawSms': serializer.toJson<String?>(rawSms),
       'referenceNumber': serializer.toJson<String?>(referenceNumber),
       'isReviewed': serializer.toJson<bool>(isReviewed),
+      'isRecurring': serializer.toJson<bool>(isRecurring),
       'notes': serializer.toJson<String?>(notes),
       'location': serializer.toJson<String?>(location),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -4074,6 +4163,7 @@ class BankAccountTransaction extends DataClass
     Value<String?> rawSms = const Value.absent(),
     Value<String?> referenceNumber = const Value.absent(),
     bool? isReviewed,
+    bool? isRecurring,
     Value<String?> notes = const Value.absent(),
     Value<String?> location = const Value.absent(),
     DateTime? createdAt,
@@ -4092,6 +4182,7 @@ class BankAccountTransaction extends DataClass
         ? referenceNumber.value
         : this.referenceNumber,
     isReviewed: isReviewed ?? this.isReviewed,
+    isRecurring: isRecurring ?? this.isRecurring,
     notes: notes.present ? notes.value : this.notes,
     location: location.present ? location.value : this.location,
     createdAt: createdAt ?? this.createdAt,
@@ -4124,6 +4215,9 @@ class BankAccountTransaction extends DataClass
       isReviewed: data.isReviewed.present
           ? data.isReviewed.value
           : this.isReviewed,
+      isRecurring: data.isRecurring.present
+          ? data.isRecurring.value
+          : this.isRecurring,
       notes: data.notes.present ? data.notes.value : this.notes,
       location: data.location.present ? data.location.value : this.location,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -4145,6 +4239,7 @@ class BankAccountTransaction extends DataClass
           ..write('rawSms: $rawSms, ')
           ..write('referenceNumber: $referenceNumber, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('isRecurring: $isRecurring, ')
           ..write('notes: $notes, ')
           ..write('location: $location, ')
           ..write('createdAt: $createdAt')
@@ -4166,6 +4261,7 @@ class BankAccountTransaction extends DataClass
     rawSms,
     referenceNumber,
     isReviewed,
+    isRecurring,
     notes,
     location,
     createdAt,
@@ -4186,6 +4282,7 @@ class BankAccountTransaction extends DataClass
           other.rawSms == this.rawSms &&
           other.referenceNumber == this.referenceNumber &&
           other.isReviewed == this.isReviewed &&
+          other.isRecurring == this.isRecurring &&
           other.notes == this.notes &&
           other.location == this.location &&
           other.createdAt == this.createdAt);
@@ -4205,6 +4302,7 @@ class BankAccountTransactionsCompanion
   final Value<String?> rawSms;
   final Value<String?> referenceNumber;
   final Value<bool> isReviewed;
+  final Value<bool> isRecurring;
   final Value<String?> notes;
   final Value<String?> location;
   final Value<DateTime> createdAt;
@@ -4221,6 +4319,7 @@ class BankAccountTransactionsCompanion
     this.rawSms = const Value.absent(),
     this.referenceNumber = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.isRecurring = const Value.absent(),
     this.notes = const Value.absent(),
     this.location = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -4238,6 +4337,7 @@ class BankAccountTransactionsCompanion
     this.rawSms = const Value.absent(),
     this.referenceNumber = const Value.absent(),
     this.isReviewed = const Value.absent(),
+    this.isRecurring = const Value.absent(),
     this.notes = const Value.absent(),
     this.location = const Value.absent(),
     required DateTime createdAt,
@@ -4260,6 +4360,7 @@ class BankAccountTransactionsCompanion
     Expression<String>? rawSms,
     Expression<String>? referenceNumber,
     Expression<bool>? isReviewed,
+    Expression<bool>? isRecurring,
     Expression<String>? notes,
     Expression<String>? location,
     Expression<DateTime>? createdAt,
@@ -4277,6 +4378,7 @@ class BankAccountTransactionsCompanion
       if (rawSms != null) 'raw_sms': rawSms,
       if (referenceNumber != null) 'reference_number': referenceNumber,
       if (isReviewed != null) 'is_reviewed': isReviewed,
+      if (isRecurring != null) 'is_recurring': isRecurring,
       if (notes != null) 'notes': notes,
       if (location != null) 'location': location,
       if (createdAt != null) 'created_at': createdAt,
@@ -4296,6 +4398,7 @@ class BankAccountTransactionsCompanion
     Value<String?>? rawSms,
     Value<String?>? referenceNumber,
     Value<bool>? isReviewed,
+    Value<bool>? isRecurring,
     Value<String?>? notes,
     Value<String?>? location,
     Value<DateTime>? createdAt,
@@ -4313,6 +4416,7 @@ class BankAccountTransactionsCompanion
       rawSms: rawSms ?? this.rawSms,
       referenceNumber: referenceNumber ?? this.referenceNumber,
       isReviewed: isReviewed ?? this.isReviewed,
+      isRecurring: isRecurring ?? this.isRecurring,
       notes: notes ?? this.notes,
       location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,
@@ -4358,6 +4462,9 @@ class BankAccountTransactionsCompanion
     if (isReviewed.present) {
       map['is_reviewed'] = Variable<bool>(isReviewed.value);
     }
+    if (isRecurring.present) {
+      map['is_recurring'] = Variable<bool>(isRecurring.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -4385,6 +4492,7 @@ class BankAccountTransactionsCompanion
           ..write('rawSms: $rawSms, ')
           ..write('referenceNumber: $referenceNumber, ')
           ..write('isReviewed: $isReviewed, ')
+          ..write('isRecurring: $isRecurring, ')
           ..write('notes: $notes, ')
           ..write('location: $location, ')
           ..write('createdAt: $createdAt')
@@ -4522,6 +4630,17 @@ class $AppSettingsTable extends AppSettings
         ),
         defaultValue: const Constant(false),
       );
+  static const VerificationMeta _smsImportWindowMonthsMeta =
+      const VerificationMeta('smsImportWindowMonths');
+  @override
+  late final GeneratedColumn<int> smsImportWindowMonths = GeneratedColumn<int>(
+    'sms_import_window_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(12),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4533,6 +4652,7 @@ class $AppSettingsTable extends AppSettings
     themeMode,
     appLockEnabled,
     appLockBiometricEnabled,
+    smsImportWindowMonths,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4618,6 +4738,15 @@ class $AppSettingsTable extends AppSettings
         ),
       );
     }
+    if (data.containsKey('sms_import_window_months')) {
+      context.handle(
+        _smsImportWindowMonthsMeta,
+        smsImportWindowMonths.isAcceptableOrUnknown(
+          data['sms_import_window_months']!,
+          _smsImportWindowMonthsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4663,6 +4792,10 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.bool,
         data['${effectivePrefix}app_lock_biometric_enabled'],
       )!,
+      smsImportWindowMonths: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sms_import_window_months'],
+      )!,
     );
   }
 
@@ -4682,6 +4815,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   final String themeMode;
   final bool appLockEnabled;
   final bool appLockBiometricEnabled;
+  final int smsImportWindowMonths;
   const AppSetting({
     required this.id,
     required this.onboardingComplete,
@@ -4692,6 +4826,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     required this.themeMode,
     required this.appLockEnabled,
     required this.appLockBiometricEnabled,
+    required this.smsImportWindowMonths,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4707,6 +4842,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     map['theme_mode'] = Variable<String>(themeMode);
     map['app_lock_enabled'] = Variable<bool>(appLockEnabled);
     map['app_lock_biometric_enabled'] = Variable<bool>(appLockBiometricEnabled);
+    map['sms_import_window_months'] = Variable<int>(smsImportWindowMonths);
     return map;
   }
 
@@ -4721,6 +4857,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       themeMode: Value(themeMode),
       appLockEnabled: Value(appLockEnabled),
       appLockBiometricEnabled: Value(appLockBiometricEnabled),
+      smsImportWindowMonths: Value(smsImportWindowMonths),
     );
   }
 
@@ -4743,6 +4880,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       appLockBiometricEnabled: serializer.fromJson<bool>(
         json['appLockBiometricEnabled'],
       ),
+      smsImportWindowMonths: serializer.fromJson<int>(
+        json['smsImportWindowMonths'],
+      ),
     );
   }
   @override
@@ -4762,6 +4902,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       'appLockBiometricEnabled': serializer.toJson<bool>(
         appLockBiometricEnabled,
       ),
+      'smsImportWindowMonths': serializer.toJson<int>(smsImportWindowMonths),
     };
   }
 
@@ -4775,6 +4916,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     String? themeMode,
     bool? appLockEnabled,
     bool? appLockBiometricEnabled,
+    int? smsImportWindowMonths,
   }) => AppSetting(
     id: id ?? this.id,
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
@@ -4787,6 +4929,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     appLockEnabled: appLockEnabled ?? this.appLockEnabled,
     appLockBiometricEnabled:
         appLockBiometricEnabled ?? this.appLockBiometricEnabled,
+    smsImportWindowMonths: smsImportWindowMonths ?? this.smsImportWindowMonths,
   );
   AppSetting copyWithCompanion(AppSettingsCompanion data) {
     return AppSetting(
@@ -4813,6 +4956,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       appLockBiometricEnabled: data.appLockBiometricEnabled.present
           ? data.appLockBiometricEnabled.value
           : this.appLockBiometricEnabled,
+      smsImportWindowMonths: data.smsImportWindowMonths.present
+          ? data.smsImportWindowMonths.value
+          : this.smsImportWindowMonths,
     );
   }
 
@@ -4827,7 +4973,8 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('locationPermissionExplained: $locationPermissionExplained, ')
           ..write('themeMode: $themeMode, ')
           ..write('appLockEnabled: $appLockEnabled, ')
-          ..write('appLockBiometricEnabled: $appLockBiometricEnabled')
+          ..write('appLockBiometricEnabled: $appLockBiometricEnabled, ')
+          ..write('smsImportWindowMonths: $smsImportWindowMonths')
           ..write(')'))
         .toString();
   }
@@ -4843,6 +4990,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     themeMode,
     appLockEnabled,
     appLockBiometricEnabled,
+    smsImportWindowMonths,
   );
   @override
   bool operator ==(Object other) =>
@@ -4857,7 +5005,8 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
               this.locationPermissionExplained &&
           other.themeMode == this.themeMode &&
           other.appLockEnabled == this.appLockEnabled &&
-          other.appLockBiometricEnabled == this.appLockBiometricEnabled);
+          other.appLockBiometricEnabled == this.appLockBiometricEnabled &&
+          other.smsImportWindowMonths == this.smsImportWindowMonths);
 }
 
 class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
@@ -4870,6 +5019,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<String> themeMode;
   final Value<bool> appLockEnabled;
   final Value<bool> appLockBiometricEnabled;
+  final Value<int> smsImportWindowMonths;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.onboardingComplete = const Value.absent(),
@@ -4880,6 +5030,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.themeMode = const Value.absent(),
     this.appLockEnabled = const Value.absent(),
     this.appLockBiometricEnabled = const Value.absent(),
+    this.smsImportWindowMonths = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -4891,6 +5042,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.themeMode = const Value.absent(),
     this.appLockEnabled = const Value.absent(),
     this.appLockBiometricEnabled = const Value.absent(),
+    this.smsImportWindowMonths = const Value.absent(),
   });
   static Insertable<AppSetting> custom({
     Expression<int>? id,
@@ -4902,6 +5054,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Expression<String>? themeMode,
     Expression<bool>? appLockEnabled,
     Expression<bool>? appLockBiometricEnabled,
+    Expression<int>? smsImportWindowMonths,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4915,6 +5068,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       if (appLockEnabled != null) 'app_lock_enabled': appLockEnabled,
       if (appLockBiometricEnabled != null)
         'app_lock_biometric_enabled': appLockBiometricEnabled,
+      if (smsImportWindowMonths != null)
+        'sms_import_window_months': smsImportWindowMonths,
     });
   }
 
@@ -4928,6 +5083,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Value<String>? themeMode,
     Value<bool>? appLockEnabled,
     Value<bool>? appLockBiometricEnabled,
+    Value<int>? smsImportWindowMonths,
   }) {
     return AppSettingsCompanion(
       id: id ?? this.id,
@@ -4941,6 +5097,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       appLockEnabled: appLockEnabled ?? this.appLockEnabled,
       appLockBiometricEnabled:
           appLockBiometricEnabled ?? this.appLockBiometricEnabled,
+      smsImportWindowMonths:
+          smsImportWindowMonths ?? this.smsImportWindowMonths,
     );
   }
 
@@ -4978,6 +5136,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
         appLockBiometricEnabled.value,
       );
     }
+    if (smsImportWindowMonths.present) {
+      map['sms_import_window_months'] = Variable<int>(
+        smsImportWindowMonths.value,
+      );
+    }
     return map;
   }
 
@@ -4992,7 +5155,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('locationPermissionExplained: $locationPermissionExplained, ')
           ..write('themeMode: $themeMode, ')
           ..write('appLockEnabled: $appLockEnabled, ')
-          ..write('appLockBiometricEnabled: $appLockBiometricEnabled')
+          ..write('appLockBiometricEnabled: $appLockBiometricEnabled, ')
+          ..write('smsImportWindowMonths: $smsImportWindowMonths')
           ..write(')'))
         .toString();
   }
@@ -9741,6 +9905,7 @@ typedef $$CardTransactionsTableCreateCompanionBuilder =
       Value<bool> isRecoverable,
       Value<String?> recoverablePerson,
       Value<bool> isReviewed,
+      Value<bool> isRecurring,
       Value<String?> notes,
       Value<String?> location,
       required DateTime createdAt,
@@ -9761,6 +9926,7 @@ typedef $$CardTransactionsTableUpdateCompanionBuilder =
       Value<bool> isRecoverable,
       Value<String?> recoverablePerson,
       Value<bool> isReviewed,
+      Value<bool> isRecurring,
       Value<String?> notes,
       Value<String?> location,
       Value<DateTime> createdAt,
@@ -9842,6 +10008,11 @@ class $$CardTransactionsTableFilterComposer
 
   ColumnFilters<bool> get isReviewed => $composableBuilder(
     column: $table.isReviewed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRecurring => $composableBuilder(
+    column: $table.isRecurring,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9940,6 +10111,11 @@ class $$CardTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isRecurring => $composableBuilder(
+    column: $table.isRecurring,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -10023,6 +10199,11 @@ class $$CardTransactionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get isRecurring => $composableBuilder(
+    column: $table.isRecurring,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
@@ -10084,6 +10265,7 @@ class $$CardTransactionsTableTableManager
                 Value<bool> isRecoverable = const Value.absent(),
                 Value<String?> recoverablePerson = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<bool> isRecurring = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -10102,6 +10284,7 @@ class $$CardTransactionsTableTableManager
                 isRecoverable: isRecoverable,
                 recoverablePerson: recoverablePerson,
                 isReviewed: isReviewed,
+                isRecurring: isRecurring,
                 notes: notes,
                 location: location,
                 createdAt: createdAt,
@@ -10122,6 +10305,7 @@ class $$CardTransactionsTableTableManager
                 Value<bool> isRecoverable = const Value.absent(),
                 Value<String?> recoverablePerson = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<bool> isRecurring = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 required DateTime createdAt,
@@ -10140,6 +10324,7 @@ class $$CardTransactionsTableTableManager
                 isRecoverable: isRecoverable,
                 recoverablePerson: recoverablePerson,
                 isReviewed: isReviewed,
+                isRecurring: isRecurring,
                 notes: notes,
                 location: location,
                 createdAt: createdAt,
@@ -10379,6 +10564,7 @@ typedef $$BankAccountTransactionsTableCreateCompanionBuilder =
       Value<String?> rawSms,
       Value<String?> referenceNumber,
       Value<bool> isReviewed,
+      Value<bool> isRecurring,
       Value<String?> notes,
       Value<String?> location,
       required DateTime createdAt,
@@ -10397,6 +10583,7 @@ typedef $$BankAccountTransactionsTableUpdateCompanionBuilder =
       Value<String?> rawSms,
       Value<String?> referenceNumber,
       Value<bool> isReviewed,
+      Value<bool> isRecurring,
       Value<String?> notes,
       Value<String?> location,
       Value<DateTime> createdAt,
@@ -10468,6 +10655,11 @@ class $$BankAccountTransactionsTableFilterComposer
 
   ColumnFilters<bool> get isReviewed => $composableBuilder(
     column: $table.isReviewed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRecurring => $composableBuilder(
+    column: $table.isRecurring,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10556,6 +10748,11 @@ class $$BankAccountTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isRecurring => $composableBuilder(
+    column: $table.isRecurring,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -10629,6 +10826,11 @@ class $$BankAccountTransactionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get isRecurring => $composableBuilder(
+    column: $table.isRecurring,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
@@ -10697,6 +10899,7 @@ class $$BankAccountTransactionsTableTableManager
                 Value<String?> rawSms = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<bool> isRecurring = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -10713,6 +10916,7 @@ class $$BankAccountTransactionsTableTableManager
                 rawSms: rawSms,
                 referenceNumber: referenceNumber,
                 isReviewed: isReviewed,
+                isRecurring: isRecurring,
                 notes: notes,
                 location: location,
                 createdAt: createdAt,
@@ -10731,6 +10935,7 @@ class $$BankAccountTransactionsTableTableManager
                 Value<String?> rawSms = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
                 Value<bool> isReviewed = const Value.absent(),
+                Value<bool> isRecurring = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 required DateTime createdAt,
@@ -10747,6 +10952,7 @@ class $$BankAccountTransactionsTableTableManager
                 rawSms: rawSms,
                 referenceNumber: referenceNumber,
                 isReviewed: isReviewed,
+                isRecurring: isRecurring,
                 notes: notes,
                 location: location,
                 createdAt: createdAt,
@@ -10791,6 +10997,7 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<String> themeMode,
       Value<bool> appLockEnabled,
       Value<bool> appLockBiometricEnabled,
+      Value<int> smsImportWindowMonths,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
     AppSettingsCompanion Function({
@@ -10803,6 +11010,7 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<String> themeMode,
       Value<bool> appLockEnabled,
       Value<bool> appLockBiometricEnabled,
+      Value<int> smsImportWindowMonths,
     });
 
 class $$AppSettingsTableFilterComposer
@@ -10856,6 +11064,11 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<bool> get appLockBiometricEnabled => $composableBuilder(
     column: $table.appLockBiometricEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get smsImportWindowMonths => $composableBuilder(
+    column: $table.smsImportWindowMonths,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -10913,6 +11126,11 @@ class $$AppSettingsTableOrderingComposer
     column: $table.appLockBiometricEnabled,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get smsImportWindowMonths => $composableBuilder(
+    column: $table.smsImportWindowMonths,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableAnnotationComposer
@@ -10964,6 +11182,11 @@ class $$AppSettingsTableAnnotationComposer
     column: $table.appLockBiometricEnabled,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get smsImportWindowMonths => $composableBuilder(
+    column: $table.smsImportWindowMonths,
+    builder: (column) => column,
+  );
 }
 
 class $$AppSettingsTableTableManager
@@ -11006,6 +11229,7 @@ class $$AppSettingsTableTableManager
                 Value<String> themeMode = const Value.absent(),
                 Value<bool> appLockEnabled = const Value.absent(),
                 Value<bool> appLockBiometricEnabled = const Value.absent(),
+                Value<int> smsImportWindowMonths = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
                 onboardingComplete: onboardingComplete,
@@ -11016,6 +11240,7 @@ class $$AppSettingsTableTableManager
                 themeMode: themeMode,
                 appLockEnabled: appLockEnabled,
                 appLockBiometricEnabled: appLockBiometricEnabled,
+                smsImportWindowMonths: smsImportWindowMonths,
               ),
           createCompanionCallback:
               ({
@@ -11028,6 +11253,7 @@ class $$AppSettingsTableTableManager
                 Value<String> themeMode = const Value.absent(),
                 Value<bool> appLockEnabled = const Value.absent(),
                 Value<bool> appLockBiometricEnabled = const Value.absent(),
+                Value<int> smsImportWindowMonths = const Value.absent(),
               }) => AppSettingsCompanion.insert(
                 id: id,
                 onboardingComplete: onboardingComplete,
@@ -11038,6 +11264,7 @@ class $$AppSettingsTableTableManager
                 themeMode: themeMode,
                 appLockEnabled: appLockEnabled,
                 appLockBiometricEnabled: appLockBiometricEnabled,
+                smsImportWindowMonths: smsImportWindowMonths,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

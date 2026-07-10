@@ -11,8 +11,14 @@ import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/bills/notification_permission_gateway.dart';
 import 'package:spendsense/features/bills/presentation/notification_permission_banner.dart';
+import 'package:spendsense/features/budgets/data/spending_alert_providers.dart';
+import 'package:spendsense/features/sms_capture/data/sms_inbox_gateway.dart';
+import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_permission_providers.dart';
+import 'package:spendsense/features/sms_capture/sms_sync_providers.dart';
+import 'package:spendsense/features/sms_capture/sms_sync_service.dart';
+import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 
 void main() {
   group('App shell', () {
@@ -38,8 +44,19 @@ void main() {
             notificationPermissionStateProvider.overrideWith(
               (ref) async => NotificationPermissionState.granted,
             ),
+            smsSyncServiceProvider.overrideWithValue(
+              SmsSyncService.testing(
+                inbox: InMemorySmsInboxGateway(const []),
+                processor: (_) async => SmsCaptureResult.ignored,
+                settings: OnboardingRepository(database),
+                permissionGateway: InMemorySmsPermissionGateway(
+                  SmsPermissionState.granted,
+                ),
+              ),
+            ),
             homeWidgetSyncProvider.overrideWith((ref) async {}),
             autoBackupSyncProvider.overrideWith((ref) async {}),
+            spendingAlertSyncProvider.overrideWith((ref) async {}),
             databaseHealthProvider.overrideWith((ref) async => true),
           ],
           child: const SpendSenseApp(),

@@ -1,13 +1,12 @@
 package com.spendsense.spendsense
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.provider.Telephony
-import android.util.Log
-import androidx.core.content.ContextCompat
-import android.Manifest
 import android.content.pm.PackageManager
+import android.provider.Telephony
+import androidx.core.content.ContextCompat
 
 class SmsReceivedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -18,7 +17,6 @@ class SmsReceivedReceiver : BroadcastReceiver() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.w(TAG, "Ignoring SMS because READ_SMS is not granted")
             return
         }
 
@@ -41,27 +39,17 @@ class SmsReceivedReceiver : BroadcastReceiver() {
                 val receivedAtMs = messages.firstOrNull()?.timestampMillis
                     ?: System.currentTimeMillis()
 
-                Log.i(
-                    TAG,
-                    "Incoming SMS from $sender at $receivedAtMs (${body.length} chars)",
-                )
-
-                val result = SmsBackgroundEngine.processSms(
+                SmsBackgroundEngine.processSms(
                     context = applicationContext,
                     body = body,
                     sender = sender,
                     receivedAtMs = receivedAtMs,
                 )
-                Log.i(TAG, "Background SMS processed with result=$result")
-            } catch (error: Exception) {
-                Log.e(TAG, "Failed to process incoming SMS", error)
+            } catch (_: Exception) {
+                // Ignore background capture failures; foreground sync will retry.
             } finally {
                 pending.finish()
             }
         }.start()
-    }
-
-    companion object {
-        private const val TAG = "SpendSense.SmsReceiver"
     }
 }

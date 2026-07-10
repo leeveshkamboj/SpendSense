@@ -153,9 +153,11 @@
 
             <ImageView
                 android:id="@+id/card_row_1_icon"
-                android:layout_width="18dp"
+                android:layout_width="28dp"
                 android:layout_height="18dp"
+                android:adjustViewBounds="true"
                 android:contentDescription="@null"
+                android:scaleType="fitCenter"
                 android:src="@drawable/ic_widget_credit_card" />
 
             <TextView
@@ -220,9 +222,11 @@
 
             <ImageView
                 android:id="@+id/card_row_2_icon"
-                android:layout_width="18dp"
+                android:layout_width="28dp"
                 android:layout_height="18dp"
+                android:adjustViewBounds="true"
                 android:contentDescription="@null"
+                android:scaleType="fitCenter"
                 android:src="@drawable/ic_widget_credit_card" />
 
             <TextView
@@ -287,9 +291,11 @@
 
             <ImageView
                 android:id="@+id/card_row_3_icon"
-                android:layout_width="18dp"
+                android:layout_width="28dp"
                 android:layout_height="18dp"
+                android:adjustViewBounds="true"
                 android:contentDescription="@null"
+                android:scaleType="fitCenter"
                 android:src="@drawable/ic_widget_credit_card" />
 
             <TextView

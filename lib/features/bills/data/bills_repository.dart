@@ -25,10 +25,13 @@ class BillsRepository {
   final CardTransactionRepository _transactions;
   final RecoverableRepository _recoverables;
 
-  Future<List<BillSummary>> listUnpaidBills({required DateTime asOf}) async {
+  Future<List<BillSummary>> listUnpaidBills({
+    required DateTime asOf,
+    int historyMonths = defaultSmsImportWindowMonths,
+  }) async {
     final activeCards = await _creditCards.listActive();
     final bills = <BillSummary>[];
-    final historyCutoff = billingHistoryStart(now: asOf);
+    final historyCutoff = billingHistoryStart(now: asOf, months: historyMonths);
 
     for (final card in activeCards) {
       final cycles = await _creditCards.listCycles(card.id);

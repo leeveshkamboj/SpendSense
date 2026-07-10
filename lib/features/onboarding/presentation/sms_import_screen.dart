@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
-import 'package:spendsense/features/onboarding/sms_import_log.dart';
 import 'package:spendsense/features/onboarding/sms_import_service.dart';
 import 'package:spendsense/features/sms_capture/data/sms_inbox_gateway.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_providers.dart';
@@ -35,38 +34,42 @@ class SmsImportScreen extends ConsumerStatefulWidget {
 class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
   double _progress = 0;
   bool _started = false;
-  late final DateTime _importSince = smsImportWindowStart(
-    restoreSince: widget.since,
-  );
+  int _importWindowMonths = defaultSmsImportWindowMonths;
+  DateTime? _importSince;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _runImport());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _prepareAndRunImport());
+  }
+
+  Future<void> _prepareAndRunImport() async {
+    final repository = ref.read(onboardingRepositoryProvider);
+    _importWindowMonths = await repository.smsImportWindowMonths();
+    _importSince = smsImportWindowStart(
+      restoreSince: widget.since,
+      months: _importWindowMonths,
+    );
+    if (mounted) {
+      setState(() {});
+    }
+    await _runImport();
   }
 
   Future<void> _runImport() async {
     if (_started) return;
     _started = true;
 
-    smsImportLog(
-      'SMS import screen started '
-      '(restoreSince=${widget.since?.toIso8601String() ?? 'none'}, '
-      'windowSince=${_importSince.toIso8601String()})',
-    );
+    final importSince = _importSince;
+    if (importSince == null) {
+      return;
+    }
 
     final repository = ref.read(onboardingRepositoryProvider);
     final startIndex = await repository.importLastIndex();
     final completed = await repository.importCompleted();
-    smsImportLog(
-      'Saved import state: completed=$completed lastIndex=$startIndex',
-    );
 
     if (completed) {
-      smsImportLog(
-        'Skipping import because it was already marked complete. '
-        'New SMS parsers will not re-run until import is reset.',
-      );
       final lastSync = await repository.lastSmsSyncAt();
       if (lastSync == null) {
         await repository.saveLastSmsSyncAt(DateTime.now());
@@ -76,28 +79,23 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
     }
 
     final permission = await ref.read(smsPermissionGatewayProvider).check();
-    smsImportLog('SMS permission state: $permission');
 
     List<String> messages;
     if (permission == SmsPermissionState.granted) {
       try {
         messages = await loadSmsMessagesForImport(
           inbox: ref.read(smsInboxGatewayProvider),
-          since: _importSince,
+          since: importSince,
         );
-      } catch (error, stackTrace) {
-        smsImportLogError('Failed to load inbox messages', error, stackTrace);
+      } catch (_) {
         messages = const [];
       }
     } else {
       messages = const [];
-      smsImportLog('SMS permission denied; continuing with manual entry only');
     }
 
-    smsImportLog('Prepared ${messages.length} messages for processing');
-
     final importService = ref.read(smsImportServiceProvider);
-    final result = await importService.importMessages(
+    await importService.importMessages(
       messages,
       startIndex: startIndex,
       onProgress: (processed, total) async {
@@ -110,13 +108,6 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
       },
     );
 
-    smsImportLog(
-      'SMS import screen finished: '
-      'captured=${result.capturedCount} '
-      'duplicates=${result.duplicateCount} '
-      'ignored=${result.ignoredCount}',
-    );
-
     await repository.saveLastSmsSyncAt(DateTime.now());
 
     if (mounted) widget.onComplete();
@@ -124,6 +115,8 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final importSince = _importSince;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Importing SMS')),
       body: Padding(
@@ -133,8 +126,8 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
           children: [
             Text(
               widget.since == null
-                  ? 'Importing the last $smsImportWindowMonths months of bank SMS…'
-                  : 'Importing bank SMS since ${_formatDate(_importSince)}…',
+                  ? 'Importing the last $_importWindowMonths months of bank SMS…'
+                  : 'Importing bank SMS since ${_formatDate(importSince ?? DateTime.now())}…',
             ),
             const SizedBox(height: 24),
             LinearProgressIndicator(value: _progress),

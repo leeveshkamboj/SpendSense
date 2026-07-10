@@ -38,8 +38,13 @@ class _CaptureNotificationLaunchListenerState
   }
 
   Future<void> _handleColdStart() async {
-    final details = await AppLocalNotifications.instance.plugin
-        .getNotificationAppLaunchDetails();
+    NotificationAppLaunchDetails? details;
+    try {
+      details = await AppLocalNotifications.instance.plugin
+          .getNotificationAppLaunchDetails();
+    } on StateError {
+      return;
+    }
     final response = details?.notificationResponse;
     if (details?.didNotificationLaunchApp != true || response == null) {
       return;

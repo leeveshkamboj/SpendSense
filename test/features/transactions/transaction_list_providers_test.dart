@@ -69,6 +69,7 @@ CardTransaction _tx({
     isRecoverable: false,
     recoverablePerson: null,
     isReviewed: false,
+    isRecurring: false,
     notes: null,
     location: null,
     createdAt: DateTime(2026, 7, 9),
