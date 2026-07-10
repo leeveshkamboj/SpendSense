@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_surface">#FFFFFF</color>
+    <color name="widget_text_primary">#1C1B1F</color>
+    <color name="widget_text_secondary">#49454F</color>
+    <color name="widget_text_tertiary">#79747E</color>
+    <color name="widget_accent">#006A6A</color>
+    <color name="widget_progress_track">#E7E0EC</color>
+    <color name="widget_debit">#C62828</color>
+    <color name="widget_credit">#2E7D32</color>
+</resources>

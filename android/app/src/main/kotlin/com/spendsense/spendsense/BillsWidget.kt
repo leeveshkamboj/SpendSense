@@ -23,6 +23,14 @@ class BillsWidget : HomeWidgetProvider() {
                 widgetId,
                 R.layout.bills_widget,
             ) { views ->
+                WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
+                WidgetThemeUtils.setTitle(
+                    context,
+                    views,
+                    R.id.widget_title,
+                    "Upcoming Bills",
+                )
+
                 val rowIds = listOf(
                     listOf(R.id.bill1, R.id.bill1_color, R.id.bill1_card, R.id.bill1_meta),
                     listOf(R.id.bill2, R.id.bill2_color, R.id.bill2_card, R.id.bill2_meta),
@@ -31,6 +39,12 @@ class BillsWidget : HomeWidgetProvider() {
 
                 if (rows.length() == 0) {
                     views.setViewVisibility(R.id.empty_text, View.VISIBLE)
+                    WidgetThemeUtils.setBody(
+                        context,
+                        views,
+                        R.id.empty_text,
+                        "No upcoming bills",
+                    )
                     for (ids in rowIds) {
                         views.setViewVisibility(ids[0], View.GONE)
                     }
@@ -56,10 +70,12 @@ class BillsWidget : HomeWidgetProvider() {
                             views.setViewVisibility(ids[0], View.VISIBLE)
                             views.setInt(ids[1], "setBackgroundColor", color)
                             views.setTextViewText(ids[2], card)
+                            views.setTextColor(ids[2], WidgetThemeUtils.titleColor(context))
                             views.setTextViewText(
                                 ids[3],
                                 "$dueLabel · ${WidgetFormatUtils.formatPaise(amount)}",
                             )
+                            views.setTextColor(ids[3], WidgetThemeUtils.tertiaryColor(context))
                         } else {
                             views.setViewVisibility(ids[0], View.GONE)
                         }

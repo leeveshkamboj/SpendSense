@@ -26,12 +26,29 @@ class BudgetWidget : HomeWidgetProvider() {
                 widgetId,
                 R.layout.budget_widget,
             ) { views ->
-                views.setTextViewText(R.id.spent_text, WidgetFormatUtils.formatPaise(spent))
+                WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
+                WidgetThemeUtils.setTitle(
+                    context,
+                    views,
+                    R.id.widget_title,
+                    "Monthly Budget",
+                )
+                WidgetThemeUtils.setAmount(
+                    context,
+                    views,
+                    R.id.spent_text,
+                    WidgetFormatUtils.formatPaise(spent),
+                )
 
                 if (needsPrompt || limit.isEmpty()) {
                     views.setViewVisibility(R.id.budget_progress, View.GONE)
                     views.setViewVisibility(R.id.card_spend_chart, View.GONE)
-                    views.setTextViewText(R.id.daily_text, "Set a monthly budget")
+                    WidgetThemeUtils.setSubtitle(
+                        context,
+                        views,
+                        R.id.daily_text,
+                        "Set a monthly budget",
+                    )
                     views.setTextViewText(R.id.remaining_text, "")
                 } else {
                     views.setViewVisibility(R.id.budget_progress, View.VISIBLE)
@@ -39,11 +56,15 @@ class BudgetWidget : HomeWidgetProvider() {
                     val limitValue = limit.toLongOrNull() ?: 1L
                     val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
                     views.setProgressBar(R.id.budget_progress, 100, progress, false)
-                    views.setTextViewText(
+                    WidgetThemeUtils.setSubtitle(
+                        context,
+                        views,
                         R.id.daily_text,
                         "${WidgetFormatUtils.formatPaise(daily)} left for today",
                     )
-                    views.setTextViewText(
+                    WidgetThemeUtils.setBody(
+                        context,
+                        views,
                         R.id.remaining_text,
                         "${WidgetFormatUtils.formatPaise(remaining)} remaining this cycle",
                     )

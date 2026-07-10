@@ -18,10 +18,7 @@ Map<int, int> calculateCardSpendPaise(Iterable<BudgetTransaction> transactions) 
   final totals = <int, int>{};
 
   for (final transaction in transactions) {
-    if (transaction.source != BudgetTransactionSource.creditCard) {
-      continue;
-    }
-    if (transaction.kind != BudgetTransactionKind.expense) {
+    if (!countsTowardBudget(transaction)) {
       continue;
     }
 

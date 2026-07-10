@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/presentation/sms_import_screen.dart';
 import 'package:spendsense/features/onboarding/sms_import_log.dart';
@@ -46,6 +47,7 @@ class _SmsReimportScreenState extends ConsumerState<SmsReimportScreen> {
         ref.invalidate(cardTransactionPageProvider);
         ref.invalidate(filteredGroupedCardTransactionsProvider);
         ref.invalidate(filteredGroupedCardTransactionsWhenSearchingProvider);
+        invalidateDashboardAndWidgets(ref);
         if (context.mounted) {
           context.pop();
         }

@@ -1,7 +1,7 @@
 import 'package:spendsense/core/formatting/merchant_display.dart';
+import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/core/formatting/transaction_date_display.dart';
 import 'package:spendsense/core/database/database.dart';
-import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -25,6 +25,8 @@ class CardTransactionListTile extends StatelessWidget {
     final label = formatMerchantLabel(transaction.merchant);
     final color = Color(colorValue);
     final scheme = Theme.of(context).colorScheme;
+    final direction = cardTransactionDirection(transaction.kind);
+    final amountColor = transactionDirectionColor(scheme, direction);
 
     return InkWell(
       onTap: onTap ?? () => context.push('/transactions/${transaction.id}'),
@@ -73,9 +75,17 @@ class CardTransactionListTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  formatPaise(transaction.amountPaise),
+                  formatSignedPaise(transaction.amountPaise, direction),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: amountColor,
+                      ),
+                ),
+                Text(
+                  transactionDirectionLabel(direction),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: amountColor,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
                 if (transaction.isRecoverable)

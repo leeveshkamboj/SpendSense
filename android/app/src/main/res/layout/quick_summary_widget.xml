@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@drawable/widget_background"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -10,8 +11,9 @@
         android:id="@+id/widget_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Quick Summary"
-        android:textSize="14sp"
+        android:text="Budget at a Glance"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -20,13 +22,33 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="₹0"
-        android:textSize="20sp"
+        android:textColor="@color/widget_text_primary"
+        android:textSize="24sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/spent_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="Personal spend this cycle"
+        android:textColor="@color/widget_text_tertiary"
+        android:textSize="11sp" />
+
+    <ProgressBar
+        android:id="@+id/budget_progress"
+        style="@style/WidgetProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:max="100"
+        android:progress="0"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/card_spend_chart"
         android:layout_width="match_parent"
-        android:layout_height="8dp"
+        android:layout_height="6dp"
         android:layout_marginTop="8dp"
         android:orientation="horizontal"
         android:visibility="gone">
@@ -60,7 +82,8 @@
         android:id="@+id/remaining_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:text="Set a monthly budget"
+        android:textColor="@color/widget_text_secondary"
         android:textSize="12sp" />
 </LinearLayout>

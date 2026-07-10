@@ -32,15 +32,35 @@ class HomeWidgetRepository {
   Future<QuickSummaryWidgetSnapshot> quickSummary({
     required DateTime asOf,
   }) async {
-    final spend = await _dashboard.cardSpendSummary(asOf: asOf);
     final progress = await _budgets.monthlyProgress(asOf: asOf);
     final cards = await _creditCards.listActive();
 
+    if (progress == null) {
+      return QuickSummaryWidgetSnapshot(
+        spentPaise: 0,
+        budgetLimitPaise: null,
+        budgetRemainingPaise: null,
+        cardSpendSegments: const [],
+      );
+    }
+
+    final periodTransactions =
+        await _budgets.listBudgetPeriodTransactions(asOf: asOf);
+    final budgetCardSpend = calculateCardSpendPaise(periodTransactions);
+    final cardSpendSegments = [
+      for (final card in cards)
+        CardSpendChartSegment(
+          nickname: card.nickname,
+          spentPaise: budgetCardSpend[card.id] ?? 0,
+          colorValue: card.colorValue,
+        ),
+    ]..sort((a, b) => b.spentPaise.compareTo(a.spentPaise));
+
     return QuickSummaryWidgetSnapshot(
-      spentPaise: spend.totalPaise,
-      budgetLimitPaise: progress?.limitPaise,
-      budgetRemainingPaise: progress?.remainingPaise,
-      cardSpendSegments: _cardSpendSegments(spend, cards),
+      spentPaise: progress.spentPaise,
+      budgetLimitPaise: progress.limitPaise,
+      budgetRemainingPaise: progress.remainingPaise,
+      cardSpendSegments: cardSpendSegments,
     );
   }
 
@@ -92,6 +112,7 @@ class HomeWidgetRepository {
             amountPaise: row.amountPaise,
             transactionAt: row.transactionAt,
             colorValue: row.colorValue,
+            kind: row.kind,
           ),
       ],
     );

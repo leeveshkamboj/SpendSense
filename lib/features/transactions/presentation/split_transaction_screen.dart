@@ -5,6 +5,7 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/formatting/amount_display.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/recoverables/data/recoverable_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
@@ -53,6 +54,7 @@ class _SplitTransactionScreenState extends ConsumerState<SplitTransactionScreen>
     ref.invalidate(monthlyBudgetProgressProvider);
     ref.invalidate(unpaidBillsProvider);
     ref.invalidate(recoverableSummaryProvider);
+    invalidateDashboardAndWidgets(ref);
 
     if (mounted) {
       context.pop();

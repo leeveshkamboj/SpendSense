@@ -28,5 +28,34 @@ void main() {
 
       expect(total, 50000);
     });
+
+    test('sums personal card spend per card excluding recoverables', () {
+      final totals = calculateCardSpendPaise([
+        const BudgetTransaction(
+          source: BudgetTransactionSource.creditCard,
+          kind: BudgetTransactionKind.expense,
+          isRecoverable: false,
+          amountPaise: 50000,
+          cardId: 1,
+        ),
+        const BudgetTransaction(
+          source: BudgetTransactionSource.creditCard,
+          kind: BudgetTransactionKind.expense,
+          isRecoverable: true,
+          amountPaise: 10000,
+          cardId: 1,
+        ),
+        const BudgetTransaction(
+          source: BudgetTransactionSource.creditCard,
+          kind: BudgetTransactionKind.expense,
+          isRecoverable: false,
+          amountPaise: 20000,
+          cardId: 2,
+        ),
+      ]);
+
+      expect(totals[1], 50000);
+      expect(totals[2], 20000);
+    });
   });
 }

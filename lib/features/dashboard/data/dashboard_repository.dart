@@ -93,6 +93,7 @@ class DashboardRepository {
             colorValue: colorById[tx.creditCardId] ?? 0xFF9E9E9E,
             cardNickname:
                 nicknameById[tx.creditCardId] ?? 'Card ${tx.creditCardId}',
+            kind: tx.kind,
           ),
         )
         .toList();

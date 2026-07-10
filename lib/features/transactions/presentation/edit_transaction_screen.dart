@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/data/transaction_edit_providers.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
@@ -63,6 +64,7 @@ class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
     ref.invalidate(groupedCardTransactionsProvider);
     ref.invalidate(monthlyBudgetProgressProvider);
     ref.invalidate(unpaidBillsProvider);
+    invalidateDashboardAndWidgets(ref);
 
     if (mounted) {
       context.pop();

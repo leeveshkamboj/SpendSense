@@ -5,6 +5,7 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
@@ -38,6 +39,7 @@ class _CycleMoveScreenState extends ConsumerState<CycleMoveScreen> {
     ref.invalidate(filteredGroupedCardTransactionsProvider);
     ref.invalidate(monthlyBudgetProgressProvider);
     ref.invalidate(unpaidBillsProvider);
+    invalidateDashboardAndWidgets(ref);
 
     if (mounted) {
       context.pop();

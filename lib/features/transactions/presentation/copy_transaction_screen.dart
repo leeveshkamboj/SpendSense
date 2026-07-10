@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/data/transaction_copy_providers.dart';
 import 'package:spendsense/features/transactions/domain/card_transaction_copy_draft.dart';
@@ -43,6 +44,7 @@ class _CopyTransactionScreenState extends ConsumerState<CopyTransactionScreen> {
         );
 
     ref.invalidate(cardTransactionsProvider);
+    invalidateDashboardAndWidgets(ref);
     if (mounted) {
       context.pop();
     }

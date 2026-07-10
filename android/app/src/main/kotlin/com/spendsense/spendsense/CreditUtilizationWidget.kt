@@ -24,18 +24,37 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
                 widgetId,
                 R.layout.credit_utilization_widget,
             ) { views ->
-                views.setTextViewText(R.id.spent_text, WidgetFormatUtils.formatPaise(spent))
+                WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
+                WidgetThemeUtils.setTitle(
+                    context,
+                    views,
+                    R.id.widget_title,
+                    "Credit Utilization",
+                )
+                WidgetThemeUtils.setAmount(
+                    context,
+                    views,
+                    R.id.spent_text,
+                    WidgetFormatUtils.formatPaise(spent),
+                )
 
                 if (needsLimit || limit.isEmpty()) {
                     views.setViewVisibility(R.id.utilization_progress, View.GONE)
-                    views.setTextViewText(R.id.limit_text, "Set credit limits on your cards")
+                    WidgetThemeUtils.setSubtitle(
+                        context,
+                        views,
+                        R.id.limit_text,
+                        "Set credit limits on your cards",
+                    )
                 } else {
                     views.setViewVisibility(R.id.utilization_progress, View.VISIBLE)
                     val spentValue = spent.toLongOrNull() ?: 0L
                     val limitValue = limit.toLongOrNull() ?: 1L
                     val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
                     views.setProgressBar(R.id.utilization_progress, 100, progress, false)
-                    views.setTextViewText(
+                    WidgetThemeUtils.setSubtitle(
+                        context,
+                        views,
                         R.id.limit_text,
                         "${WidgetFormatUtils.formatPaise(spent)} of ${WidgetFormatUtils.formatPaise(limit)} used",
                     )

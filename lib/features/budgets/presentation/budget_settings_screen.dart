@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 
 class BudgetSettingsScreen extends ConsumerStatefulWidget {
   const BudgetSettingsScreen({super.key});
@@ -48,6 +49,7 @@ class _BudgetSettingsScreenState extends ConsumerState<BudgetSettingsScreen> {
 
     ref.invalidate(monthlyBudgetProgressProvider);
     ref.invalidate(categoryBudgetsProvider);
+    invalidateDashboardAndWidgets(ref);
     if (mounted) {
       Navigator.of(context).pop();
     }

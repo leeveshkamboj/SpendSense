@@ -112,6 +112,7 @@ class HomeWidgetSyncService {
           'amount_paise': item.amountPaise,
           'transaction_at_ms': item.transactionAt.millisecondsSinceEpoch,
           'color_value': item.colorValue,
+          'kind': item.kind,
         },
     ];
     await _writer.saveValue(

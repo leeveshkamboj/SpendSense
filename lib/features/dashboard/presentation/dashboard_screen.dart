@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/formatting/merchant_display.dart';
+import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/core/formatting/transaction_date_display.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
@@ -496,6 +497,9 @@ class _TransactionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = formatMerchantLabel(transaction.merchant);
     final color = Color(transaction.colorValue);
+    final scheme = Theme.of(context).colorScheme;
+    final direction = cardTransactionDirection(transaction.kind);
+    final amountColor = transactionDirectionColor(scheme, direction);
 
     return InkWell(
       onTap: () => context.go('/transactions'),
@@ -539,11 +543,24 @@ class _TransactionRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              formatPaise(transaction.amountPaise),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  formatSignedPaise(transaction.amountPaise, direction),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: amountColor,
+                      ),
+                ),
+                Text(
+                  transactionDirectionLabel(direction),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: amountColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
             ),
           ],
         ),

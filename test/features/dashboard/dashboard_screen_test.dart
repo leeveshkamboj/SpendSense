@@ -142,6 +142,7 @@ void main() {
                   transactionAt: DateTime(2026, 7, 9, 16, 15),
                   colorValue: 0xFF00695C,
                   cardNickname: 'HDFC ••5534',
+                  kind: 'expense',
                 ),
               ],
             ),

@@ -25,10 +25,8 @@ void main() {
       );
       repository = HomeWidgetRepository(
         dashboard: DashboardRepository(
-          database: database,
           creditCards: creditCards,
           cardTransactions: transactions,
-          budgets: budgets,
         ),
         budgets: budgets,
         creditCards: creditCards,
@@ -47,7 +45,7 @@ void main() {
       await database.close();
     });
 
-    test('quick summary includes aggregate spend and budget remaining', () async {
+    test('quick summary uses budget personal spend excluding recoverables', () async {
       final creditCards = CreditCardRepository(database);
       final transactions = CardTransactionRepository(database);
       final cardId = await creditCards.create(

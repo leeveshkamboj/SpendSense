@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@drawable/widget_background"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/widget_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Upcoming Bills"
-        android:textSize="14sp"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -19,6 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="No upcoming bills"
+        android:textColor="@color/widget_text_tertiary"
         android:textSize="12sp"
         android:visibility="gone" />
 
@@ -43,12 +47,14 @@
                 android:id="@+id/bill1_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/bill1_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
@@ -74,12 +80,14 @@
                 android:id="@+id/bill2_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/bill2_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
@@ -105,12 +113,14 @@
                 android:id="@+id/bill3_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/bill3_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

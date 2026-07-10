@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
-import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
+import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/recoverables/data/recoverable_providers.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
-import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
@@ -121,6 +121,7 @@ class _TransactionDetailScreenState
     ref.invalidate(monthlyBudgetProgressProvider);
     ref.invalidate(unpaidBillsProvider);
     ref.invalidate(recoverableSummaryProvider);
+    invalidateDashboardAndWidgets(ref);
   }
 
   @override
@@ -149,6 +150,10 @@ class _TransactionDetailScreenState
 
           _loadFields(tx);
 
+          final scheme = Theme.of(context).colorScheme;
+          final direction = cardTransactionDirection(tx.kind);
+          final amountColor = transactionDirectionColor(scheme, direction);
+
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -156,7 +161,20 @@ class _TransactionDetailScreenState
                 tx.merchant,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
-              Text(formatPaise(tx.amountPaise)),
+              Text(
+                formatSignedPaise(tx.amountPaise, direction),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: amountColor,
+                    ),
+              ),
+              Text(
+                transactionDirectionLabel(direction),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: amountColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
               Text('Kind: ${tx.kind}'),
               Text('Source: ${tx.source}'),
               Text('Category: ${tx.category ?? 'Miscellaneous'}'),

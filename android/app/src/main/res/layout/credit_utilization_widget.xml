@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@drawable/widget_background"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -11,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Credit Utilization"
-        android:textSize="14sp"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -20,7 +22,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="₹0"
-        android:textSize="20sp"
+        android:textColor="@color/widget_text_primary"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
     <ProgressBar
@@ -28,7 +31,7 @@
         style="@style/WidgetProgressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:max="100"
         android:progress="0" />
 
@@ -36,8 +39,9 @@
         android:id="@+id/limit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:text="Set credit limits on your cards"
+        android:textColor="@color/widget_text_secondary"
         android:textSize="12sp" />
 
     <LinearLayout

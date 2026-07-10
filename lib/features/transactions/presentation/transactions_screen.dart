@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
-import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
+import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
@@ -87,6 +88,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     ref.invalidate(filteredGroupedCardTransactionsWhenSearchingProvider);
     ref.invalidate(monthlyBudgetProgressProvider);
     ref.invalidate(unpaidBillsProvider);
+    invalidateDashboardAndWidgets(ref);
   }
 
   void _undoDelete(int transactionId) {
@@ -524,14 +526,32 @@ class _AccountsSegmentBody extends ConsumerWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final transaction = group.transactions[index];
+                    final scheme = Theme.of(context).colorScheme;
+                    final direction =
+                        bankTransactionDirection(transaction.kind);
+                    final amountColor =
+                        transactionDirectionColor(scheme, direction);
+                    final title = transaction.beneficiary ??
+                        transaction.merchant ??
+                        transaction.category ??
+                        'Transaction';
+
                     return ListTile(
-                      title: Text(
-                        transaction.beneficiary ??
-                            transaction.merchant ??
-                            transaction.category ??
-                            'Transaction',
+                      title: Text(title),
+                      subtitle: Text(
+                        transactionDirectionLabel(direction),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: amountColor,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
-                      subtitle: Text(formatPaise(transaction.amountPaise)),
+                      trailing: Text(
+                        formatSignedPaise(transaction.amountPaise, direction),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: amountColor,
+                            ),
+                      ),
                     );
                   },
                   childCount: group.transactions.length,

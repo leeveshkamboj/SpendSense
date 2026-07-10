@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/core/formatting/amount_display.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/bills/domain/bill_summary.dart';
-import 'package:spendsense/features/dashboard/data/dashboard_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 
 Future<void> showRecordBillPaymentSheet({
   required BuildContext context,
@@ -17,7 +17,7 @@ Future<void> showRecordBillPaymentSheet({
       bill: bill,
       onSaved: () async {
         ref.invalidate(unpaidBillsProvider);
-        ref.invalidate(dashboardCardSpendProvider);
+        invalidateDashboardAndWidgets(ref);
       },
     ),
   );

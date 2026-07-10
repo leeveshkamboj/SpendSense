@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@drawable/widget_background"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/widget_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Recent Transactions"
-        android:textSize="14sp"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -19,6 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="No recent transactions"
+        android:textColor="@color/widget_text_tertiary"
         android:textSize="12sp"
         android:visibility="gone" />
 
@@ -43,14 +47,24 @@
                 android:id="@+id/row1_merchant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/row1_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/row1_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -74,14 +88,24 @@
                 android:id="@+id/row2_merchant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/row2_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/row2_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -105,14 +129,24 @@
                 android:id="@+id/row3_merchant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/row3_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/row3_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -136,14 +170,24 @@
                 android:id="@+id/row4_merchant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/row4_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/row4_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -167,13 +211,23 @@
                 android:id="@+id/row5_merchant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
             <TextView
                 android:id="@+id/row5_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/widget_text_tertiary"
                 android:textSize="11sp" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/row5_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>

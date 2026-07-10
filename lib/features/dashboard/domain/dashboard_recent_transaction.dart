@@ -5,6 +5,7 @@ class DashboardRecentTransaction {
     required this.transactionAt,
     required this.colorValue,
     required this.cardNickname,
+    required this.kind,
   });
 
   final String merchant;
@@ -12,4 +13,5 @@ class DashboardRecentTransaction {
   final DateTime transactionAt;
   final int colorValue;
   final String cardNickname;
+  final String kind;
 }

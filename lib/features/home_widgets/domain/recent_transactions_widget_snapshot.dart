@@ -4,12 +4,14 @@ class RecentTransactionWidgetItem {
     required this.amountPaise,
     required this.transactionAt,
     required this.colorValue,
+    required this.kind,
   });
 
   final String merchant;
   final int amountPaise;
   final DateTime transactionAt;
   final int colorValue;
+  final String kind;
 }
 
 class RecentTransactionsWidgetSnapshot {

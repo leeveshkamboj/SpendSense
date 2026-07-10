@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spendsense/features/budgets/data/budget_providers.dart';
+import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
@@ -76,6 +79,9 @@ class _ManualCardTransactionScreenState
     ref.invalidate(cardTransactionsProvider);
     ref.invalidate(cardTransactionPageProvider);
     ref.invalidate(filteredGroupedCardTransactionsProvider);
+    ref.invalidate(monthlyBudgetProgressProvider);
+    ref.invalidate(unpaidBillsProvider);
+    invalidateDashboardAndWidgets(ref);
 
     if (mounted) {
       context.pop();

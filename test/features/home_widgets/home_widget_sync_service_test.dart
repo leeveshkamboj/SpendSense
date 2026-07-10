@@ -98,6 +98,7 @@ void main() {
               amountPaise: 20000,
               transactionAt: at,
               colorValue: 0xFF00695C,
+              kind: 'expense',
             ),
           ],
         ),

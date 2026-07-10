@@ -23,16 +23,30 @@ class RecentTransactionsWidget : HomeWidgetProvider() {
                 widgetId,
                 R.layout.recent_transactions_widget,
             ) { views ->
+                WidgetThemeUtils.applyBaseTheme(context, views, R.id.widget_root)
+                WidgetThemeUtils.setTitle(
+                    context,
+                    views,
+                    R.id.widget_title,
+                    "Recent Transactions",
+                )
+
                 val rowIds = listOf(
-                    listOf(R.id.row1, R.id.row1_color, R.id.row1_merchant, R.id.row1_meta),
-                    listOf(R.id.row2, R.id.row2_color, R.id.row2_merchant, R.id.row2_meta),
-                    listOf(R.id.row3, R.id.row3_color, R.id.row3_merchant, R.id.row3_meta),
-                    listOf(R.id.row4, R.id.row4_color, R.id.row4_merchant, R.id.row4_meta),
-                    listOf(R.id.row5, R.id.row5_color, R.id.row5_merchant, R.id.row5_meta),
+                    listOf(R.id.row1, R.id.row1_color, R.id.row1_merchant, R.id.row1_meta, R.id.row1_amount),
+                    listOf(R.id.row2, R.id.row2_color, R.id.row2_merchant, R.id.row2_meta, R.id.row2_amount),
+                    listOf(R.id.row3, R.id.row3_color, R.id.row3_merchant, R.id.row3_meta, R.id.row3_amount),
+                    listOf(R.id.row4, R.id.row4_color, R.id.row4_merchant, R.id.row4_meta, R.id.row4_amount),
+                    listOf(R.id.row5, R.id.row5_color, R.id.row5_merchant, R.id.row5_meta, R.id.row5_amount),
                 )
 
                 if (rows.length() == 0) {
                     views.setViewVisibility(R.id.empty_text, View.VISIBLE)
+                    WidgetThemeUtils.setBody(
+                        context,
+                        views,
+                        R.id.empty_text,
+                        "No recent transactions",
+                    )
                     for (ids in rowIds) {
                         views.setViewVisibility(ids[0], View.GONE)
                     }
@@ -43,15 +57,33 @@ class RecentTransactionsWidget : HomeWidgetProvider() {
                         if (index < rows.length()) {
                             val item = rows.getJSONObject(index)
                             val merchant = item.optString("merchant", "Unknown")
-                            val amount = item.optInt("amount_paise", 0).toString()
+                            val amountPaise = item.optInt("amount_paise", 0)
+                            val kind = item.optString("kind", "expense")
                             val atMs = item.optLong("transaction_at_ms", 0L)
                             val color = item.optInt("color_value", 0xFF9E9E9E.toInt())
+                            val (signedAmount, _) =
+                                WidgetThemeUtils.formatSignedAmount(context, amountPaise, kind)
+                            val directionLabel = when {
+                                WidgetThemeUtils.isCreditKind(kind) -> "Credit"
+                                kind == "card_payment" -> "Payment"
+                                else -> "Debit"
+                            }
+
                             views.setViewVisibility(ids[0], View.VISIBLE)
                             views.setInt(ids[1], "setBackgroundColor", color)
                             views.setTextViewText(ids[2], merchant)
+                            views.setTextColor(ids[2], WidgetThemeUtils.titleColor(context))
                             views.setTextViewText(
                                 ids[3],
-                                "${WidgetFormatUtils.formatPaise(amount)} · ${WidgetFormatUtils.formatTime(atMs)}",
+                                "$directionLabel · ${WidgetFormatUtils.formatTime(atMs)}",
+                            )
+                            views.setTextColor(ids[3], WidgetThemeUtils.tertiaryColor(context))
+                            WidgetThemeUtils.setAmount(
+                                context,
+                                views,
+                                ids[4],
+                                signedAmount,
+                                kind,
                             )
                         } else {
                             views.setViewVisibility(ids[0], View.GONE)

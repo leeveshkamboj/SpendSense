@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_providers.dart';
+import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/recoverables/data/recoverable_providers.dart';
 import 'package:spendsense/features/sms_capture/capture_notification_provider.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
@@ -59,6 +60,7 @@ class CaptureNotificationListener extends ConsumerWidget {
                     );
                 ref.invalidate(cardTransactionsProvider);
                 ref.invalidate(recoverableSummaryProvider);
+                invalidateDashboardAndWidgets(ref);
                 ref.read(captureNotificationProvider.notifier).state = null;
               },
             ),
@@ -80,11 +82,13 @@ class CaptureNotificationListener extends ConsumerWidget {
           .read(bankAccountTransactionRepositoryProvider)
           .markReviewed(next.transactionId);
       ref.invalidate(bankAccountTransactionsProvider);
+      invalidateDashboardAndWidgets(ref);
     } else {
       await ref
           .read(cardTransactionRepositoryProvider)
           .markReviewed(next.transactionId);
       ref.invalidate(cardTransactionsProvider);
+      invalidateDashboardAndWidgets(ref);
     }
     ref.read(captureNotificationProvider.notifier).state = null;
     if (context.mounted) {
