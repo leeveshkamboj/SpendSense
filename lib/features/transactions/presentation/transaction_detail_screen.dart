@@ -14,6 +14,8 @@ import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/location/domain/transaction_location.dart';
 import 'package:spendsense/features/location/presentation/transaction_location_field.dart';
 import 'package:spendsense/features/merchants/data/merchant_providers.dart';
+import 'package:spendsense/features/merchants/domain/merchant_list_item.dart';
+import 'package:spendsense/features/merchants/presentation/merchant_edit_sheet.dart';
 import 'package:spendsense/features/merchants/presentation/merchant_list_providers.dart';
 import 'package:spendsense/features/recoverables/data/recoverable_providers.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
@@ -51,7 +53,6 @@ class TransactionDetailScreen extends ConsumerStatefulWidget {
 class _TransactionDetailScreenState
     extends ConsumerState<TransactionDetailScreen> {
   final _personController = TextEditingController();
-  final _displayNameController = TextEditingController();
   final _notesController = TextEditingController();
   final _referenceController = TextEditingController();
   bool _isRecoverable = false;
@@ -59,14 +60,12 @@ class _TransactionDetailScreenState
   bool _isAddingReceipt = false;
   bool _isSaving = false;
   int? _loadedId;
-  String? _loadedMerchantRawName;
   String? _loadedLocationRaw;
   TransactionLocation? _location;
 
   @override
   void dispose() {
     _personController.dispose();
-    _displayNameController.dispose();
     _notesController.dispose();
     _referenceController.dispose();
     super.dispose();
@@ -91,14 +90,6 @@ class _TransactionDetailScreenState
     _location = TransactionLocation.parse(rawLocation);
   }
 
-  void _loadMerchantDisplayName(String rawName, String? displayName) {
-    if (_loadedMerchantRawName == rawName) {
-      return;
-    }
-    _loadedMerchantRawName = rawName;
-    _displayNameController.text = displayName ?? '';
-  }
-
   Future<void> _saveAll(CardTransaction tx) async {
     if (_isRecoverable && _personController.text.trim().isEmpty) {
       if (mounted) {
@@ -116,13 +107,6 @@ class _TransactionDetailScreenState
             isRecoverable: _isRecoverable,
             person: _isRecoverable ? _personController.text : null,
           );
-
-      final repository = ref.read(merchantRepositoryProvider);
-      await repository.ensureFromTransaction(rawName: tx.merchant);
-      await repository.updateDefaults(
-        rawName: tx.merchant,
-        displayName: _displayNameController.text.trim(),
-      );
 
       await ref.read(cardTransactionRepositoryProvider).updateDetails(
             transactionId: tx.id,
@@ -156,6 +140,42 @@ class _TransactionDetailScreenState
       if (mounted) {
         setState(() => _isSaving = false);
       }
+    }
+  }
+
+  Future<void> _openMerchantEditor(CardTransaction tx) async {
+    final repository = ref.read(merchantRepositoryProvider);
+    await repository.ensureFromTransaction(rawName: tx.merchant);
+    final record = await repository.getByRawName(tx.merchant);
+    final tags = await repository.resolveDefaultTags(tx.merchant);
+    final category = await repository.resolveDefaultCategory(tx.merchant);
+
+    if (!mounted) {
+      return;
+    }
+
+    final result = await showMerchantEditSheet(
+      context: context,
+      ref: ref,
+      merchant: MerchantListItem(
+        rawName: tx.merchant,
+        displayName: record?.displayName,
+        defaultCategory: category,
+        tags: tags,
+      ),
+      applyTagsToCardTransactionId: tx.id,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    ref.invalidate(cardTransactionTagsProvider(widget.transactionId));
+    _invalidateAll();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Merchant updated')),
+      );
     }
   }
 
@@ -294,45 +314,66 @@ class _TransactionDetailScreenState
           }
 
           _loadFields(tx);
-          _loadMerchantDisplayName(
-            tx.merchant,
-            merchant.valueOrNull?.displayName,
-          );
 
           final scheme = Theme.of(context).colorScheme;
           final direction = cardTransactionDirection(tx.kind);
           final amountColor = transactionDirectionColor(scheme, direction);
           final merchantLabel = resolveMerchantDisplayLabel(
             tx.merchant,
-            customDisplayName: _displayNameController.text.trim().isEmpty
-                ? merchant.valueOrNull?.displayName
-                : _displayNameController.text,
+            customDisplayName: merchant.valueOrNull?.displayName,
           );
           final parsedMerchantLabel = formatMerchantLabel(tx.merchant);
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                merchantLabel,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              if (merchantLabel != parsedMerchantLabel)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    'Parsed as $parsedMerchantLabel',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
+              InkWell(
+                onTap: () => _openMerchantEditor(tx),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              merchantLabel,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            if (merchantLabel != parsedMerchantLabel)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Parsed as $parsedMerchantLabel',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: scheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tap to edit merchant, category & tags',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(
+                                    color: scheme.primary,
+                                  ),
+                            ),
+                          ],
                         ),
+                      ),
+                      Icon(
+                        Icons.storefront_outlined,
+                        color: scheme.primary,
+                      ),
+                    ],
                   ),
-                ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _displayNameController,
-                decoration: InputDecoration(
-                  labelText: 'Display name',
-                  helperText: 'Shown instead of ${tx.merchant}',
                 ),
               ),
               const SizedBox(height: 16),

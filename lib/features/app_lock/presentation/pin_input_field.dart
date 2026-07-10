@@ -46,6 +46,15 @@ class _PinInputFieldState extends State<PinInputField> {
   }
 
   @override
+  void didUpdateWidget(PinInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_handleChanged);
+      widget.controller.addListener(_handleChanged);
+    }
+  }
+
+  @override
   void dispose() {
     widget.controller.removeListener(_handleChanged);
     super.dispose();

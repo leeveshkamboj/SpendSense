@@ -10,6 +10,9 @@ import 'package:spendsense/features/settings/data/app_preferences_providers.dart
 /// Once unlocked, stays unlocked until the process is killed (app closed).
 /// Does not re-lock on background/inactive — that fights the system biometric
 /// sheet and made PIN entry unreachable.
+///
+/// Hosted from [MaterialApp.builder], outside the root navigator. While locked,
+/// a nested [Navigator] supplies the Overlay that Material tooltips need.
 class AppLockGate extends ConsumerStatefulWidget {
   const AppLockGate({required this.child, super.key});
 
@@ -28,13 +31,46 @@ class _AppLockGateState extends ConsumerState<AppLockGate> {
 
     return enabled.when(
       data: (isEnabled) {
-        if (!isEnabled || _unlocked) {
-          return widget.child;
-        }
-        return _LockScreen(onUnlock: () => setState(() => _unlocked = true));
+        final locked = isEnabled && !_unlocked;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            widget.child,
+            if (locked)
+              Positioned.fill(
+                child: _LockLayer(
+                  onUnlock: () => setState(() => _unlocked = true),
+                ),
+              ),
+          ],
+        );
       },
       loading: () => widget.child,
       error: (_, _) => widget.child,
+    );
+  }
+}
+
+class _LockLayer extends StatelessWidget {
+  const _LockLayer({required this.onUnlock});
+
+  final VoidCallback onUnlock;
+
+  @override
+  Widget build(BuildContext context) {
+    return HeroControllerScope.none(
+      child: Navigator(
+        onGenerateRoute: (settings) {
+          return PageRouteBuilder<void>(
+            settings: settings,
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return _LockScreen(onUnlock: onUnlock);
+            },
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          );
+        },
+      ),
     );
   }
 }

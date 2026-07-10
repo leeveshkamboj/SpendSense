@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
 import 'package:spendsense/features/merchants/data/merchant_providers.dart';
+import 'package:spendsense/features/tags/data/tag_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
 
@@ -65,7 +65,7 @@ void main() {
     await database.close();
   });
 
-  testWidgets('saves merchant display name from transaction detail', (
+  testWidgets('opens merchant form from merchant name and saves tags', (
     tester,
   ) async {
     final database = AppDatabase(NativeDatabase.memory());
@@ -86,6 +86,7 @@ void main() {
         kind: 'expense',
         amountPaise: 41167,
         merchant: 'ZOMATO LTD',
+        category: 'Food',
         transactionAt: DateTime(2026, 7, 9, 16, 15, 20),
         source: 'SMS',
       ),
@@ -106,8 +107,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).first, 'Zomato Dinner');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Tap to edit merchant, category & tags'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit merchant'), findsOneWidget);
+
+    final sheet = find.byType(BottomSheet);
+    final textFields = find.descendant(
+      of: sheet,
+      matching: find.byType(TextField),
+    );
+    expect(textFields, findsNWidgets(2));
+    await tester.enterText(textFields.at(0), 'Zomato Dinner');
+    await tester.enterText(textFields.at(1), 'Personal, Office');
+    await tester.tap(find.text('Save merchant'));
     await tester.pumpAndSettle();
 
     final container = ProviderScope.containerOf(
@@ -115,8 +128,17 @@ void main() {
     );
     final displayNames =
         await container.read(merchantDisplayNamesProvider.future);
+    final merchantTags = await container
+        .read(merchantRepositoryProvider)
+        .resolveDefaultTags('ZOMATO LTD');
+    final transactionTags = await container
+        .read(tagRepositoryProvider)
+        .listForCardTransaction(transactionId);
 
     expect(displayNames['ZOMATO LTD'], 'Zomato Dinner');
+    expect(merchantTags, ['Office', 'Personal']);
+    expect(transactionTags, ['Office', 'Personal']);
+    expect(find.text('Zomato Dinner'), findsOneWidget);
 
     await database.close();
   });

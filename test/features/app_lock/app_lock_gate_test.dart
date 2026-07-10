@@ -133,5 +133,49 @@ void main() {
         FlutterError.onError = previous;
       }
     });
+
+    testWidgets('lock screen works inside MaterialApp.builder without Overlay crash', (
+      tester,
+    ) async {
+      FlutterErrorDetails? firstError;
+      final previous = FlutterError.onError;
+      FlutterError.onError = (details) {
+        firstError ??= details;
+        previous?.call(details);
+      };
+
+      try {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              databaseProvider.overrideWithValue(database),
+              appLockGatewayProvider.overrideWithValue(gateway),
+              appLockRepositoryProvider.overrideWithValue(repository),
+              appLockEnabledProvider.overrideWith((ref) async => true),
+            ],
+            child: MaterialApp(
+              builder: (context, child) {
+                return AppLockGate(child: child ?? const SizedBox.shrink());
+              },
+              home: const Scaffold(body: Text('home')),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Welcome back'), findsOneWidget);
+        expect(find.byIcon(Icons.fingerprint), findsOneWidget);
+        expect(find.text('No Overlay widget found'), findsNothing);
+        expect(firstError, isNull);
+
+        // Tooltip-using control must resolve against the lock Overlay.
+        await tester.tap(find.byIcon(Icons.fingerprint));
+        await tester.pumpAndSettle();
+        expect(gateway.biometricAuthenticateCalls, greaterThanOrEqualTo(2));
+        expect(firstError, isNull);
+      } finally {
+        FlutterError.onError = previous;
+      }
+    });
   });
 }

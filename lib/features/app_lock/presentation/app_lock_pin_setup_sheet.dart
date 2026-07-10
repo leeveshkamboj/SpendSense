@@ -117,6 +117,7 @@ class _AppLockPinSetupSheetState extends State<_AppLockPinSetupSheet> {
           const SizedBox(height: 24),
           if (_step == _SetupStep.enterPin)
             PinInputField(
+              key: const ValueKey('enter-pin'),
               controller: _pinController,
               label: 'PIN',
               helperText: 'Tap the numbers below',
@@ -124,8 +125,10 @@ class _AppLockPinSetupSheetState extends State<_AppLockPinSetupSheet> {
             )
           else
             PinInputField(
+              key: const ValueKey('confirm-pin'),
               controller: _confirmController,
               label: 'Confirm PIN',
+              helperText: 'Tap the numbers below',
               onCompleted: (_) => _submit(),
             ),
           if (_errorText != null) ...[
