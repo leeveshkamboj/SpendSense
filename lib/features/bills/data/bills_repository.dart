@@ -70,6 +70,8 @@ class BillsRepository {
             cycleId: cycle.id,
             creditCardId: card.id,
             cardNickname: card.nickname,
+            cardNetwork: card.network,
+            colorValue: card.colorValue,
             dueDate: cycle.dueDate,
             billAmountPaise: billAmountPaise,
             paymentsAppliedPaise: cycle.paymentsAppliedPaise,

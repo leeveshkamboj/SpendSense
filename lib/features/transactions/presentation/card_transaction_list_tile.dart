@@ -5,6 +5,7 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/formatting/merchant_display.dart';
 import 'package:spendsense/core/formatting/transaction_amount_display.dart';
 import 'package:spendsense/core/formatting/transaction_date_display.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_icon.dart';
 import 'package:spendsense/features/merchants/data/merchant_providers.dart';
 
 class CardTransactionListTile extends ConsumerWidget {
@@ -12,6 +13,7 @@ class CardTransactionListTile extends ConsumerWidget {
     required this.transaction,
     required this.cardNickname,
     required this.colorValue,
+    this.cardNetwork,
     this.onTap,
     this.onLongPress,
     super.key,
@@ -20,6 +22,7 @@ class CardTransactionListTile extends ConsumerWidget {
   final CardTransaction transaction;
   final String cardNickname;
   final int colorValue;
+  final String? cardNetwork;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
@@ -65,14 +68,27 @@ class CardTransactionListTile extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    '$cardNickname · '
-                    '${formatTransactionSubtitle(transaction.transactionAt)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
+                  Row(
+                    children: [
+                      CardNetworkIcon.optional(
+                        network: cardNetwork,
+                        size: 12,
+                        fallbackColor: scheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '$cardNickname · '
+                          '${formatTransactionSubtitle(transaction.transactionAt)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
                         ),
+                      ),
+                    ],
                   ),
                 ],
               ),

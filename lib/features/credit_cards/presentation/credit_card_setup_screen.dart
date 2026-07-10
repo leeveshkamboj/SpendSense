@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/credit_cards/domain/card_network.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_picker.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
@@ -21,7 +23,7 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
   final _bankController = TextEditingController();
   final _lastFourController = TextEditingController();
   final _nicknameController = TextEditingController();
-  final _networkController = TextEditingController();
+  CardNetwork? _selectedNetwork;
   final _creditLimitController = TextEditingController();
   final _billDayController = TextEditingController();
   final _dueOffsetController = TextEditingController(text: '18');
@@ -32,7 +34,6 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
     _bankController.dispose();
     _lastFourController.dispose();
     _nicknameController.dispose();
-    _networkController.dispose();
     _creditLimitController.dispose();
     _billDayController.dispose();
     _dueOffsetController.dispose();
@@ -62,9 +63,7 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
             bank: bank,
             lastFourDigits: lastFour,
             nickname: nickname,
-            network: _networkController.text.trim().isEmpty
-                ? null
-                : _networkController.text.trim(),
+            network: _selectedNetwork?.storageValue,
             creditLimitPaise: _parseOptionalRupees(_creditLimitController.text),
             colorValue: 0xFF00695C,
             iconName: 'credit_card',
@@ -137,12 +136,11 @@ class _CreditCardSetupScreenState extends ConsumerState<CreditCardSetupScreen> {
                 labelText: 'Nickname (optional)',
               ),
             ),
-            TextFormField(
-              controller: _networkController,
-              decoration: const InputDecoration(
-                labelText: 'Network (Visa, Mastercard, RuPay, Amex)',
-              ),
+            CardNetworkPicker(
+              value: _selectedNetwork,
+              onChanged: (value) => setState(() => _selectedNetwork = value),
             ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _creditLimitController,
               decoration: const InputDecoration(labelText: 'Credit limit (₹)'),

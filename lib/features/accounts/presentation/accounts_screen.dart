@@ -8,6 +8,7 @@ import 'package:spendsense/features/accounts/domain/account_balance.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_avatar.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_limit_display.dart';
 import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
@@ -142,14 +143,14 @@ class _CreditCardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final needsBilling = card.billDayOfMonth == null;
     final needsCreditLimit = creditCardNeedsLimitSetup(card);
-    final color = Color(card.colorValue);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.15),
-          child: Icon(Icons.credit_card, color: color, size: 20),
+        leading: CreditCardAvatar(
+          network: card.network,
+          colorValue: card.colorValue,
+          radius: 20,
         ),
         title: Text(card.nickname),
         subtitle: Text('${card.bank} ••${card.lastFourDigits}'),

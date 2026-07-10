@@ -16,9 +16,19 @@
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
     <style name="WidgetProgressBar" parent="@android:style/Widget.ProgressBar.Horizontal">
-        <item name="android:progressDrawable">@drawable/widget_progress_bar</item>
-        <item name="android:minHeight">6dp</item>
-        <item name="android:maxHeight">6dp</item>
+        <item name="android:progressDrawable">@drawable/widget_pill_progress_bar</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:maxHeight">44dp</item>
         <item name="android:indeterminateOnly">false</item>
+    </style>
+    <style name="WidgetPillProgressBar" parent="@style/WidgetProgressBar" />
+    <style name="WidgetPillProgressBarGreen" parent="@style/WidgetProgressBar">
+        <item name="android:progressDrawable">@drawable/widget_pill_progress_green</item>
+    </style>
+    <style name="WidgetPillProgressBarYellow" parent="@style/WidgetProgressBar">
+        <item name="android:progressDrawable">@drawable/widget_pill_progress_yellow</item>
+    </style>
+    <style name="WidgetPillProgressBarRed" parent="@style/WidgetProgressBar">
+        <item name="android:progressDrawable">@drawable/widget_pill_progress_red</item>
     </style>
 </resources>

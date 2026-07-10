@@ -6,6 +6,7 @@ class BillWidgetItem {
     required this.dueDate,
     required this.netOutstandingPaise,
     required this.colorValue,
+    this.cardNetwork,
   });
 
   final int creditCardId;
@@ -14,6 +15,7 @@ class BillWidgetItem {
   final DateTime? dueDate;
   final int netOutstandingPaise;
   final int colorValue;
+  final String? cardNetwork;
 }
 
 class BillsWidgetSnapshot {

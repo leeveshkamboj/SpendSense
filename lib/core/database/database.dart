@@ -47,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'spendsense'));
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -137,6 +137,9 @@ class AppDatabase extends _$AppDatabase {
               creditCards,
               creditCards.creditLimitPoolId,
             );
+          }
+          if (from < 14) {
+            await m.addColumn(appSettings, appSettings.lastSmsSyncAtMs);
           }
         },
       );

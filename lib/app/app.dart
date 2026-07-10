@@ -9,7 +9,10 @@ import 'package:spendsense/features/budgets/presentation/spending_alert_listener
 import 'package:spendsense/features/home_widgets/presentation/home_widget_launch_listener.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/settings/data/app_preferences_providers.dart';
+import 'package:spendsense/features/sms_capture/presentation/capture_notification_launch_listener.dart';
 import 'package:spendsense/features/sms_capture/presentation/capture_notification_listener.dart';
+import 'package:spendsense/features/sms_capture/presentation/manual_add_suggestion_listener.dart';
+import 'package:spendsense/features/sms_capture/presentation/sms_sync_listener.dart';
 
 class SpendSenseApp extends ConsumerWidget {
   const SpendSenseApp({super.key});
@@ -32,8 +35,14 @@ class SpendSenseApp extends ConsumerWidget {
               child: HomeWidgetLaunchListener(
                 child: BillReminderSyncListener(
                   child: SpendingAlertListener(
-                    child: CaptureNotificationListener(
-                      child: child ?? const SizedBox.shrink(),
+                    child: SmsSyncListener(
+                      child: CaptureNotificationLaunchListener(
+                        child: ManualAddSuggestionListener(
+                          child: CaptureNotificationListener(
+                            child: child ?? const SizedBox.shrink(),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),

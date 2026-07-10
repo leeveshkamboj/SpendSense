@@ -2,7 +2,6 @@ package com.spendsense.spendsense
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.view.View
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class QuickSummaryWidget : HomeWidgetProvider() {
@@ -15,6 +14,17 @@ class QuickSummaryWidget : HomeWidgetProvider() {
         val spent = widgetData.getString("quick_summary_spent", "0") ?: "0"
         val remaining = widgetData.getString("quick_summary_remaining", "") ?: ""
         val limit = widgetData.getString("quick_summary_budget_limit", "") ?: ""
+
+        val budgetPill = PillMeterIds(
+            containerId = R.id.budget_pill,
+            progressGreenId = R.id.budget_progress_green,
+            progressYellowId = R.id.budget_progress_yellow,
+            progressRedId = R.id.budget_progress_red,
+            iconId = R.id.budget_pill_icon,
+            labelId = R.id.budget_pill_label,
+            valueId = R.id.budget_pill_value,
+            iconRes = R.drawable.ic_widget_budget,
+        )
 
         for (widgetId in appWidgetIds) {
             WidgetUpdateUtils.updateSafely(
@@ -38,7 +48,14 @@ class QuickSummaryWidget : HomeWidgetProvider() {
                 )
 
                 if (limit.isEmpty()) {
-                    views.setViewVisibility(R.id.budget_progress, View.GONE)
+                    WidgetPillMeterUtils.bind(
+                        views = views,
+                        ids = budgetPill,
+                        label = "Monthly budget",
+                        progressPercent = 0,
+                        valueText = "Setup",
+                        visible = false,
+                    )
                     WidgetThemeUtils.setSubtitle(
                         context,
                         views,
@@ -46,11 +63,17 @@ class QuickSummaryWidget : HomeWidgetProvider() {
                         "Set a monthly budget",
                     )
                 } else {
-                    views.setViewVisibility(R.id.budget_progress, View.VISIBLE)
                     val spentValue = spent.toLongOrNull() ?: 0L
                     val limitValue = limit.toLongOrNull() ?: 1L
                     val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
-                    views.setProgressBar(R.id.budget_progress, 100, progress, false)
+                    WidgetPillMeterUtils.bind(
+                        views = views,
+                        ids = budgetPill,
+                        label = "Monthly budget",
+                        progressPercent = progress,
+                        valueText = "$progress%",
+                        visible = true,
+                    )
                     WidgetThemeUtils.setSubtitle(
                         context,
                         views,

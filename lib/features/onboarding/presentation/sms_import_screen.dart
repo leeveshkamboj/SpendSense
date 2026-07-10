@@ -67,6 +67,10 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
         'Skipping import because it was already marked complete. '
         'New SMS parsers will not re-run until import is reset.',
       );
+      final lastSync = await repository.lastSmsSyncAt();
+      if (lastSync == null) {
+        await repository.saveLastSmsSyncAt(DateTime.now());
+      }
       widget.onComplete();
       return;
     }
@@ -112,6 +116,8 @@ class _SmsImportScreenState extends ConsumerState<SmsImportScreen> {
       'duplicates=${result.duplicateCount} '
       'ignored=${result.ignoredCount}',
     );
+
+    await repository.saveLastSmsSyncAt(DateTime.now());
 
     if (mounted) widget.onComplete();
   }

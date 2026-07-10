@@ -87,20 +87,40 @@ void main() {
 
     test('prompts when any card lacks a configured limit', () {
       final cards = [
-        _card(id: 1, creditLimitPaise: 200000),
+        _card(id: 1, creditLimitPaise: 200000, nickname: 'ICICI'),
+        _card(id: 2, nickname: 'HDFC'),
+      ];
+
+      final result = buildCreditUtilization(
+        cards: cards,
+        poolsById: const {},
+        spendByCardId: const {1: 50000, 2: 30000},
+        totalSpentPaise: 80000,
+      );
+
+      expect(result.needsLimitPrompt, isTrue);
+      expect(result.creditLimitPaise, 200000);
+      expect(result.spentPaise, 50000);
+      expect(result.cardSegments, hasLength(1));
+    });
+
+    test('uses total spend when no limits are configured', () {
+      final cards = [
+        _card(id: 1),
         _card(id: 2),
       ];
 
       final result = buildCreditUtilization(
         cards: cards,
         poolsById: const {},
-        spendByCardId: const {1: 50000, 2: 10000},
-        totalSpentPaise: 60000,
+        spendByCardId: const {1: 50000, 2: 30000},
+        totalSpentPaise: 80000,
       );
 
       expect(result.needsLimitPrompt, isTrue);
       expect(result.creditLimitPaise, isNull);
-      expect(result.cardSegments, hasLength(1));
+      expect(result.spentPaise, 80000);
+      expect(result.cardSegments, isEmpty);
     });
   });
 }

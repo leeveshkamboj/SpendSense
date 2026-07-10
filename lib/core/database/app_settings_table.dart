@@ -8,6 +8,8 @@ class AppSettings extends Table {
       integer().withDefault(const Constant(0))();
   BoolColumn get importCompleted =>
       boolean().withDefault(const Constant(false))();
+  IntColumn get lastSmsSyncAtMs =>
+      integer().withDefault(const Constant(0))();
   BoolColumn get locationPermissionExplained =>
       boolean().withDefault(const Constant(false))();
   TextColumn get themeMode =>

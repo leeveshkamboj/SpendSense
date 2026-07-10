@@ -16,14 +16,85 @@
         android:textSize="32sp"
         android:textStyle="bold" />
 
-    <ProgressBar
-        android:id="@+id/utilization_progress"
-        style="@style/WidgetProgressBar"
+    <TextView
+        android:id="@+id/spent_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:max="100"
-        android:progress="0" />
+        android:layout_marginTop="2dp"
+        android:text="Current cycle · cards with limits"
+        android:textColor="@color/widget_text_tertiary"
+        android:textSize="12sp" />
+
+    <FrameLayout
+        android:id="@+id/total_pill"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="16dp">
+
+        <ProgressBar
+            android:id="@+id/utilization_progress_green"
+            style="@style/WidgetPillProgressBarGreen"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:progress="0" />
+
+        <ProgressBar
+            android:id="@+id/utilization_progress_yellow"
+            style="@style/WidgetPillProgressBarYellow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:progress="0"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/utilization_progress_red"
+            style="@style/WidgetPillProgressBarRed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:progress="0"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:id="@+id/total_pill_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_widget_credit_card" />
+
+            <TextView
+                android:id="@+id/total_pill_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Credit used"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/total_pill_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0%"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
 
     <TextView
         android:id="@+id/limit_text"
@@ -34,69 +105,212 @@
         android:textColor="@color/widget_text_secondary"
         android:textSize="13sp" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/remaining_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/widget_text_tertiary"
+        android:textSize="12sp" />
+
+    <FrameLayout
         android:id="@+id/card_row_1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android:layout_height="44dp"
+        android:layout_marginTop="10dp"
         android:visibility="gone">
-        <TextView
-            android:id="@+id/card_row_1_color"
-            android:layout_width="3dp"
-            android:layout_height="28dp"
-            android:background="@drawable/widget_accent_bar" />
-        <ProgressBar
-            android:id="@+id/card_row_1_progress"
-            style="@style/WidgetProgressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:max="100" />
-    </LinearLayout>
 
-    <LinearLayout
+        <ProgressBar
+            android:id="@+id/card_row_1_progress_green"
+            style="@style/WidgetPillProgressBarGreen"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100" />
+
+        <ProgressBar
+            android:id="@+id/card_row_1_progress_yellow"
+            style="@style/WidgetPillProgressBarYellow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/card_row_1_progress_red"
+            style="@style/WidgetPillProgressBarRed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:id="@+id/card_row_1_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_widget_credit_card" />
+
+            <TextView
+                android:id="@+id/card_row_1_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/card_row_1_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
         android:id="@+id/card_row_2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="44dp"
         android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:visibility="gone">
-        <TextView
-            android:id="@+id/card_row_2_color"
-            android:layout_width="3dp"
-            android:layout_height="28dp"
-            android:background="@drawable/widget_accent_bar" />
-        <ProgressBar
-            android:id="@+id/card_row_2_progress"
-            style="@style/WidgetProgressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:max="100" />
-    </LinearLayout>
 
-    <LinearLayout
+        <ProgressBar
+            android:id="@+id/card_row_2_progress_green"
+            style="@style/WidgetPillProgressBarGreen"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100" />
+
+        <ProgressBar
+            android:id="@+id/card_row_2_progress_yellow"
+            style="@style/WidgetPillProgressBarYellow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/card_row_2_progress_red"
+            style="@style/WidgetPillProgressBarRed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:id="@+id/card_row_2_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_widget_credit_card" />
+
+            <TextView
+                android:id="@+id/card_row_2_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/card_row_2_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
         android:id="@+id/card_row_3"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="44dp"
         android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:visibility="gone">
-        <TextView
-            android:id="@+id/card_row_3_color"
-            android:layout_width="3dp"
-            android:layout_height="28dp"
-            android:background="@drawable/widget_accent_bar" />
+
         <ProgressBar
-            android:id="@+id/card_row_3_progress"
-            style="@style/WidgetProgressBar"
+            android:id="@+id/card_row_3_progress_green"
+            style="@style/WidgetPillProgressBarGreen"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_height="match_parent"
             android:max="100" />
-    </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/card_row_3_progress_yellow"
+            style="@style/WidgetPillProgressBarYellow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/card_row_3_progress_red"
+            style="@style/WidgetPillProgressBarRed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:max="100"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:id="@+id/card_row_3_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_widget_credit_card" />
+
+            <TextView
+                android:id="@+id/card_row_3_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/card_row_3_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

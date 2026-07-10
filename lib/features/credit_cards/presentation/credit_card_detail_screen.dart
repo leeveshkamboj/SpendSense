@@ -9,6 +9,9 @@ import 'package:spendsense/features/billing_cycles/engine/bill_amount.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_limit_pool_providers.dart';
+import 'package:spendsense/features/credit_cards/domain/card_network.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_icon.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_avatar.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_limit_display.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverable_summary_card.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
@@ -112,11 +115,48 @@ class CreditCardDetailScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        creditCard.nickname,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      Row(
+                        children: [
+                          CreditCardAvatar(
+                            network: creditCard.network,
+                            colorValue: creditCard.colorValue,
+                            radius: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  creditCard.nickname,
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
+                                ),
+                                Text(
+                                  '${creditCard.bank} ••${creditCard.lastFourDigits}',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      Text('${creditCard.bank} ••${creditCard.lastFourDigits}'),
+                      if (creditCard.network != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            CardNetworkIcon.optional(
+                              network: creditCard.network,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              CardNetwork.parse(creditCard.network)?.displayName ??
+                                  creditCard.network!,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       _CreditLimitLabel(
                         card: creditCard,

@@ -4453,6 +4453,18 @@ class $AppSettingsTable extends AppSettings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _lastSmsSyncAtMsMeta = const VerificationMeta(
+    'lastSmsSyncAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> lastSmsSyncAtMs = GeneratedColumn<int>(
+    'last_sms_sync_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _locationPermissionExplainedMeta =
       const VerificationMeta('locationPermissionExplained');
   @override
@@ -4516,6 +4528,7 @@ class $AppSettingsTable extends AppSettings
     onboardingComplete,
     importLastIndex,
     importCompleted,
+    lastSmsSyncAtMs,
     locationPermissionExplained,
     themeMode,
     appLockEnabled,
@@ -4560,6 +4573,15 @@ class $AppSettingsTable extends AppSettings
         importCompleted.isAcceptableOrUnknown(
           data['import_completed']!,
           _importCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_sms_sync_at_ms')) {
+      context.handle(
+        _lastSmsSyncAtMsMeta,
+        lastSmsSyncAtMs.isAcceptableOrUnknown(
+          data['last_sms_sync_at_ms']!,
+          _lastSmsSyncAtMsMeta,
         ),
       );
     }
@@ -4621,6 +4643,10 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.bool,
         data['${effectivePrefix}import_completed'],
       )!,
+      lastSmsSyncAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_sms_sync_at_ms'],
+      )!,
       locationPermissionExplained: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}location_permission_explained'],
@@ -4651,6 +4677,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   final bool onboardingComplete;
   final int importLastIndex;
   final bool importCompleted;
+  final int lastSmsSyncAtMs;
   final bool locationPermissionExplained;
   final String themeMode;
   final bool appLockEnabled;
@@ -4660,6 +4687,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     required this.onboardingComplete,
     required this.importLastIndex,
     required this.importCompleted,
+    required this.lastSmsSyncAtMs,
     required this.locationPermissionExplained,
     required this.themeMode,
     required this.appLockEnabled,
@@ -4672,6 +4700,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     map['onboarding_complete'] = Variable<bool>(onboardingComplete);
     map['import_last_index'] = Variable<int>(importLastIndex);
     map['import_completed'] = Variable<bool>(importCompleted);
+    map['last_sms_sync_at_ms'] = Variable<int>(lastSmsSyncAtMs);
     map['location_permission_explained'] = Variable<bool>(
       locationPermissionExplained,
     );
@@ -4687,6 +4716,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       onboardingComplete: Value(onboardingComplete),
       importLastIndex: Value(importLastIndex),
       importCompleted: Value(importCompleted),
+      lastSmsSyncAtMs: Value(lastSmsSyncAtMs),
       locationPermissionExplained: Value(locationPermissionExplained),
       themeMode: Value(themeMode),
       appLockEnabled: Value(appLockEnabled),
@@ -4704,6 +4734,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       onboardingComplete: serializer.fromJson<bool>(json['onboardingComplete']),
       importLastIndex: serializer.fromJson<int>(json['importLastIndex']),
       importCompleted: serializer.fromJson<bool>(json['importCompleted']),
+      lastSmsSyncAtMs: serializer.fromJson<int>(json['lastSmsSyncAtMs']),
       locationPermissionExplained: serializer.fromJson<bool>(
         json['locationPermissionExplained'],
       ),
@@ -4722,6 +4753,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       'onboardingComplete': serializer.toJson<bool>(onboardingComplete),
       'importLastIndex': serializer.toJson<int>(importLastIndex),
       'importCompleted': serializer.toJson<bool>(importCompleted),
+      'lastSmsSyncAtMs': serializer.toJson<int>(lastSmsSyncAtMs),
       'locationPermissionExplained': serializer.toJson<bool>(
         locationPermissionExplained,
       ),
@@ -4738,6 +4770,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     bool? onboardingComplete,
     int? importLastIndex,
     bool? importCompleted,
+    int? lastSmsSyncAtMs,
     bool? locationPermissionExplained,
     String? themeMode,
     bool? appLockEnabled,
@@ -4747,6 +4780,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     importLastIndex: importLastIndex ?? this.importLastIndex,
     importCompleted: importCompleted ?? this.importCompleted,
+    lastSmsSyncAtMs: lastSmsSyncAtMs ?? this.lastSmsSyncAtMs,
     locationPermissionExplained:
         locationPermissionExplained ?? this.locationPermissionExplained,
     themeMode: themeMode ?? this.themeMode,
@@ -4766,6 +4800,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       importCompleted: data.importCompleted.present
           ? data.importCompleted.value
           : this.importCompleted,
+      lastSmsSyncAtMs: data.lastSmsSyncAtMs.present
+          ? data.lastSmsSyncAtMs.value
+          : this.lastSmsSyncAtMs,
       locationPermissionExplained: data.locationPermissionExplained.present
           ? data.locationPermissionExplained.value
           : this.locationPermissionExplained,
@@ -4786,6 +4823,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('onboardingComplete: $onboardingComplete, ')
           ..write('importLastIndex: $importLastIndex, ')
           ..write('importCompleted: $importCompleted, ')
+          ..write('lastSmsSyncAtMs: $lastSmsSyncAtMs, ')
           ..write('locationPermissionExplained: $locationPermissionExplained, ')
           ..write('themeMode: $themeMode, ')
           ..write('appLockEnabled: $appLockEnabled, ')
@@ -4800,6 +4838,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     onboardingComplete,
     importLastIndex,
     importCompleted,
+    lastSmsSyncAtMs,
     locationPermissionExplained,
     themeMode,
     appLockEnabled,
@@ -4813,6 +4852,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.onboardingComplete == this.onboardingComplete &&
           other.importLastIndex == this.importLastIndex &&
           other.importCompleted == this.importCompleted &&
+          other.lastSmsSyncAtMs == this.lastSmsSyncAtMs &&
           other.locationPermissionExplained ==
               this.locationPermissionExplained &&
           other.themeMode == this.themeMode &&
@@ -4825,6 +4865,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<bool> onboardingComplete;
   final Value<int> importLastIndex;
   final Value<bool> importCompleted;
+  final Value<int> lastSmsSyncAtMs;
   final Value<bool> locationPermissionExplained;
   final Value<String> themeMode;
   final Value<bool> appLockEnabled;
@@ -4834,6 +4875,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.onboardingComplete = const Value.absent(),
     this.importLastIndex = const Value.absent(),
     this.importCompleted = const Value.absent(),
+    this.lastSmsSyncAtMs = const Value.absent(),
     this.locationPermissionExplained = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.appLockEnabled = const Value.absent(),
@@ -4844,6 +4886,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.onboardingComplete = const Value.absent(),
     this.importLastIndex = const Value.absent(),
     this.importCompleted = const Value.absent(),
+    this.lastSmsSyncAtMs = const Value.absent(),
     this.locationPermissionExplained = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.appLockEnabled = const Value.absent(),
@@ -4854,6 +4897,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Expression<bool>? onboardingComplete,
     Expression<int>? importLastIndex,
     Expression<bool>? importCompleted,
+    Expression<int>? lastSmsSyncAtMs,
     Expression<bool>? locationPermissionExplained,
     Expression<String>? themeMode,
     Expression<bool>? appLockEnabled,
@@ -4864,6 +4908,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       if (onboardingComplete != null) 'onboarding_complete': onboardingComplete,
       if (importLastIndex != null) 'import_last_index': importLastIndex,
       if (importCompleted != null) 'import_completed': importCompleted,
+      if (lastSmsSyncAtMs != null) 'last_sms_sync_at_ms': lastSmsSyncAtMs,
       if (locationPermissionExplained != null)
         'location_permission_explained': locationPermissionExplained,
       if (themeMode != null) 'theme_mode': themeMode,
@@ -4878,6 +4923,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Value<bool>? onboardingComplete,
     Value<int>? importLastIndex,
     Value<bool>? importCompleted,
+    Value<int>? lastSmsSyncAtMs,
     Value<bool>? locationPermissionExplained,
     Value<String>? themeMode,
     Value<bool>? appLockEnabled,
@@ -4888,6 +4934,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       importLastIndex: importLastIndex ?? this.importLastIndex,
       importCompleted: importCompleted ?? this.importCompleted,
+      lastSmsSyncAtMs: lastSmsSyncAtMs ?? this.lastSmsSyncAtMs,
       locationPermissionExplained:
           locationPermissionExplained ?? this.locationPermissionExplained,
       themeMode: themeMode ?? this.themeMode,
@@ -4911,6 +4958,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     }
     if (importCompleted.present) {
       map['import_completed'] = Variable<bool>(importCompleted.value);
+    }
+    if (lastSmsSyncAtMs.present) {
+      map['last_sms_sync_at_ms'] = Variable<int>(lastSmsSyncAtMs.value);
     }
     if (locationPermissionExplained.present) {
       map['location_permission_explained'] = Variable<bool>(
@@ -4938,6 +4988,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('onboardingComplete: $onboardingComplete, ')
           ..write('importLastIndex: $importLastIndex, ')
           ..write('importCompleted: $importCompleted, ')
+          ..write('lastSmsSyncAtMs: $lastSmsSyncAtMs, ')
           ..write('locationPermissionExplained: $locationPermissionExplained, ')
           ..write('themeMode: $themeMode, ')
           ..write('appLockEnabled: $appLockEnabled, ')
@@ -10735,6 +10786,7 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<bool> onboardingComplete,
       Value<int> importLastIndex,
       Value<bool> importCompleted,
+      Value<int> lastSmsSyncAtMs,
       Value<bool> locationPermissionExplained,
       Value<String> themeMode,
       Value<bool> appLockEnabled,
@@ -10746,6 +10798,7 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<bool> onboardingComplete,
       Value<int> importLastIndex,
       Value<bool> importCompleted,
+      Value<int> lastSmsSyncAtMs,
       Value<bool> locationPermissionExplained,
       Value<String> themeMode,
       Value<bool> appLockEnabled,
@@ -10778,6 +10831,11 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<bool> get importCompleted => $composableBuilder(
     column: $table.importCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastSmsSyncAtMs => $composableBuilder(
+    column: $table.lastSmsSyncAtMs,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10831,6 +10889,11 @@ class $$AppSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get lastSmsSyncAtMs => $composableBuilder(
+    column: $table.lastSmsSyncAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get locationPermissionExplained => $composableBuilder(
     column: $table.locationPermissionExplained,
     builder: (column) => ColumnOrderings(column),
@@ -10876,6 +10939,11 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get importCompleted => $composableBuilder(
     column: $table.importCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastSmsSyncAtMs => $composableBuilder(
+    column: $table.lastSmsSyncAtMs,
     builder: (column) => column,
   );
 
@@ -10933,6 +11001,7 @@ class $$AppSettingsTableTableManager
                 Value<bool> onboardingComplete = const Value.absent(),
                 Value<int> importLastIndex = const Value.absent(),
                 Value<bool> importCompleted = const Value.absent(),
+                Value<int> lastSmsSyncAtMs = const Value.absent(),
                 Value<bool> locationPermissionExplained = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
                 Value<bool> appLockEnabled = const Value.absent(),
@@ -10942,6 +11011,7 @@ class $$AppSettingsTableTableManager
                 onboardingComplete: onboardingComplete,
                 importLastIndex: importLastIndex,
                 importCompleted: importCompleted,
+                lastSmsSyncAtMs: lastSmsSyncAtMs,
                 locationPermissionExplained: locationPermissionExplained,
                 themeMode: themeMode,
                 appLockEnabled: appLockEnabled,
@@ -10953,6 +11023,7 @@ class $$AppSettingsTableTableManager
                 Value<bool> onboardingComplete = const Value.absent(),
                 Value<int> importLastIndex = const Value.absent(),
                 Value<bool> importCompleted = const Value.absent(),
+                Value<int> lastSmsSyncAtMs = const Value.absent(),
                 Value<bool> locationPermissionExplained = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
                 Value<bool> appLockEnabled = const Value.absent(),
@@ -10962,6 +11033,7 @@ class $$AppSettingsTableTableManager
                 onboardingComplete: onboardingComplete,
                 importLastIndex: importLastIndex,
                 importCompleted: importCompleted,
+                lastSmsSyncAtMs: lastSmsSyncAtMs,
                 locationPermissionExplained: locationPermissionExplained,
                 themeMode: themeMode,
                 appLockEnabled: appLockEnabled,

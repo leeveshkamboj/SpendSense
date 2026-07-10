@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_avatar.dart';
 import 'package:spendsense/features/credit_cards/data/credit_limit_pool_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_limit_pool_repository.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
@@ -257,7 +258,17 @@ class _SharedCreditLimitFormScreenState
             for (final card in allCards)
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(card.nickname),
+                title: Row(
+                  children: [
+                    CreditCardAvatar(
+                      network: card.network,
+                      colorValue: card.colorValue,
+                      radius: 12,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(card.nickname)),
+                  ],
+                ),
                 subtitle: Text('${card.bank} ••${card.lastFourDigits}'),
                 value: _selectedCardIds.contains(card.id),
                 onChanged: (selected) {

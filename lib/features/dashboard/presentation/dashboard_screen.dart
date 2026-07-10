@@ -15,6 +15,7 @@ import 'package:spendsense/features/dashboard/domain/dashboard_recent_transactio
 import 'package:spendsense/features/dashboard/domain/dashboard_spend_summary.dart';
 import 'package:spendsense/features/merchants/data/merchant_providers.dart';
 import 'package:spendsense/core/branding/app_logo.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_icon.dart';
 import 'package:spendsense/features/recoverables/presentation/recoverable_summary_card.dart';
 import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
@@ -321,6 +322,11 @@ class _CardSpendSection extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Row(
                           children: [
+                            CardNetworkIcon.optional(
+                              network: card.cardNetwork,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 8),
                             Expanded(child: Text(card.nickname)),
                             Text(
                               formatPaise(card.spentPaise),
@@ -540,14 +546,27 @@ class _TransactionRow extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    '${transaction.cardNickname} · '
-                    '${formatTransactionSubtitle(transaction.transactionAt)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  Row(
+                    children: [
+                      CardNetworkIcon.optional(
+                        network: transaction.cardNetwork,
+                        size: 12,
+                        fallbackColor: scheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${transaction.cardNickname} · '
+                          '${formatTransactionSubtitle(transaction.transactionAt)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
                         ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -2,10 +2,12 @@ class DashboardCardSpend {
   const DashboardCardSpend({
     required this.nickname,
     required this.spentPaise,
+    this.cardNetwork,
   });
 
   final String nickname;
   final int spentPaise;
+  final String? cardNetwork;
 }
 
 class DashboardSpendSummary {

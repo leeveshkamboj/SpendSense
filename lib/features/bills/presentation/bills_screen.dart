@@ -5,6 +5,7 @@ import 'package:spendsense/features/billing_cycles/domain/billing_cycle_status.d
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/bills/domain/bill_summary.dart';
 import 'package:spendsense/core/branding/app_logo.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_avatar.dart';
 import 'package:spendsense/features/bills/presentation/record_bill_payment_sheet.dart';
 import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
 
@@ -57,7 +58,21 @@ class BillsScreen extends ConsumerWidget {
                       ),
                   ],
                 ),
-                leading: _StatusIcon(status: bill.status),
+                leading: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CreditCardAvatar(
+                      network: bill.cardNetwork,
+                      colorValue: bill.colorValue,
+                      radius: 20,
+                    ),
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: _StatusIcon(status: bill.status),
+                    ),
+                  ],
+                ),
               );
             },
           );
@@ -105,6 +120,6 @@ class _StatusIcon extends StatelessWidget {
       _ => (Icons.request_page_outlined, colorScheme.primary),
     };
 
-    return Icon(icon, color: color);
+    return Icon(icon, color: color, size: 16);
   }
 }

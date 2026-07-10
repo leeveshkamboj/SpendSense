@@ -143,6 +143,19 @@ class CreditCardRepository {
     );
   }
 
+  Future<void> updateNetwork({
+    required int cardId,
+    String? network,
+  }) {
+    return (_database.update(_database.creditCards)
+          ..where((card) => card.id.equals(cardId)))
+        .write(
+      CreditCardsCompanion(
+        network: Value(network),
+      ),
+    );
+  }
+
   Future<void> assignCreditLimitPool({
     required int cardId,
     int? creditLimitPoolId,

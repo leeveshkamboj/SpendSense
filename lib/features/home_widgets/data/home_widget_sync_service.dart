@@ -37,6 +37,7 @@ List<Map<String, Object?>> _encodeCardSpendChart(
         'nickname': segment.nickname,
         'spent_paise': segment.spentPaise,
         'color_value': segment.colorValue,
+        if (segment.cardNetwork != null) 'network': segment.cardNetwork,
       },
   ];
 }
@@ -52,6 +53,7 @@ List<Map<String, Object?>> _encodeCardUtilization(
         'spent_paise': segment.spentPaise,
         'credit_limit_paise': segment.creditLimitPaise,
         'color_value': segment.colorValue,
+        if (segment.cardNetwork != null) 'network': segment.cardNetwork,
       },
   ];
 }
@@ -134,6 +136,7 @@ class HomeWidgetSyncService {
           'due_date_ms': bill.dueDate?.millisecondsSinceEpoch,
           'net_outstanding_paise': bill.netOutstandingPaise,
           'color_value': bill.colorValue,
+          if (bill.cardNetwork != null) 'network': bill.cardNetwork,
         },
     ];
     await _writer.saveValue(HomeWidgetKeys.billsJson, jsonEncode(payload));

@@ -17,6 +17,17 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
         val needsLimit = widgetData.getString("credit_utilization_needs_limit", "false") == "true"
         val cardsJson = widgetData.getString("credit_utilization_cards_json", "[]") ?: "[]"
 
+        val totalPill = PillMeterIds(
+            containerId = R.id.total_pill,
+            progressGreenId = R.id.utilization_progress_green,
+            progressYellowId = R.id.utilization_progress_yellow,
+            progressRedId = R.id.utilization_progress_red,
+            iconId = R.id.total_pill_icon,
+            labelId = R.id.total_pill_label,
+            valueId = R.id.total_pill_value,
+            iconRes = R.drawable.ic_widget_credit_card,
+        )
+
         for (widgetId in appWidgetIds) {
             WidgetUpdateUtils.updateSafely(
                 context,
@@ -31,26 +42,61 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
                     R.id.spent_text,
                     WidgetFormatUtils.formatPaise(spent),
                 )
+                WidgetThemeUtils.setBody(
+                    context,
+                    views,
+                    R.id.spent_label,
+                    "Current cycle · cards with limits",
+                )
 
-                if (needsLimit || limit.isEmpty()) {
-                    views.setViewVisibility(R.id.utilization_progress, View.GONE)
-                    WidgetThemeUtils.setSubtitle(
-                        context,
-                        views,
-                        R.id.limit_text,
-                        "Set limits in Accounts → Card settings",
+                val spentValue = spent.toLongOrNull() ?: 0L
+                val limitValue = limit.toLongOrNull() ?: 0L
+                val hasConfiguredLimit = limitValue > 0L
+
+                if (!hasConfiguredLimit) {
+                    WidgetPillMeterUtils.bind(
+                        views = views,
+                        ids = totalPill,
+                        label = "Credit limits",
+                        progressPercent = 0,
+                        valueText = "Setup",
+                        visible = false,
                     )
-                } else {
-                    views.setViewVisibility(R.id.utilization_progress, View.VISIBLE)
-                    val spentValue = spent.toLongOrNull() ?: 0L
-                    val limitValue = limit.toLongOrNull() ?: 1L
-                    val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
-                    views.setProgressBar(R.id.utilization_progress, 100, progress, false)
                     WidgetThemeUtils.setSubtitle(
                         context,
                         views,
                         R.id.limit_text,
-                        "${WidgetFormatUtils.formatPaise(spent)} of ${WidgetFormatUtils.formatPaise(limit)} used",
+                        "Set credit limits in Accounts → Card settings",
+                    )
+                    views.setTextViewText(R.id.remaining_text, "")
+                } else {
+                    val progress = ((spentValue * 100) / limitValue).toInt().coerceIn(0, 100)
+                    WidgetPillMeterUtils.bind(
+                        views = views,
+                        ids = totalPill,
+                        label = "Credit used",
+                        progressPercent = progress,
+                        valueText = "$progress%",
+                        visible = true,
+                    )
+                    WidgetThemeUtils.setSubtitle(
+                        context,
+                        views,
+                        R.id.limit_text,
+                        "of ${WidgetFormatUtils.formatPaise(limit)} credit limit",
+                    )
+                    val remaining = (limitValue - spentValue).coerceAtLeast(0L)
+                    val remainingText = if (needsLimit) {
+                        "${WidgetFormatUtils.formatPaise(remaining.toString())} available · " +
+                            "set limits on remaining cards"
+                    } else {
+                        "${WidgetFormatUtils.formatPaise(remaining.toString())} available"
+                    }
+                    WidgetThemeUtils.setBody(
+                        context,
+                        views,
+                        R.id.remaining_text,
+                        remainingText,
                     )
                 }
 
@@ -58,13 +104,46 @@ class CreditUtilizationWidget : HomeWidgetProvider() {
                     views,
                     cardsJson,
                     listOf(
-                        Triple(R.id.card_row_1, R.id.card_row_1_color, R.id.card_row_1_progress),
-                        Triple(R.id.card_row_2, R.id.card_row_2_color, R.id.card_row_2_progress),
-                        Triple(R.id.card_row_3, R.id.card_row_3_color, R.id.card_row_3_progress),
+                        UtilizationRowIds(
+                            PillMeterIds(
+                                R.id.card_row_1,
+                                R.id.card_row_1_progress_green,
+                                R.id.card_row_1_progress_yellow,
+                                R.id.card_row_1_progress_red,
+                                R.id.card_row_1_icon,
+                                R.id.card_row_1_name,
+                                R.id.card_row_1_amount,
+                                R.drawable.ic_widget_credit_card,
+                            ),
+                        ),
+                        UtilizationRowIds(
+                            PillMeterIds(
+                                R.id.card_row_2,
+                                R.id.card_row_2_progress_green,
+                                R.id.card_row_2_progress_yellow,
+                                R.id.card_row_2_progress_red,
+                                R.id.card_row_2_icon,
+                                R.id.card_row_2_name,
+                                R.id.card_row_2_amount,
+                                R.drawable.ic_widget_credit_card,
+                            ),
+                        ),
+                        UtilizationRowIds(
+                            PillMeterIds(
+                                R.id.card_row_3,
+                                R.id.card_row_3_progress_green,
+                                R.id.card_row_3_progress_yellow,
+                                R.id.card_row_3_progress_red,
+                                R.id.card_row_3_icon,
+                                R.id.card_row_3_name,
+                                R.id.card_row_3_amount,
+                                R.drawable.ic_widget_credit_card,
+                            ),
+                        ),
                     ),
                 )
 
-                val rootUri = if (needsLimit || limit.isEmpty()) {
+                val rootUri = if (!hasConfiguredLimit) {
                     "spendsense://widget/accounts?setup=1"
                 } else {
                     "spendsense://widget/accounts"

@@ -31,6 +31,22 @@ class OnboardingRepository {
 
   Future<bool> importCompleted() async => (await _settings()).importCompleted;
 
+  Future<DateTime?> lastSmsSyncAt() async {
+    final millis = (await _settings()).lastSmsSyncAtMs;
+    if (millis <= 0) {
+      return null;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(millis);
+  }
+
+  Future<void> saveLastSmsSyncAt(DateTime syncedAt) async {
+    await _database.update(_database.appSettings).write(
+      AppSettingsCompanion(
+        lastSmsSyncAtMs: Value(syncedAt.millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   Future<void> saveImportProgress({
     required int lastIndex,
     required bool completed,
@@ -45,5 +61,6 @@ class OnboardingRepository {
 
   Future<void> resetSmsImport() async {
     await saveImportProgress(lastIndex: 0, completed: false);
+    await saveLastSmsSyncAt(DateTime.fromMillisecondsSinceEpoch(0));
   }
 }

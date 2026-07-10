@@ -5,6 +5,7 @@ class CardUtilizationSegment {
     required this.spentPaise,
     required this.creditLimitPaise,
     required this.colorValue,
+    this.cardNetwork,
     this.isSharedPool = false,
   });
 
@@ -13,5 +14,6 @@ class CardUtilizationSegment {
   final int spentPaise;
   final int creditLimitPaise;
   final int colorValue;
+  final String? cardNetwork;
   final bool isSharedPool;
 }

@@ -13,6 +13,8 @@ void main() {
         cycleId: 1,
         creditCardId: 1,
         cardNickname: 'HDFC ••5534',
+        cardNetwork: null,
+        colorValue: 0xFF00695C,
         dueDate: dueDate,
         billAmountPaise: 50000,
         paymentsAppliedPaise: 0,

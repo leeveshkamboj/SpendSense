@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:spendsense/core/notifications/app_local_notifications.dart';
 import 'package:spendsense/features/billing_cycles/presentation/billing_cycle_summary.dart';
 import 'package:spendsense/features/bills/domain/bill_reminders.dart';
 import 'package:spendsense/features/bills/notification_permission_gateway.dart';
@@ -12,18 +13,13 @@ class LocalNotificationsBillReminderScheduler implements BillReminderScheduler {
   static bool _timezoneInitialized = false;
 
   static Future<LocalNotificationsBillReminderScheduler> create() async {
-    final plugin = FlutterLocalNotificationsPlugin();
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await plugin.initialize(
-      const InitializationSettings(android: androidSettings),
-    );
-
+    final notifications = await AppLocalNotifications.initialize();
     if (!_timezoneInitialized) {
       tz_data.initializeTimeZones();
       _timezoneInitialized = true;
     }
 
-    return LocalNotificationsBillReminderScheduler(plugin);
+    return LocalNotificationsBillReminderScheduler(notifications.plugin);
   }
 
   @override

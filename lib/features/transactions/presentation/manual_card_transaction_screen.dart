@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_icon.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
@@ -129,7 +130,16 @@ class _ManualCardTransactionScreenState
                   for (final card in cardList)
                     DropdownMenuItem(
                       value: card.id,
-                      child: Text(card.nickname),
+                      child: Row(
+                        children: [
+                          CardNetworkIcon.optional(
+                            network: card.network,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(card.nickname),
+                        ],
+                      ),
                     ),
                 ],
                 onChanged: (value) => setState(() => _selectedCardId = value),

@@ -4,6 +4,7 @@ import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/accounts/data/bank_account_providers.dart';
 import 'package:spendsense/features/budgets/presentation/budget_settings_screen.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_avatar.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_configure_screen.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_setup_screen.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
@@ -190,13 +191,10 @@ class _DetectedCreditCardTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Color(card.colorValue).withValues(alpha: 0.15),
-          child: Icon(
-            Icons.credit_card,
-            color: Color(card.colorValue),
-            size: 20,
-          ),
+        leading: CreditCardAvatar(
+          network: card.network,
+          colorValue: card.colorValue,
+          radius: 20,
         ),
         title: Text(card.nickname),
         subtitle: Text('${card.bank} ••${card.lastFourDigits}'),

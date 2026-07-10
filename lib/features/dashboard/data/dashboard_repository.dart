@@ -28,6 +28,7 @@ class DashboardRepository {
         DashboardCardSpend(
           nickname: card.nickname,
           spentPaise: spentPaise,
+          cardNetwork: card.network,
         ),
       );
     }
@@ -86,6 +87,7 @@ class DashboardRepository {
       for (final card in cards) card.id: card.nickname,
     };
     final colorById = {for (final card in cards) card.id: card.colorValue};
+    final networkById = {for (final card in cards) card.id: card.network};
 
     return rows
         .map(
@@ -97,6 +99,7 @@ class DashboardRepository {
             colorValue: colorById[tx.creditCardId] ?? 0xFF9E9E9E,
             cardNickname:
                 nicknameById[tx.creditCardId] ?? 'Card ${tx.creditCardId}',
+            cardNetwork: networkById[tx.creditCardId],
             kind: tx.kind,
           ),
         )

@@ -57,6 +57,7 @@ class HomeWidgetRepository {
           nickname: card.nickname,
           spentPaise: budgetCardSpend[card.id] ?? 0,
           colorValue: card.colorValue,
+          cardNetwork: card.network,
         ),
     ]..sort((a, b) => b.spentPaise.compareTo(a.spentPaise));
 
@@ -118,6 +119,7 @@ class HomeWidgetRepository {
     final rows = await _bills.listUnpaidBills(asOf: asOf);
     final cards = await _creditCards.listActive();
     final colorById = {for (final card in cards) card.id: card.colorValue};
+    final networkById = {for (final card in cards) card.id: card.network};
 
     return BillsWidgetSnapshot(
       bills: [
@@ -128,6 +130,7 @@ class HomeWidgetRepository {
             cardNickname: bill.cardNickname,
             dueDate: bill.dueDate,
             netOutstandingPaise: bill.netOutstandingPaise,
+            cardNetwork: networkById[bill.creditCardId],
             colorValue: colorById[bill.creditCardId] ?? 0xFF9E9E9E,
           ),
       ],
@@ -167,6 +170,7 @@ class HomeWidgetRepository {
           nickname: card.nickname,
           spentPaise: budgetCardSpend[card.id] ?? 0,
           colorValue: card.colorValue,
+          cardNetwork: card.network,
         ),
     ]..sort((a, b) => b.spentPaise.compareTo(a.spentPaise));
 
@@ -187,6 +191,9 @@ class HomeWidgetRepository {
     final colorByNickname = {
       for (final card in cards) card.nickname: card.colorValue,
     };
+    final networkByNickname = {
+      for (final card in cards) card.nickname: card.network,
+    };
 
     return [
       for (final row in spend.cards)
@@ -194,6 +201,7 @@ class HomeWidgetRepository {
           nickname: row.nickname,
           spentPaise: row.spentPaise,
           colorValue: colorByNickname[row.nickname] ?? 0xFF9E9E9E,
+          cardNetwork: networkByNickname[row.nickname],
         ),
     ];
   }

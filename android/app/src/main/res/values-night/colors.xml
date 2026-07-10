@@ -1,16 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="splash_background">#1C1C1E</color>
-    <color name="widget_surface">#1C1C1E</color>
-    <color name="widget_text_primary">#F5F5F7</color>
-    <color name="widget_text_secondary">#AEAEB2</color>
-    <color name="widget_text_tertiary">#8E8E93</color>
-    <color name="widget_accent">#0A84FF</color>
-    <color name="widget_progress_track">#3A3A3C</color>
-    <color name="widget_debit">#FF453A</color>
-    <color name="widget_credit">#30D158</color>
-    <color name="widget_debit_bg">#3A2224</color>
-    <color name="widget_credit_bg">#1E3324</color>
-    <color name="widget_debit_text">#FF6961</color>
-    <color name="widget_credit_text">#63E082</color>
 </resources>

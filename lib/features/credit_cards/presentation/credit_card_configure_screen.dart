@@ -6,6 +6,8 @@ import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
 import 'package:spendsense/features/credit_cards/data/credit_limit_pool_providers.dart';
+import 'package:spendsense/features/credit_cards/domain/card_network.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_picker.dart';
 import 'package:spendsense/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
@@ -30,6 +32,7 @@ class _CreditCardConfigureScreenState
   var _initialized = false;
   _CreditLimitMode _limitMode = _CreditLimitMode.none;
   int? _selectedPoolId;
+  CardNetwork? _selectedNetwork;
 
   @override
   void dispose() {
@@ -59,6 +62,7 @@ class _CreditCardConfigureScreenState
     } else {
       _limitMode = _CreditLimitMode.none;
     }
+    _selectedNetwork = CardNetwork.parse(card.network);
   }
 
   Future<void> _save() async {
@@ -101,6 +105,11 @@ class _CreditCardConfigureScreenState
       case _CreditLimitMode.none:
         await repository.clearCreditLimitSettings(cardId: widget.cardId);
     }
+
+    await repository.updateNetwork(
+      cardId: widget.cardId,
+      network: _selectedNetwork?.storageValue,
+    );
 
     ref.invalidate(creditCardsProvider);
     ref.invalidate(creditLimitPoolsProvider);
@@ -168,6 +177,11 @@ class _CreditCardConfigureScreenState
                 Text(
                   '${card.bank} ••${card.lastFourDigits}',
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                CardNetworkPicker(
+                  value: _selectedNetwork,
+                  onChanged: (value) => setState(() => _selectedNetwork = value),
                 ),
                 const SizedBox(height: 16),
                 Text(

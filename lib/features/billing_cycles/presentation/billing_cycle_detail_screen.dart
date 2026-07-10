@@ -136,6 +136,7 @@ class BillingCycleDetailScreen extends ConsumerWidget {
                           transaction: value.transactions[index],
                           cardNickname: value.card!.nickname,
                           colorValue: value.card!.colorValue,
+                          cardNetwork: value.card!.network,
                         ),
                       ],
                     ],

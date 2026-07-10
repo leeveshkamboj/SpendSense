@@ -7,9 +7,17 @@ import 'package:spendsense/features/location/data/sms_location_capture.dart';
 import 'package:spendsense/features/location/location_providers.dart';
 import 'package:spendsense/features/merchants/data/merchant_providers.dart';
 import 'package:spendsense/features/sms_capture/capture_notification_provider.dart';
+import 'package:spendsense/features/sms_capture/data/capture_notification_service.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
+
+final captureNotificationServiceProvider =
+    Provider<CaptureNotificationService>((ref) {
+  throw UnimplementedError(
+    'captureNotificationServiceProvider must be overridden in main()',
+  );
+});
 
 final smsLocationCaptureProvider = Provider<SmsLocationCapture>((ref) {
   return SmsLocationCapture(
@@ -19,6 +27,7 @@ final smsLocationCaptureProvider = Provider<SmsLocationCapture>((ref) {
 });
 
 final smsCaptureServiceProvider = Provider<SmsCaptureService>((ref) {
+  final captureNotifications = ref.watch(captureNotificationServiceProvider);
   final locationCapture = ref.watch(smsLocationCaptureProvider);
   return SmsCaptureService(
     creditCards: ref.watch(creditCardRepositoryProvider),
@@ -30,9 +39,11 @@ final smsCaptureServiceProvider = Provider<SmsCaptureService>((ref) {
     linking: ref.watch(linkingRepositoryProvider),
     onCaptured: (event) {
       ref.read(captureNotificationProvider.notifier).state = event;
+      captureNotifications.showCapture(event);
     },
     onManualAddSuggested: (sms) {
       ref.read(manualAddSuggestionProvider.notifier).state = sms;
+      captureNotifications.showManualAddSuggestion();
     },
     resolveLocation: locationCapture.captureSerialized,
   );

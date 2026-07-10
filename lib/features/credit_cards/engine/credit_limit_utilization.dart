@@ -41,15 +41,36 @@ CreditUtilizationResult buildCreditUtilization({
     poolsById: poolsById,
     spendByCardId: spendByCardId,
   );
+  final configuredLimitPaise = _totalConfiguredCreditLimit(
+    cards: cards,
+    poolsById: poolsById,
+  );
+  final utilizedSpendPaise = _utilizedSpendPaise(
+    cards: cards,
+    spendByCardId: spendByCardId,
+  );
 
   return CreditUtilizationResult(
-    spentPaise: totalSpentPaise,
-    creditLimitPaise: needsLimitPrompt
-        ? null
-        : _totalConfiguredCreditLimit(cards: cards, poolsById: poolsById),
+    spentPaise: configuredLimitPaise > 0 ? utilizedSpendPaise : totalSpentPaise,
+    creditLimitPaise: configuredLimitPaise > 0 ? configuredLimitPaise : null,
     needsLimitPrompt: needsLimitPrompt,
     cardSegments: segments,
   );
+}
+
+int _utilizedSpendPaise({
+  required List<CreditCard> cards,
+  required Map<int, int> spendByCardId,
+}) {
+  var total = 0;
+
+  for (final card in cards) {
+    if (cardHasConfiguredCreditLimit(card)) {
+      total += spendByCardId[card.id] ?? 0;
+    }
+  }
+
+  return total;
 }
 
 int _totalConfiguredCreditLimit({
@@ -106,6 +127,7 @@ List<CardUtilizationSegment> _buildSegments({
           spentPaise: poolSpend,
           creditLimitPaise: pool.creditLimitPaise,
           colorValue: card.colorValue,
+          cardNetwork: card.network,
           isSharedPool: true,
         ),
       );
@@ -124,6 +146,7 @@ List<CardUtilizationSegment> _buildSegments({
         spentPaise: spendByCardId[card.id] ?? 0,
         creditLimitPaise: limit,
         colorValue: card.colorValue,
+        cardNetwork: card.network,
       ),
     );
   }

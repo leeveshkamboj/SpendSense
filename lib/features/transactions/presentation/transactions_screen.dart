@@ -8,6 +8,7 @@ import 'package:spendsense/features/budgets/data/budget_providers.dart';
 import 'package:spendsense/features/bills/data/bills_providers.dart';
 import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
+import 'package:spendsense/features/credit_cards/presentation/credit_card_avatar.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 import 'package:spendsense/features/transactions/presentation/card_transaction_list_tile.dart';
 import 'package:spendsense/core/branding/app_logo.dart';
@@ -259,6 +260,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       final colorById = {
                         for (final card in cards) card.id: card.colorValue,
                       };
+                      final networkById = {
+                        for (final card in cards) card.id: card.network,
+                      };
 
                       final transactions = [
                         for (final group in cycleGroups) ...group.transactions,
@@ -317,6 +321,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                               visibleTransactions[index]
                                                   .creditCardId] ??
                                           0xFF9E9E9E,
+                                      cardNetwork: networkById[
+                                          visibleTransactions[index]
+                                              .creditCardId],
                                       onDelete: () => _scheduleDelete(
                                         visibleTransactions[index],
                                       ),
@@ -430,15 +437,10 @@ class _CardFilterBar extends ConsumerWidget {
               child: FilterChip(
                 visualDensity: VisualDensity.compact,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                avatar: CircleAvatar(
+                avatar: CreditCardAvatar(
+                  network: card.network,
+                  colorValue: card.colorValue,
                   radius: 8,
-                  backgroundColor:
-                      Color(card.colorValue).withValues(alpha: 0.2),
-                  child: Icon(
-                    Icons.credit_card,
-                    size: 10,
-                    color: Color(card.colorValue),
-                  ),
                 ),
                 label: Text(card.nickname),
                 selected: selectedCardId == card.id,
@@ -459,6 +461,7 @@ class _CardTransactionTile extends StatelessWidget {
     required this.transaction,
     required this.cardNickname,
     required this.colorValue,
+    this.cardNetwork,
     required this.onDelete,
     required this.onEdit,
     required this.onLongPress,
@@ -467,6 +470,7 @@ class _CardTransactionTile extends StatelessWidget {
   final CardTransaction transaction;
   final String cardNickname;
   final int colorValue;
+  final String? cardNetwork;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
   final VoidCallback onLongPress;
@@ -500,6 +504,7 @@ class _CardTransactionTile extends StatelessWidget {
         transaction: transaction,
         cardNickname: cardNickname,
         colorValue: colorValue,
+        cardNetwork: cardNetwork,
         onLongPress: onLongPress,
       ),
     );

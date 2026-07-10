@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spendsense/features/credit_cards/presentation/card_network_icon.dart';
 import 'package:spendsense/features/analytics/data/analytics_providers.dart';
 import 'package:spendsense/features/analytics/domain/analytics_snapshot.dart';
 import 'package:spendsense/features/analytics/engine/analytics_period.dart';
@@ -96,7 +97,16 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                         for (final card in cardList)
                           DropdownMenuItem(
                             value: card.id,
-                            child: Text(card.nickname),
+                            child: Row(
+                              children: [
+                                CardNetworkIcon.optional(
+                                  network: card.network,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(card.nickname),
+                              ],
+                            ),
                           ),
                       ],
                       onChanged: (value) =>

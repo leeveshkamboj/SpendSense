@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Samsung-style dark translucent glass — same in light and dark system themes -->
+    <color name="widget_surface">#E6141416</color>
+    <color name="widget_surface_stroke">#24FFFFFF</color>
+    <color name="widget_text_primary">#FFFFFFFF</color>
+    <color name="widget_text_secondary">#CCFFFFFF</color>
+    <color name="widget_text_tertiary">#99FFFFFF</color>
+    <color name="widget_accent">#0A84FF</color>
+    <color name="widget_progress_track">#664A4A4C</color>
+    <color name="widget_debit">#FF453A</color>
+    <color name="widget_credit">#32D74B</color>
+    <color name="widget_progress_green">#32D74B</color>
+    <color name="widget_progress_yellow">#FFD60A</color>
+    <color name="widget_progress_red">#FF453A</color>
+    <color name="widget_debit_bg">#59FF453A</color>
+    <color name="widget_credit_bg">#5932D74B</color>
+    <color name="widget_debit_text">#FFFF6961</color>
+    <color name="widget_credit_text">#FF63E082</color>
+</resources>
