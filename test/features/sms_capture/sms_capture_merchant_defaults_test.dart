@@ -10,6 +10,7 @@ import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
 import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_repository.dart';
 
 void main() {
   group('SmsCaptureService merchant defaults', () {
@@ -32,6 +33,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: merchants,
         tags: tags,
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: CreditCardRepository(database),

@@ -10,6 +10,7 @@ import 'package:spendsense/features/location/data/sms_location_capture.dart';
 import 'package:spendsense/features/location/location_permission_gateway.dart';
 import 'package:spendsense/features/merchants/data/merchant_repository.dart';
 import 'package:spendsense/features/sms_capture/data/capture_notification_service.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_repository.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
 import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
@@ -95,6 +96,7 @@ class SmsCaptureRuntime {
         creditCards: creditCards,
         cardTransactions: cardTransactions,
       ),
+      seenSms: SeenSmsRepository(database),
       onCaptured: notifications.showCapture,
       onManualAddSuggested: (_) => notifications.showManualAddSuggestion(),
       // Keep background capture fast — GPS must not block SMS_RECEIVED.

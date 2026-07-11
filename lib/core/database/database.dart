@@ -15,6 +15,7 @@ import 'package:spendsense/features/tags/data/tags_tables.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_receipts_table.dart';
 import 'package:spendsense/features/transactions/data/card_transactions_table.dart';
 import 'package:spendsense/features/sms_capture/data/sms_senders_table.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_bodies_table.dart';
 
 part 'database.g.dart';
 
@@ -40,6 +41,7 @@ part 'database.g.dart';
     MerchantDefaultTags,
     TransactionLinks,
     SmsSenders,
+    SeenSmsBodies,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -47,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'spendsense'));
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -150,6 +152,19 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(
               bankAccountTransactions,
               bankAccountTransactions.isRecurring,
+            );
+          }
+          if (from < 16) {
+            await m.createTable(seenSmsBodies);
+            await customStatement(
+              'INSERT OR IGNORE INTO seen_sms_bodies (body, created_at) '
+              'SELECT raw_sms, created_at FROM card_transactions '
+              "WHERE raw_sms IS NOT NULL AND trim(raw_sms) != ''",
+            );
+            await customStatement(
+              'INSERT OR IGNORE INTO seen_sms_bodies (body, created_at) '
+              'SELECT raw_sms, created_at FROM bank_account_transactions '
+              "WHERE raw_sms IS NOT NULL AND trim(raw_sms) != ''",
             );
           }
         },

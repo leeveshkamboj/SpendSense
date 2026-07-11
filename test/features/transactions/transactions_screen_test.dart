@@ -16,6 +16,7 @@ import 'package:spendsense/features/transactions/data/card_transaction_repositor
 import 'package:spendsense/features/transactions/presentation/copy_transaction_screen.dart';
 import 'package:spendsense/features/transactions/presentation/edit_transaction_screen.dart';
 import 'package:spendsense/features/transactions/presentation/transactions_screen.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_repository.dart';
 
 void main() {
   group('Transactions screen', () {
@@ -48,6 +49,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: creditCards,
@@ -136,6 +138,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: creditCards,
@@ -198,6 +201,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: creditCards,
@@ -278,6 +282,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: creditCards,

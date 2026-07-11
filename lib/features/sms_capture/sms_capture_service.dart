@@ -1,6 +1,7 @@
 import 'package:spendsense/features/accounts/data/bank_account_repository.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_repository.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_repository.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_repository.dart';
 import 'package:spendsense/features/sms_capture/domain/parsed_bank_transaction.dart';
 import 'package:spendsense/features/sms_capture/domain/parsed_card_expense.dart';
 import 'package:spendsense/features/sms_capture/domain/parsed_sms.dart';
@@ -29,6 +30,7 @@ class SmsCaptureService {
     required MerchantRepository merchants,
     required TagRepository tags,
     required LinkingRepository linking,
+    required SeenSmsRepository seenSms,
     this.onCaptured,
     this.onManualAddSuggested,
     SmsLocationResolver? resolveLocation,
@@ -39,6 +41,7 @@ class SmsCaptureService {
         _merchants = merchants,
         _tags = tags,
         _linking = linking,
+        _seenSms = seenSms,
         _resolveLocation = resolveLocation;
 
   final CreditCardRepository _creditCards;
@@ -48,6 +51,7 @@ class SmsCaptureService {
   final MerchantRepository _merchants;
   final TagRepository _tags;
   final LinkingRepository _linking;
+  final SeenSmsRepository _seenSms;
   final CaptureNotificationHandler? onCaptured;
   final ManualAddNotificationHandler? onManualAddSuggested;
   final SmsLocationResolver? _resolveLocation;
@@ -56,6 +60,11 @@ class SmsCaptureService {
     String sms, {
     bool notifyUnparsed = true,
   }) async {
+    if (await _seenSms.contains(sms)) {
+      smsDebugLog('processSms duplicate (seen body)');
+      return SmsCaptureResult.duplicate;
+    }
+
     final parsed = parseBankSms(sms);
     if (parsed == null) {
       final preview = sms.length > 100 ? '${sms.substring(0, 100)}…' : sms;
@@ -79,6 +88,10 @@ class SmsCaptureService {
       ParsedBankTransactionMessage(:final transaction) =>
         _captureBankTransaction(transaction, location),
     };
+    if (result == SmsCaptureResult.captured ||
+        result == SmsCaptureResult.duplicate) {
+      await _seenSms.remember(sms);
+    }
     smsDebugLog('processSms result=${result.name}');
     return result;
   }

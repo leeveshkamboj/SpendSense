@@ -10,6 +10,7 @@ import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_repository.dart';
 
 void main() {
   group('SmsCaptureService', () {
@@ -28,6 +29,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: CreditCardRepository(database),
@@ -92,6 +94,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: CreditCardRepository(database),
@@ -117,6 +120,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: CreditCardRepository(database),
@@ -141,6 +145,7 @@ void main() {
         bankAccountTransactions: BankAccountTransactionRepository(database),
         merchants: MerchantRepository(database),
         tags: TagRepository(database),
+        seenSms: SeenSmsRepository(database),
         linking: LinkingRepository(
           database: database,
           creditCards: CreditCardRepository(database),
@@ -158,6 +163,19 @@ void main() {
 
       await service.processSms(unparsed);
       expect(suggested, [unparsed]);
+    });
+
+    test('does not recreate a transaction after the user deletes it', () async {
+      expect(await service.processSms(spentSms), SmsCaptureResult.captured);
+      final transactions = CardTransactionRepository(database);
+      final tx = (await transactions.listAll()).single;
+
+      await transactions.delete(tx.id);
+      expect(await transactions.listAll(), isEmpty);
+
+      // Inbox sync re-scans recent SMS; the same body must stay suppressed.
+      expect(await service.processSms(spentSms), SmsCaptureResult.duplicate);
+      expect(await transactions.listAll(), isEmpty);
     });
   });
 }

@@ -8727,6 +8727,221 @@ class SmsSendersCompanion extends UpdateCompanion<SmsSender> {
   }
 }
 
+class $SeenSmsBodiesTable extends SeenSmsBodies
+    with TableInfo<$SeenSmsBodiesTable, SeenSmsBody> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SeenSmsBodiesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [body, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'seen_sms_bodies';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SeenSmsBody> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {body};
+  @override
+  SeenSmsBody map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SeenSmsBody(
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SeenSmsBodiesTable createAlias(String alias) {
+    return $SeenSmsBodiesTable(attachedDatabase, alias);
+  }
+}
+
+class SeenSmsBody extends DataClass implements Insertable<SeenSmsBody> {
+  final String body;
+  final DateTime createdAt;
+  const SeenSmsBody({required this.body, required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['body'] = Variable<String>(body);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SeenSmsBodiesCompanion toCompanion(bool nullToAbsent) {
+    return SeenSmsBodiesCompanion(
+      body: Value(body),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SeenSmsBody.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SeenSmsBody(
+      body: serializer.fromJson<String>(json['body']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'body': serializer.toJson<String>(body),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SeenSmsBody copyWith({String? body, DateTime? createdAt}) => SeenSmsBody(
+    body: body ?? this.body,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SeenSmsBody copyWithCompanion(SeenSmsBodiesCompanion data) {
+    return SeenSmsBody(
+      body: data.body.present ? data.body.value : this.body,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SeenSmsBody(')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(body, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SeenSmsBody &&
+          other.body == this.body &&
+          other.createdAt == this.createdAt);
+}
+
+class SeenSmsBodiesCompanion extends UpdateCompanion<SeenSmsBody> {
+  final Value<String> body;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SeenSmsBodiesCompanion({
+    this.body = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SeenSmsBodiesCompanion.insert({
+    required String body,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : body = Value(body),
+       createdAt = Value(createdAt);
+  static Insertable<SeenSmsBody> custom({
+    Expression<String>? body,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (body != null) 'body': body,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SeenSmsBodiesCompanion copyWith({
+    Value<String>? body,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SeenSmsBodiesCompanion(
+      body: body ?? this.body,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SeenSmsBodiesCompanion(')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8764,6 +8979,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $SmsSendersTable smsSenders = $SmsSendersTable(this);
+  late final $SeenSmsBodiesTable seenSmsBodies = $SeenSmsBodiesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8789,6 +9005,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     merchantDefaultTags,
     transactionLinks,
     smsSenders,
+    seenSmsBodies,
   ];
 }
 
@@ -13385,6 +13602,149 @@ typedef $$SmsSendersTableProcessedTableManager =
       SmsSender,
       PrefetchHooks Function()
     >;
+typedef $$SeenSmsBodiesTableCreateCompanionBuilder =
+    SeenSmsBodiesCompanion Function({
+      required String body,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$SeenSmsBodiesTableUpdateCompanionBuilder =
+    SeenSmsBodiesCompanion Function({
+      Value<String> body,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$SeenSmsBodiesTableFilterComposer
+    extends Composer<_$AppDatabase, $SeenSmsBodiesTable> {
+  $$SeenSmsBodiesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SeenSmsBodiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SeenSmsBodiesTable> {
+  $$SeenSmsBodiesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SeenSmsBodiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SeenSmsBodiesTable> {
+  $$SeenSmsBodiesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$SeenSmsBodiesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SeenSmsBodiesTable,
+          SeenSmsBody,
+          $$SeenSmsBodiesTableFilterComposer,
+          $$SeenSmsBodiesTableOrderingComposer,
+          $$SeenSmsBodiesTableAnnotationComposer,
+          $$SeenSmsBodiesTableCreateCompanionBuilder,
+          $$SeenSmsBodiesTableUpdateCompanionBuilder,
+          (
+            SeenSmsBody,
+            BaseReferences<_$AppDatabase, $SeenSmsBodiesTable, SeenSmsBody>,
+          ),
+          SeenSmsBody,
+          PrefetchHooks Function()
+        > {
+  $$SeenSmsBodiesTableTableManager(_$AppDatabase db, $SeenSmsBodiesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SeenSmsBodiesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SeenSmsBodiesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SeenSmsBodiesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> body = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SeenSmsBodiesCompanion(
+                body: body,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String body,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SeenSmsBodiesCompanion.insert(
+                body: body,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SeenSmsBodiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SeenSmsBodiesTable,
+      SeenSmsBody,
+      $$SeenSmsBodiesTableFilterComposer,
+      $$SeenSmsBodiesTableOrderingComposer,
+      $$SeenSmsBodiesTableAnnotationComposer,
+      $$SeenSmsBodiesTableCreateCompanionBuilder,
+      $$SeenSmsBodiesTableUpdateCompanionBuilder,
+      (
+        SeenSmsBody,
+        BaseReferences<_$AppDatabase, $SeenSmsBodiesTable, SeenSmsBody>,
+      ),
+      SeenSmsBody,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -13434,4 +13794,6 @@ class $AppDatabaseManager {
       $$TransactionLinksTableTableManager(_db, _db.transactionLinks);
   $$SmsSendersTableTableManager get smsSenders =>
       $$SmsSendersTableTableManager(_db, _db.smsSenders);
+  $$SeenSmsBodiesTableTableManager get seenSmsBodies =>
+      $$SeenSmsBodiesTableTableManager(_db, _db.seenSmsBodies);
 }

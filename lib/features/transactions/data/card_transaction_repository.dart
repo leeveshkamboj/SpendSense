@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/features/sms_capture/data/seen_sms_repository.dart';
 import 'package:spendsense/features/sms_capture/domain/captured_transaction_snapshot.dart';
 
 class NewCardTransaction {
@@ -268,10 +269,15 @@ class CardTransactionRepository {
         .write(const CardTransactionsCompanion(isReviewed: Value(true)));
   }
 
-  Future<void> delete(int transactionId) {
-    return (_database.delete(_database.cardTransactions)
+  Future<void> delete(int transactionId) async {
+    final existing = await getById(transactionId);
+    await (_database.delete(_database.cardTransactions)
           ..where((tx) => tx.id.equals(transactionId)))
         .go();
+    final rawSms = existing?.rawSms;
+    if (rawSms != null && rawSms.trim().isNotEmpty) {
+      await SeenSmsRepository(_database).remember(rawSms);
+    }
   }
 
   Future<void> update({
