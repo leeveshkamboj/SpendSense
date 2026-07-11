@@ -5,6 +5,20 @@ import 'package:spendsense/features/sms_capture/parsers/sbi_parsers.dart';
 
 void main() {
   group('SBI card parser', () {
+    test('parses UPI card expense with via UPI and Ref No from RCS', () {
+      const sms =
+          'Rs.400.00 spent on your SBI Credit Card ending with 8401 at RadheyCollection on 02-12-25 via UPI (Ref No. 533604324624). Trxn. not done by you? Report at https://sbicard.com/Dispute';
+
+      final parsed = parseSbiCardExpenseSms(sms);
+
+      expect(parsed, isNotNull);
+      expect(parsed!.amountPaise, 40000);
+      expect(parsed.lastFourDigits, '8401');
+      expect(parsed.merchant, 'RadheyCollection');
+      expect(parsed.referenceNumber, '533604324624');
+      expect(parsed.transactionAt, DateTime(2025, 12, 2));
+    });
+
     test('parses e-Mandate expense from PRD', () {
       const sms =
           'Trxn. of Rs.499.00 at JIOHOTSTAR on SBI Card 8401 on 09-07-26';

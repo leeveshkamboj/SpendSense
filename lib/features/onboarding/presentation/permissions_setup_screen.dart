@@ -127,7 +127,7 @@ class _PermissionsSetupScreenState extends ConsumerState<PermissionsSetupScreen>
                   icon: Icons.sms_outlined,
                   title: 'SMS',
                   description:
-                      'Read bank SMS and RCS chat messages (via Google Messages) to import transactions.',
+                      'Read bank SMS (and MMS/RCS when Google Messages stores them in the system inbox).',
                   granted: _sms == SmsPermissionState.granted,
                   onAllow: _requesting ? null : _requestSms,
                 ),

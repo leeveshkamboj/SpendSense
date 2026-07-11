@@ -1,7 +1,9 @@
 import 'package:spendsense/core/database/database.dart';
+import 'package:spendsense/features/transactions/domain/transaction_cycle_filter.dart';
 
 class TransactionFilters {
   const TransactionFilters({
+    this.cycleFilter = TransactionCycleFilter.current,
     this.minAmountPaise,
     this.maxAmountPaise,
     this.dateFrom,
@@ -15,6 +17,7 @@ class TransactionFilters {
     this.recurringOnly = false,
   });
 
+  final TransactionCycleFilter cycleFilter;
   final int? minAmountPaise;
   final int? maxAmountPaise;
   final DateTime? dateFrom;
@@ -27,22 +30,26 @@ class TransactionFilters {
   final bool? hasReceipt;
   final bool recurringOnly;
 
-  bool get isEmpty {
-    return minAmountPaise == null &&
-        maxAmountPaise == null &&
-        dateFrom == null &&
-        dateTo == null &&
-        category == null &&
-        kind == null &&
-        source == null &&
-        reviewed == null &&
-        hasNotes == null &&
-        hasReceipt == null &&
-        !recurringOnly;
+  bool get isCurrentCycle => cycleFilter is CurrentTransactionCycleFilter;
+
+  bool get hasNonCycleFilters {
+    return minAmountPaise != null ||
+        maxAmountPaise != null ||
+        dateFrom != null ||
+        dateTo != null ||
+        category != null ||
+        kind != null ||
+        source != null ||
+        reviewed != null ||
+        hasNotes != null ||
+        hasReceipt != null ||
+        recurringOnly;
   }
 
+  bool get isEmpty => isCurrentCycle && !hasNonCycleFilters;
+
   int get activeCount {
-    var count = 0;
+    var count = isCurrentCycle ? 0 : 1;
     if (minAmountPaise != null) count++;
     if (maxAmountPaise != null) count++;
     if (dateFrom != null) count++;
@@ -58,6 +65,7 @@ class TransactionFilters {
   }
 
   TransactionFilters copyWith({
+    TransactionCycleFilter? cycleFilter,
     int? minAmountPaise,
     int? maxAmountPaise,
     DateTime? dateFrom,
@@ -81,8 +89,11 @@ class TransactionFilters {
     bool clearHasReceipt = false,
   }) {
     return TransactionFilters(
-      minAmountPaise: clearMinAmount ? null : (minAmountPaise ?? this.minAmountPaise),
-      maxAmountPaise: clearMaxAmount ? null : (maxAmountPaise ?? this.maxAmountPaise),
+      cycleFilter: cycleFilter ?? this.cycleFilter,
+      minAmountPaise:
+          clearMinAmount ? null : (minAmountPaise ?? this.minAmountPaise),
+      maxAmountPaise:
+          clearMaxAmount ? null : (maxAmountPaise ?? this.maxAmountPaise),
       dateFrom: clearDateFrom ? null : (dateFrom ?? this.dateFrom),
       dateTo: clearDateTo ? null : (dateTo ?? this.dateTo),
       category: clearCategory ? null : (category ?? this.category),
@@ -100,7 +111,18 @@ bool matchesTransactionFilters({
   required CardTransaction transaction,
   required TransactionFilters filters,
   Set<int> transactionIdsWithReceipts = const {},
+  Set<int>? allowedBillingCycleIds,
 }) {
+  if (allowedBillingCycleIds != null) {
+    final cycleId = transaction.billingCycleId;
+    if (cycleId == null || !allowedBillingCycleIds.contains(cycleId)) {
+      // Current-cycle view still includes recent unassigned rows.
+      if (!(filters.isCurrentCycle && cycleId == null)) {
+        return false;
+      }
+    }
+  }
+
   if (filters.recurringOnly && !transaction.isRecurring) {
     return false;
   }

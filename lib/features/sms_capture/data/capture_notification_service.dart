@@ -10,8 +10,10 @@ class CaptureNotificationService {
   static const channelId = 'transaction_capture';
   static const channelName = 'Transaction Capture';
   static const manualAddChannelId = 'transaction_capture_manual';
+  static const _manualAddThrottle = Duration(hours: 6);
 
   final FlutterLocalNotificationsPlugin _plugin;
+  DateTime? _lastManualAddShownAt;
 
   static Future<CaptureNotificationService> create() async {
     final notifications = await AppLocalNotifications.initialize();
@@ -78,6 +80,13 @@ class CaptureNotificationService {
   }
 
   Future<void> showManualAddSuggestion() async {
+    final now = DateTime.now();
+    final lastShown = _lastManualAddShownAt;
+    if (lastShown != null && now.difference(lastShown) < _manualAddThrottle) {
+      return;
+    }
+    _lastManualAddShownAt = now;
+
     await _plugin.show(
       manualAddNotificationId,
       'Add transaction manually',

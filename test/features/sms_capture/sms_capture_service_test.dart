@@ -131,5 +131,33 @@ void main() {
           (await BankAccountTransactionRepository(database).listAll()).single;
       expect(tx.location, location);
     });
+
+    test('can suppress manual-add prompts for inbox sync rescans', () async {
+      final suggested = <String>[];
+      service = SmsCaptureService(
+        creditCards: CreditCardRepository(database),
+        cardTransactions: CardTransactionRepository(database),
+        bankAccounts: BankAccountRepository(database),
+        bankAccountTransactions: BankAccountTransactionRepository(database),
+        merchants: MerchantRepository(database),
+        tags: TagRepository(database),
+        linking: LinkingRepository(
+          database: database,
+          creditCards: CreditCardRepository(database),
+          cardTransactions: CardTransactionRepository(database),
+        ),
+        onManualAddSuggested: suggested.add,
+      );
+
+      const unparsed =
+          'We have received payment of Rs.22,613.56 via BBPS & the same has '
+          'been credited to your SBI Credit Card.';
+
+      await service.processSms(unparsed, notifyUnparsed: false);
+      expect(suggested, isEmpty);
+
+      await service.processSms(unparsed);
+      expect(suggested, [unparsed]);
+    });
   });
 }

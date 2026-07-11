@@ -55,5 +55,21 @@ by UPI''';
       expect(parsed, isNotNull);
       expect(parsed!.amountPaise, 125000);
     });
+
+    test('parses Rs-first spent-on format with masked card xNNNN', () {
+      const sms =
+          'Rs.451.63 spent on HDFC Bank Card x5534 at ZOMATO on '
+          '2026-07-11:16:23:13.Not U? To Block & Reissue Call 18002586161/'
+          'SMS BLOCK CC 5534 to 7308080808';
+
+      final parsed = parseHdfcCardExpenseSms(sms);
+
+      expect(parsed, isNotNull);
+      expect(parsed!.amountPaise, 45163);
+      expect(parsed.merchant, 'ZOMATO');
+      expect(parsed.bank, 'HDFC');
+      expect(parsed.lastFourDigits, '5534');
+      expect(parsed.transactionAt, DateTime(2026, 7, 11, 16, 23, 13));
+    });
   });
 }

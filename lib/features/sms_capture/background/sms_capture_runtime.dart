@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/features/accounts/data/bank_account_repository.dart';
 import 'package:spendsense/features/accounts/data/bank_account_transaction_repository.dart';
@@ -8,7 +10,6 @@ import 'package:spendsense/features/location/data/sms_location_capture.dart';
 import 'package:spendsense/features/location/location_permission_gateway.dart';
 import 'package:spendsense/features/merchants/data/merchant_repository.dart';
 import 'package:spendsense/features/sms_capture/data/capture_notification_service.dart';
-import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_service.dart';
 import 'package:spendsense/features/tags/data/tag_repository.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_repository.dart';
@@ -96,7 +97,11 @@ class SmsCaptureRuntime {
       ),
       onCaptured: notifications.showCapture,
       onManualAddSuggested: (_) => notifications.showManualAddSuggestion(),
-      resolveLocation: locationCapture.captureSerialized,
+      // Keep background capture fast — GPS must not block SMS_RECEIVED.
+      resolveLocation: () => locationCapture.captureSerialized().timeout(
+            const Duration(milliseconds: 1200),
+            onTimeout: () => null,
+          ),
     );
   }
 

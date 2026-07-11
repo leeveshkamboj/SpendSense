@@ -11,6 +11,14 @@ void main() {
       expect(lookupMerchantCategory('INDIAN OIL'), 'Fuel');
     });
 
+    test('categorizes Netflix as Subscription', () {
+      expect(lookupMerchantCategory('NETFLIX.COM'), 'Subscription');
+    });
+
+    test('categorizes Airtel as Utilities', () {
+      expect(lookupMerchantCategory('AIRTEL PAYMENTS'), 'Utilities');
+    });
+
     test('defaults unknown merchants to Miscellaneous', () {
       expect(lookupMerchantCategory('RANDOM SHOP XYZ'), 'Miscellaneous');
     });

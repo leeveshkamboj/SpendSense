@@ -15,6 +15,7 @@ import 'package:spendsense/core/branding/app_logo.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 import 'package:spendsense/features/categories/data/category_providers.dart';
 import 'package:spendsense/features/shell/spend_sense_app_bar_actions.dart';
+import 'package:spendsense/features/transactions/domain/transaction_cycle_filter.dart';
 import 'package:spendsense/features/transactions/presentation/transaction_filter_sheet.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
@@ -51,6 +52,16 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     if (position.pixels >= position.maxScrollExtent - 200) {
       ref.read(cardTransactionPageProvider.notifier).loadMore();
     }
+  }
+
+  String _cycleBannerLabel(TransactionCycleFilter filter) {
+    return switch (filter) {
+      CurrentTransactionCycleFilter() =>
+        'Current billing cycle · tap history for full search',
+      PreviousTransactionCycleFilter() => 'Last billing cycle',
+      PeriodTransactionCycleFilter(:final year, :final month) =>
+        formatCyclePeriodLabel(year, month),
+    };
   }
 
   void _scheduleDelete(CardTransaction transaction) {
@@ -190,13 +201,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       ),
       body: Column(
         children: [
-          if (pageState.valueOrNull?.isCurrentCycleOnly ?? false)
+          if (!searchAll && query.trim().isEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Current billing cycle · tap history for full search',
+                  _cycleBannerLabel(filters.cycleFilter),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -249,10 +260,20 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   badgeCount: filters.activeCount,
                   onPressed: () async {
                     final categories = categoriesAsync.valueOrNull ?? const <String>[];
+                    final creditCards = ref.read(creditCardRepositoryProvider);
+                    final currentCycles = await creditCards.listCurrentCycles();
+                    final allCycles = await creditCards.listCyclesForActiveCards();
+                    if (!context.mounted) {
+                      return;
+                    }
                     final result = await showTransactionFilterSheet(
                       context: context,
                       initial: filters,
                       categories: categories,
+                      cycleOptions: buildTransactionCycleFilterOptions(
+                        currentCycles: currentCycles,
+                        allCycles: allCycles,
+                      ),
                     );
                     if (result == null) {
                       return;

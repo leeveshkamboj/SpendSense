@@ -28,8 +28,31 @@ void main() {
 
       expect(
         await categories.listNames(),
-        containsAll(['Food', 'Fuel', 'Shopping', 'Miscellaneous']),
+        containsAll([
+          'Food',
+          'Fuel',
+          'Shopping',
+          'Subscription',
+          'Utilities',
+          'EMI',
+          'Miscellaneous',
+        ]),
       );
+    });
+
+    test('adds missing built-in categories on upgrade', () async {
+      await database.into(database.categories).insert(
+            CategoriesCompanion.insert(name: 'Food'),
+          );
+      await database.into(database.categories).insert(
+            CategoriesCompanion.insert(name: 'Miscellaneous'),
+          );
+
+      await categories.ensureDefaults();
+
+      final names = await categories.listNames();
+      expect(names, containsAll(['Food', 'Subscription', 'Utilities', 'EMI']));
+      expect(names.where((name) => name == 'Food').length, 1);
     });
 
     test('allows renaming a category', () async {

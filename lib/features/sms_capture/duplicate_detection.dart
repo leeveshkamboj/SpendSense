@@ -33,6 +33,38 @@ bool matchesExistingCapture({
   return false;
 }
 
+/// Same as [matchesExistingCapture], but returns a short reason for debug logs.
+String? duplicateMatchReason({
+  required CapturedTransactionSnapshot incoming,
+  required Iterable<CapturedTransactionSnapshot> existing,
+}) {
+  for (final candidate in existing) {
+    if (!_sameAccount(incoming, candidate)) {
+      continue;
+    }
+
+    if (incoming.referenceNumber != null &&
+        candidate.referenceNumber == incoming.referenceNumber) {
+      return 'sameRef=${incoming.referenceNumber}';
+    }
+
+    if (incoming.referenceNumber == null && candidate.referenceNumber == null) {
+      final sameAmountAndMerchant = candidate.amountPaise == incoming.amountPaise &&
+          candidate.merchant == incoming.merchant;
+      final withinWindow = incoming.transactionAt
+          .difference(candidate.transactionAt)
+          .abs()
+          .compareTo(_duplicateWindow) <= 0;
+
+      if (sameAmountAndMerchant && withinWindow) {
+        return 'sameAmountMerchantWithin5m';
+      }
+    }
+  }
+
+  return null;
+}
+
 bool _sameAccount(
   CapturedTransactionSnapshot a,
   CapturedTransactionSnapshot b,

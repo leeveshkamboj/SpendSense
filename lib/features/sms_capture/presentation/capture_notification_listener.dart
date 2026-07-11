@@ -8,6 +8,7 @@ import 'package:spendsense/features/dashboard/data/dashboard_refresh.dart';
 import 'package:spendsense/features/recoverables/data/recoverable_providers.dart';
 import 'package:spendsense/features/sms_capture/capture_notification_provider.dart';
 import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
+import 'package:spendsense/features/transactions/presentation/transaction_list_providers.dart';
 
 class CaptureNotificationListener extends ConsumerWidget {
   const CaptureNotificationListener({required this.child, super.key});
@@ -40,6 +41,11 @@ class CaptureNotificationListener extends ConsumerWidget {
           ),
         ),
       );
+
+      ref.invalidate(cardTransactionsProvider);
+      ref.invalidate(bankAccountTransactionsProvider);
+      ref.invalidate(cardTransactionPageProvider);
+      invalidateDashboardAndWidgets(ref);
 
       if (!next.isBankAccount) {
         messenger.showSnackBar(

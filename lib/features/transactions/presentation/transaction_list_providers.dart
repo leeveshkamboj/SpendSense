@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendsense/core/database/database.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/credit_cards/data/credit_card_providers.dart';
-import 'package:spendsense/features/onboarding/data/onboarding_repository.dart';
 import 'package:spendsense/features/onboarding/presentation/onboarding_gate.dart';
 import 'package:spendsense/features/onboarding/sms_import_loader.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
@@ -11,6 +10,7 @@ import 'package:spendsense/features/transactions/data/receipt_providers.dart';
 import 'package:spendsense/features/transactions/data/transaction_cycle_move_repository.dart';
 import 'package:spendsense/features/transactions/data/transaction_merge_repository.dart';
 import 'package:spendsense/features/transactions/domain/grouped_card_transactions.dart';
+import 'package:spendsense/features/transactions/domain/transaction_cycle_filter.dart';
 import 'package:spendsense/features/transactions/domain/transaction_filters.dart';
 import 'package:spendsense/features/transactions/engine/transaction_search.dart';
 
@@ -89,7 +89,7 @@ class CardTransactionPageNotifier
     final searchAll = _ref.read(searchAllSegmentsProvider);
     final query = _ref.read(transactionSearchQueryProvider);
     final filters = _ref.read(transactionFiltersProvider);
-    return searchAll || query.trim().isNotEmpty || !filters.isEmpty;
+    return searchAll || query.trim().isNotEmpty || filters.hasNonCycleFilters;
   }
 
   Future<void> refresh() async {
@@ -97,8 +97,17 @@ class CardTransactionPageNotifier
     try {
       final recoverableOnly = _ref.read(recoverableFilterProvider);
       final repository = _ref.read(cardTransactionRepositoryProvider);
+      final filters = _ref.read(transactionFiltersProvider);
       final historyMonths =
           await _ref.read(onboardingRepositoryProvider).smsImportWindowMonths();
+      final creditCards = _ref.read(creditCardRepositoryProvider);
+      final currentCycles = await creditCards.listCurrentCycles();
+      final allCycles = await creditCards.listCyclesForActiveCards();
+      final allowedCycleIds = resolveTransactionCycleIds(
+        filter: filters.cycleFilter,
+        currentCycles: currentCycles,
+        allCycles: allCycles,
+      );
 
       if (_usesExpandedHistory) {
         final page = await repository.listPage(
@@ -118,25 +127,25 @@ class CardTransactionPageNotifier
         return;
       }
 
-      final creditCards = _ref.read(creditCardRepositoryProvider);
-      final currentCycles = await creditCards.listCurrentCycles();
-      final cycleIds = currentCycles.map((cycle) => cycle.id).toList();
       final cycleTransactions = await repository.listForBillingCycleIds(
-        cycleIds,
+        allowedCycleIds.toList(),
         recoverableOnly: recoverableOnly,
       );
-      final unassigned = await repository.listUnassignedSince(
-        since: billingHistoryStart(months: historyMonths),
-        recoverableOnly: recoverableOnly,
-      );
-      final transactions = _mergeTransactions(cycleTransactions, unassigned);
+      var transactions = cycleTransactions;
+      if (filters.isCurrentCycle) {
+        final unassigned = await repository.listUnassignedSince(
+          since: billingHistoryStart(months: historyMonths),
+          recoverableOnly: recoverableOnly,
+        );
+        transactions = _mergeTransactions(cycleTransactions, unassigned);
+      }
 
       state = AsyncValue.data(
         CardTransactionPageState(
           transactions: transactions,
           hasMore: false,
           isLoadingMore: false,
-          isCurrentCycleOnly: true,
+          isCurrentCycleOnly: filters.isCurrentCycle,
         ),
       );
     } catch (error, stackTrace) {
@@ -220,6 +229,7 @@ List<CardTransaction> filterCardTransactions({
   int? cardId,
   bool currentCycleOnly = false,
   Set<int>? currentCycleIds,
+  Set<int>? allowedBillingCycleIds,
   TransactionFilters filters = const TransactionFilters(),
   Set<int> transactionIdsWithReceipts = const {},
   bool recurringOnly = false,
@@ -240,13 +250,14 @@ List<CardTransaction> filterCardTransactions({
     filtered = filtered.where((tx) => tx.isRecurring).toList();
   }
 
-  if (!filters.isEmpty) {
+  if (!filters.isEmpty || allowedBillingCycleIds != null) {
     filtered = filtered
         .where(
           (tx) => matchesTransactionFilters(
             transaction: tx,
             filters: filters,
             transactionIdsWithReceipts: transactionIdsWithReceipts,
+            allowedBillingCycleIds: allowedBillingCycleIds,
           ),
         )
         .toList();
@@ -318,17 +329,23 @@ final filteredGroupedCardTransactionsProvider =
   final filters = ref.watch(transactionFiltersProvider);
   final recurringOnly = ref.watch(recurringFilterProvider);
   final receiptIds = await ref.watch(transactionIdsWithReceiptsProvider.future);
-  final currentCycleIds = pageState.isCurrentCycleOnly
-      ? (await ref.read(creditCardRepositoryProvider).listCurrentCycles())
-          .map((cycle) => cycle.id)
-          .toSet()
-      : null;
+  final creditCards = ref.read(creditCardRepositoryProvider);
+  final currentCycles = await creditCards.listCurrentCycles();
+  final currentCycleIds = currentCycles.map((cycle) => cycle.id).toSet();
+  final allCycles = await creditCards.listCyclesForActiveCards();
+  final allowedCycleIds = resolveTransactionCycleIds(
+    filter: filters.cycleFilter,
+    currentCycles: currentCycles,
+    allCycles: allCycles,
+  );
   final filtered = filterCardTransactions(
     transactions: pageState.transactions,
     query: query,
     cardId: cardId,
     currentCycleOnly: pageState.isCurrentCycleOnly,
     currentCycleIds: currentCycleIds,
+    allowedBillingCycleIds:
+        pageState.isCurrentCycleOnly ? null : allowedCycleIds,
     filters: filters,
     transactionIdsWithReceipts: receiptIds,
     recurringOnly: recurringOnly,
@@ -350,11 +367,20 @@ final filteredGroupedCardTransactionsWhenSearchingProvider =
   final cardId = ref.watch(transactionCardFilterProvider);
   final filters = ref.watch(transactionFiltersProvider);
   final receiptIds = await ref.watch(transactionIdsWithReceiptsProvider.future);
+  final creditCards = ref.read(creditCardRepositoryProvider);
+  final currentCycles = await creditCards.listCurrentCycles();
+  final allCycles = await creditCards.listCyclesForActiveCards();
+  final allowedCycleIds = resolveTransactionCycleIds(
+    filter: filters.cycleFilter,
+    currentCycles: currentCycles,
+    allCycles: allCycles,
+  );
   final all = await repository.listAll(recoverableOnly: recoverableOnly);
   final filtered = filterCardTransactions(
     transactions: all,
     query: query,
     cardId: cardId,
+    allowedBillingCycleIds: allowedCycleIds,
     filters: filters,
     transactionIdsWithReceipts: receiptIds,
     recurringOnly: recurringOnly,

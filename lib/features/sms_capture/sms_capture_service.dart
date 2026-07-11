@@ -8,6 +8,7 @@ import 'package:spendsense/features/sms_capture/domain/sms_capture_result.dart';
 import 'package:spendsense/features/sms_capture/domain/captured_transaction_snapshot.dart';
 import 'package:spendsense/features/sms_capture/duplicate_detection.dart';
 import 'package:spendsense/features/sms_capture/parsers/sms_parser.dart';
+import 'package:spendsense/features/sms_capture/sms_debug_log.dart';
 import 'package:spendsense/features/sms_capture/unparsed_sms_notifier.dart';
 import 'package:spendsense/features/linking/data/linking_repository.dart';
 import 'package:spendsense/features/merchants/data/merchant_repository.dart';
@@ -51,18 +52,24 @@ class SmsCaptureService {
   final ManualAddNotificationHandler? onManualAddSuggested;
   final SmsLocationResolver? _resolveLocation;
 
-  Future<SmsCaptureResult> processSms(String sms) async {
+  Future<SmsCaptureResult> processSms(
+    String sms, {
+    bool notifyUnparsed = true,
+  }) async {
     final parsed = parseBankSms(sms);
     if (parsed == null) {
-      if (shouldNotifyManualAdd(sms)) {
+      final preview = sms.length > 100 ? '${sms.substring(0, 100)}…' : sms;
+      smsDebugLog('processSms ignored (unparsed) body="$preview"');
+      if (notifyUnparsed && shouldNotifyManualAdd(sms)) {
         onManualAddSuggested?.call(sms);
       }
       return SmsCaptureResult.ignored;
     }
 
+    smsDebugLog('processSms parsed=${parsed.runtimeType}');
     final location = await _captureLocation();
 
-    return switch (parsed) {
+    final result = await switch (parsed) {
       ParsedCardExpenseMessage(:final expense) =>
         _captureCardExpense(expense, location),
       ParsedCardCreditMessage(:final credit) => _captureCardCredit(
@@ -72,6 +79,8 @@ class SmsCaptureService {
       ParsedBankTransactionMessage(:final transaction) =>
         _captureBankTransaction(transaction, location),
     };
+    smsDebugLog('processSms result=${result.name}');
+    return result;
   }
 
   Future<String?> _captureLocation() async {
@@ -367,16 +376,22 @@ class SmsCaptureService {
 
   Future<bool> _isCardDuplicate(ParsedCardExpense parsed, int cardId) async {
     final existing = await _cardTransactions.listSnapshotsForCard(cardId);
-    return matchesExistingCapture(
-      incoming: CapturedTransactionSnapshot(
-        creditCardId: cardId,
-        amountPaise: parsed.amountPaise,
-        merchant: parsed.merchant,
-        transactionAt: parsed.transactionAt,
-        referenceNumber: parsed.referenceNumber,
-      ),
-      existing: existing,
+    final incoming = CapturedTransactionSnapshot(
+      creditCardId: cardId,
+      amountPaise: parsed.amountPaise,
+      merchant: parsed.merchant,
+      transactionAt: parsed.transactionAt,
+      referenceNumber: parsed.referenceNumber,
     );
+    final reason = duplicateMatchReason(incoming: incoming, existing: existing);
+    if (reason != null) {
+      smsDebugLog(
+        'duplicate card expense amountPaise=${parsed.amountPaise} '
+        'merchant=${parsed.merchant} reason=$reason',
+      );
+      return true;
+    }
+    return false;
   }
 
   Future<bool> _isBankDuplicate(

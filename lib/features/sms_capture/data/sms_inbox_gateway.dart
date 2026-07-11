@@ -51,7 +51,7 @@ List<SmsInboxMessage> parseInboxMessages(List<Object?> response) {
           sender: map['sender'] as String,
           body: map['body'] as String,
           receivedAt: DateTime.fromMillisecondsSinceEpoch(
-            map['receivedAtMs'] as int,
+            (map['receivedAtMs'] as num).toInt(),
           ),
           channel: _parseInboxChannel(map['channel'] as String?),
         );

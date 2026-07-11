@@ -9,17 +9,22 @@ class CategoryRepository {
   final AppDatabase _database;
 
   Future<void> ensureDefaults() async {
-    final existing = await listNames();
-    if (existing.isNotEmpty) return;
+    final existing = (await listNames()).toSet();
+    final missing =
+        defaultCategories.where((name) => !existing.contains(name)).toList();
+    if (missing.isEmpty) {
+      return;
+    }
 
     await _database.batch((batch) {
-      for (final name in defaultCategories) {
+      for (final name in missing) {
         batch.insert(
           _database.categories,
           CategoriesCompanion.insert(
             name: name,
             isBuiltIn: const Value(true),
           ),
+          mode: InsertMode.insertOrIgnore,
         );
       }
     });

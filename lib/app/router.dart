@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendsense/features/accounts/presentation/accounts_screen.dart';
@@ -32,9 +33,19 @@ import 'package:spendsense/features/transactions/presentation/split_transaction_
 import 'package:spendsense/features/transactions/presentation/transaction_detail_screen.dart';
 import 'package:spendsense/features/transactions/transactions_screen.dart';
 
+const dashboardLocation = '/dashboard';
+
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/dashboard',
+    initialLocation: dashboardLocation,
+    redirect: (context, state) {
+      final path = state.uri.path;
+      if (path.isEmpty || path == '/') {
+        return dashboardLocation;
+      }
+      return null;
+    },
+    errorBuilder: (context, state) => const _UnknownRouteScreen(),
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -44,7 +55,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/dashboard',
+                path: dashboardLocation,
                 builder: (context, state) => const DashboardScreen(),
               ),
             ],
@@ -239,3 +250,33 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Shown briefly for unknown routes, then sends the user to the dashboard.
+class _UnknownRouteScreen extends StatefulWidget {
+  const _UnknownRouteScreen();
+
+  @override
+  State<_UnknownRouteScreen> createState() => _UnknownRouteScreenState();
+}
+
+class _UnknownRouteScreenState extends State<_UnknownRouteScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.go(dashboardLocation);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}

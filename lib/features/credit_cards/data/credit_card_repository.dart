@@ -468,6 +468,15 @@ class CreditCardRepository {
         .getSingleOrNull();
   }
 
+  Future<List<BillingCycle>> listCyclesForActiveCards() async {
+    final cards = await listActive();
+    final cycles = <BillingCycle>[];
+    for (final card in cards) {
+      cycles.addAll(await listCycles(card.id));
+    }
+    return cycles;
+  }
+
   Future<List<BillingCycle>> listCycles(int cardId) {
     return (_database.select(_database.billingCycles)
           ..where((cycle) => cycle.creditCardId.equals(cardId))

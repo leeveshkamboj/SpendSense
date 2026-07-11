@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:spendsense/features/transactions/domain/transaction_cycle_filter.dart';
 import 'package:spendsense/features/transactions/domain/transaction_filters.dart';
 
 Future<TransactionFilters?> showTransactionFilterSheet({
   required BuildContext context,
   required TransactionFilters initial,
   required List<String> categories,
+  required List<TransactionCycleFilterOption> cycleOptions,
 }) {
   return showModalBottomSheet<TransactionFilters>(
     context: context,
@@ -12,6 +14,7 @@ Future<TransactionFilters?> showTransactionFilterSheet({
     builder: (context) => _TransactionFilterSheet(
       initial: initial,
       categories: categories,
+      cycleOptions: cycleOptions,
     ),
   );
 }
@@ -20,10 +23,12 @@ class _TransactionFilterSheet extends StatefulWidget {
   const _TransactionFilterSheet({
     required this.initial,
     required this.categories,
+    required this.cycleOptions,
   });
 
   final TransactionFilters initial;
   final List<String> categories;
+  final List<TransactionCycleFilterOption> cycleOptions;
 
   @override
   State<_TransactionFilterSheet> createState() => _TransactionFilterSheetState();
@@ -89,9 +94,43 @@ class _TransactionFilterSheetState extends State<_TransactionFilterSheet> {
     });
   }
 
+  List<TransactionCycleFilterOption> get _cycleOptions {
+    final options = [...widget.cycleOptions];
+    if (options.isEmpty) {
+      return const [
+        TransactionCycleFilterOption(
+          filter: TransactionCycleFilter.current,
+          label: 'Current cycle',
+        ),
+        TransactionCycleFilterOption(
+          filter: TransactionCycleFilter.previous,
+          label: 'Last cycle',
+        ),
+      ];
+    }
+
+    final hasSelected = options.any((option) => option.filter == _filters.cycleFilter);
+    if (!hasSelected) {
+      options.insert(
+        0,
+        TransactionCycleFilterOption(
+          filter: _filters.cycleFilter,
+          label: switch (_filters.cycleFilter) {
+            CurrentTransactionCycleFilter() => 'Current cycle',
+            PreviousTransactionCycleFilter() => 'Last cycle',
+            PeriodTransactionCycleFilter(:final year, :final month) =>
+              formatCyclePeriodLabel(year, month),
+          },
+        ),
+      );
+    }
+    return options;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final cycleOptions = _cycleOptions;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
@@ -105,6 +144,24 @@ class _TransactionFilterSheetState extends State<_TransactionFilterSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
+            DropdownMenu<TransactionCycleFilter>(
+              label: const Text('Billing cycle'),
+              initialSelection: _filters.cycleFilter,
+              dropdownMenuEntries: [
+                for (final option in cycleOptions)
+                  DropdownMenuEntry(
+                    value: option.filter,
+                    label: option.label,
+                  ),
+              ],
+              onSelected: (value) {
+                if (value == null) {
+                  return;
+                }
+                setState(() => _filters = _filters.copyWith(cycleFilter: value));
+              },
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -275,7 +332,8 @@ class _TransactionFilterSheetState extends State<_TransactionFilterSheet> {
             Row(
               children: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(const TransactionFilters()),
+                  onPressed: () =>
+                      Navigator.of(context).pop(const TransactionFilters()),
                   child: const Text('Clear'),
                 ),
                 const Spacer(),

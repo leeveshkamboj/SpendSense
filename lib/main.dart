@@ -4,6 +4,8 @@ import 'package:spendsense/app/app.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/bills/data/bill_reminder_providers.dart';
 import 'package:spendsense/features/bills/data/local_notifications_bill_reminder_scheduler.dart';
+import 'package:spendsense/features/sms_capture/background/sms_background_handler.dart'
+    as sms_bg;
 import 'package:spendsense/features/sms_capture/data/capture_notification_service.dart';
 import 'package:spendsense/features/sms_capture/sms_capture_providers.dart';
 
@@ -24,6 +26,14 @@ Future<void> main() async {
       child: const _AppBootstrap(),
     ),
   );
+}
+
+/// Root-library fallback if native code uses the 2-arg DartEntrypoint.
+/// Prefer the package library URI in [SmsBackgroundEngine].
+@pragma('vm:entry-point')
+void smsBackgroundMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  sms_bg.SmsBackgroundHandler.install();
 }
 
 class _AppBootstrap extends ConsumerWidget {
