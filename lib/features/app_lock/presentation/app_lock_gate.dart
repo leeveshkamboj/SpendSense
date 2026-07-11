@@ -147,8 +147,8 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 32),
                     const AppLogo(size: 56),
                     const SizedBox(height: 24),
                     Text(
@@ -185,7 +185,6 @@ class _LockScreenState extends ConsumerState<_LockScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 16),
                   ],
                 ),
               ),

@@ -114,11 +114,9 @@ class SmsBackgroundHandler {
 
     try {
       final result = await service.syncNewMessages();
-      final capturedCount = switch (result) {
-        ProcessedSmsSyncResult(:final capturedCount) => capturedCount,
-        _ => 0,
-      };
-      if (capturedCount > 0) {
+      // Always refresh widgets after a sync attempt so the budget tile
+      // updates when the user taps Sync from the home screen.
+      if (result is ProcessedSmsSyncResult) {
         await _refreshHomeWidgets(runtime.database);
       }
       return switch (result) {

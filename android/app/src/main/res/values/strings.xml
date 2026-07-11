@@ -13,4 +13,9 @@
     <string name="bills_widget_description">Upcoming credit card bills and due dates</string>
     <string name="budget_widget_description">Monthly budget progress and daily allowance</string>
     <string name="quick_add_widget_description">Quickly add an expense or income</string>
+    <string name="budget_widget_add_description">Add expense</string>
+    <string name="budget_widget_sync_description">Sync bank messages</string>
+    <string name="budget_widget_sync_started">Syncing messages…</string>
+    <string name="budget_widget_sync_done">Messages synced</string>
+    <string name="budget_widget_sync_failed">Could not sync messages</string>
 </resources>

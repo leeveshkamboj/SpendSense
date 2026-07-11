@@ -90,7 +90,25 @@ class BudgetWidget : HomeWidgetProvider() {
                 } else {
                     "spendsense://widget/budget"
                 }
-                WidgetLaunchUtils.bindLaunch(context, views, R.id.widget_root, launchUri)
+                // Body taps open the app; action buttons have their own intents.
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.spent_text, launchUri)
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.budget_pill, launchUri)
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.daily_text, launchUri)
+                WidgetLaunchUtils.bindLaunch(context, views, R.id.remaining_text, launchUri)
+
+                WidgetLaunchUtils.bindBroadcast(
+                    context = context,
+                    views = views,
+                    viewId = R.id.sync_button,
+                    action = WidgetSmsSyncReceiver.ACTION,
+                    requestCode = widgetId * 10 + 1,
+                )
+                WidgetLaunchUtils.bindLaunch(
+                    context,
+                    views,
+                    R.id.add_button,
+                    "spendsense://quick-add/expense",
+                )
             }
         }
     }
