@@ -103,11 +103,14 @@ class BudgetWidget : HomeWidgetProvider() {
                     action = WidgetSmsSyncReceiver.ACTION,
                     requestCode = widgetId * 10 + 1,
                 )
-                WidgetLaunchUtils.bindLaunch(
-                    context,
-                    views,
-                    R.id.add_button,
-                    "spendsense://quick-add/expense",
+                WidgetLaunchUtils.bindQuickAdd(
+                    context = context,
+                    views = views,
+                    viewId = R.id.add_button,
+                    // Distinct URI so stale MainActivity PendingIntents for
+                    // spendsense://quick-add/* cannot win after an upgrade.
+                    uri = "spendsense://overlay-add/expense",
+                    requestCode = widgetId * 10 + 2,
                 )
             }
         }

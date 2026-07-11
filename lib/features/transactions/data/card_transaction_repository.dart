@@ -333,6 +333,19 @@ class CardTransactionRepository {
     );
   }
 
+  Future<void> updateCategory({
+    required int transactionId,
+    required String? category,
+  }) {
+    return (_database.update(_database.cardTransactions)
+          ..where((tx) => tx.id.equals(transactionId)))
+        .write(
+      CardTransactionsCompanion(
+        category: Value(category),
+      ),
+    );
+  }
+
   Future<void> setRecurring({
     required int transactionId,
     required bool isRecurring,

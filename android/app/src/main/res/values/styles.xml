@@ -31,4 +31,16 @@
     <style name="WidgetPillProgressBarRed" parent="@style/WidgetProgressBar">
         <item name="android:progressDrawable">@drawable/widget_pill_progress_red</item>
     </style>
+
+    <!-- Floats over the launcher for widget quick-add; no splash chrome. -->
+    <style name="QuickAddTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
 </resources>

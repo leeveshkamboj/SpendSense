@@ -4,6 +4,8 @@ import 'package:spendsense/app/app.dart';
 import 'package:spendsense/core/database/database_provider.dart';
 import 'package:spendsense/features/bills/data/bill_reminder_providers.dart';
 import 'package:spendsense/features/bills/data/local_notifications_bill_reminder_scheduler.dart';
+import 'package:spendsense/features/home_widgets/presentation/quick_add_entrypoint.dart'
+    as quick_add;
 import 'package:spendsense/features/sms_capture/background/sms_background_handler.dart'
     as sms_bg;
 import 'package:spendsense/features/sms_capture/data/capture_notification_service.dart';
@@ -35,6 +37,10 @@ void smsBackgroundMain() {
   WidgetsFlutterBinding.ensureInitialized();
   sms_bg.SmsBackgroundHandler.install();
 }
+
+/// Root-library fallback for [QuickAddActivity] when the package URI entry fails.
+@pragma('vm:entry-point')
+Future<void> quickAddMain() => quick_add.quickAddMain();
 
 class _AppBootstrap extends ConsumerWidget {
   const _AppBootstrap();

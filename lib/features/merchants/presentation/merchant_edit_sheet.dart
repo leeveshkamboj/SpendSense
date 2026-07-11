@@ -5,6 +5,7 @@ import 'package:spendsense/features/merchants/data/merchant_providers.dart';
 import 'package:spendsense/features/merchants/domain/merchant_list_item.dart';
 import 'package:spendsense/features/merchants/presentation/merchant_list_providers.dart';
 import 'package:spendsense/features/tags/data/tag_providers.dart';
+import 'package:spendsense/features/transactions/data/card_transaction_providers.dart';
 
 /// Result of editing a merchant's display name, default category, and tags.
 class MerchantEditResult {
@@ -57,9 +58,14 @@ Future<MerchantEditResult?> showMerchantEditSheet({
   );
 
   if (applyTagsToCardTransactionId != null) {
+    final transactionId = applyTagsToCardTransactionId;
     await ref.read(tagRepositoryProvider).setForCardTransaction(
-          transactionId: applyTagsToCardTransactionId,
+          transactionId: transactionId,
           tagNames: result.tagNames,
+        );
+    await ref.read(cardTransactionRepositoryProvider).updateCategory(
+          transactionId: transactionId,
+          category: result.defaultCategory,
         );
   }
 

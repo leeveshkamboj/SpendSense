@@ -16,8 +16,28 @@ object WidgetLaunchUtils {
             Uri.parse(uri),
         )
 
+    fun quickAddPendingIntent(context: Context, uri: String): PendingIntent =
+        // Same BAL / API-34+ options as other widget launches; targets QuickAddActivity.
+        HomeWidgetLaunchIntent.getActivity(
+            context,
+            QuickAddActivity::class.java,
+            Uri.parse(uri),
+        )
+
     fun bindLaunch(context: Context, views: RemoteViews, viewId: Int, uri: String) {
         views.setOnClickPendingIntent(viewId, activityPendingIntent(context, uri))
+    }
+
+    fun bindQuickAdd(
+        context: Context,
+        views: RemoteViews,
+        viewId: Int,
+        uri: String,
+        requestCode: Int,
+    ) {
+        // requestCode kept for call-site compatibility; HomeWidgetLaunchIntent
+        // differentiates PendingIntents by URI data.
+        views.setOnClickPendingIntent(viewId, quickAddPendingIntent(context, uri))
     }
 
     fun bindBroadcast(

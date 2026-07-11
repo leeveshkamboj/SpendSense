@@ -142,4 +142,67 @@ void main() {
 
     await database.close();
   });
+
+  testWidgets('applies merchant category to the open transaction on save', (
+    tester,
+  ) async {
+    final database = AppDatabase(NativeDatabase.memory());
+    final creditCards = CreditCardRepository(database);
+    final cardId = await creditCards.create(
+      const NewCreditCard(
+        bank: 'HDFC',
+        lastFourDigits: '5534',
+        nickname: 'HDFC ••5534',
+        colorValue: 0xFF00695C,
+        iconName: 'credit_card',
+      ),
+    );
+
+    final transactions = CardTransactionRepository(database);
+    final transactionId = await transactions.insert(
+      NewCardTransaction(
+        creditCardId: cardId,
+        kind: 'expense',
+        amountPaise: 41167,
+        merchant: 'ZOMATO LTD',
+        category: 'Miscellaneous',
+        transactionAt: DateTime(2026, 7, 9, 16, 15, 20),
+        source: 'SMS',
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          cardTransactionReceiptsProvider.overrideWith(
+            (ref, id) async => [],
+          ),
+        ],
+        child: MaterialApp(
+          home: TransactionDetailScreen(transactionId: transactionId),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Category: Miscellaneous'), findsOneWidget);
+
+    await tester.tap(find.text('Tap to edit merchant, category & tags'));
+    await tester.pumpAndSettle();
+
+    // Sheet pre-fills dictionary category (Food) for Zomato; saving should
+    // write that onto this transaction, not only the merchant defaults.
+    expect(find.text('Food'), findsWidgets);
+    await tester.tap(find.text('Save merchant'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Category: Food'), findsOneWidget);
+    expect(
+      (await transactions.getById(transactionId))?.category,
+      'Food',
+    );
+
+    await database.close();
+  });
 }

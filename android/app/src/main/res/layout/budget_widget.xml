@@ -30,7 +30,9 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginStart="4dp"
+            android:clickable="true"
             android:contentDescription="@string/budget_widget_sync_description"
+            android:focusable="true"
             android:padding="6dp"
             android:src="@drawable/ic_widget_sync" />
 
@@ -39,7 +41,9 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginStart="2dp"
+            android:clickable="true"
             android:contentDescription="@string/budget_widget_add_description"
+            android:focusable="true"
             android:padding="6dp"
             android:src="@drawable/ic_widget_add" />
     </LinearLayout>
